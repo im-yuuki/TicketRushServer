@@ -1,0 +1,31 @@
+name: setup-java
+author: im-yuuki
+description: Setup Java for CI workflows
+inputs:
+  java-version:
+    description: 'Java version to set up (e.g., 25, 21, 17, ...)'
+    required: false
+    default: '21'
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Java
+      uses: actions/setup-java@v5
+      with:
+        distribution: 'temurin'
+        java-version: ${{ inputs.java-version }}
+
+    - name: Modify Gradle settings
+      run: |
+        echo "JAVA_HOME=${{ steps.setup-java.outputs.java-home }}" >> $GITHUB_ENV
+        echo "GRADLE_USER_HOME=${{ github.workspace }}/.gradle" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Cache Gradle dependencies
+      uses: actions/cache@v5
+      with:
+        path: ${{ github.workspace }}/.gradle
+        key: gradle-${{ hashFiles('**/*.gradle*') }}-${{ hashFiles('**/gradle-wrapper.properties') }}
+        restore-keys: |
+          gradle-${{ hashFiles('**/*.gradle*') }}-
+          gradle-
