@@ -7,12 +7,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "partners")
+@Table(name = "events")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Partner {
+public class Event {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,10 +21,8 @@ public class Partner {
     @Column(nullable = false)
     private String name;
 
-    @Column(unique = true, nullable = false)
-    private String email;
-
-    @Column(nullable = false)
-    private String passwordHash;
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "partner_id", nullable = false)
+    private Partner partner;
 
 }

@@ -14,6 +14,7 @@ public class PublicController {
     }
 
     @GetMapping("/search")
-    public void globalSearch() {}
+    public void globalSearch() {
+    }
 
 }

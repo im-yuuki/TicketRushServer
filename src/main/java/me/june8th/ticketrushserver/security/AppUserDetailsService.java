@@ -24,14 +24,14 @@ public class AppUserDetailsService implements UserDetailsService {
     @NullMarked
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new UsernameNotFoundException("User " + email + " not found"));
+                .orElseThrow(() -> new UsernameNotFoundException("User " + email + " not found"));
 
         return new org.springframework.security.core.userdetails.User(
-            user.getEmail(),
-            user.getPasswordHash(),
-            true, true, true,
-            user.getAccountNonLocked(),
-            Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
+                user.getEmail(),
+                user.getPasswordHash(),
+                true, true, true,
+                user.getAccountNonLocked(),
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
         );
     }
 

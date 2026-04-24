@@ -12,7 +12,7 @@ spring:
   data:
     elasticsearch:
       repositories:
-        enabled: true
+        enabled: false
     redis:
       repositories:
         enabled: true
@@ -37,3 +37,13 @@ spring:
   output:
     ansi:
       enabled: always
+
+app:
+  admin:
+    enabled: false
+    username: ${ADMIN_USERNAME:admin}
+    password: ${ADMIN_PASSWORD:admin}
+  jwt:
+    secret: ${JWT_SECRET:the-super-secret-256-bits-key}
+    access-token-expiration: 900000
+    refresh-token-expiration: 604800000

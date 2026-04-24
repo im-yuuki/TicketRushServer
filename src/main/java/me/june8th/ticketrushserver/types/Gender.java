@@ -1,8 +1,7 @@
 package me.june8th.ticketrushserver.types;
 
+import jakarta.annotation.Nullable;
 import lombok.Getter;
-
-import javax.annotation.Nullable;
 
 public enum Gender {
 
