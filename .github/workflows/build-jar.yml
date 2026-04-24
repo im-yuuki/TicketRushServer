@@ -23,7 +23,9 @@ jobs:
           java-version: '25'
 
       - name: Build JAR
-        run: ./gradlew clean bootJar -x test
+        run: |
+          chmod +x ./gradlew
+          ./gradlew clean bootJar -x test
 
       - name: Upload JAR Artifact
         if: github.event_name != 'release'
