@@ -1,0 +1,59 @@
+services:
+  server:
+    build:
+      context: .
+      dockerfile: dockerfile
+    image: ticketrush-server:latest
+    ports:
+      - target: 8080
+        published: 8080
+        protocol: tcp
+        mode: host
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - DB_URL=
+      - DB_USR=
+      - DB_PWD=
+      - JWT_SECRET=
+  postgres:
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=ticketrush
+      - POSTGRES_USER=ticketrush
+      - POSTGRES_PASSWORD=ticketrush
+    ports:
+      - target: 5432
+        published: 5432
+        protocol: tcp
+        mode: host
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  redis:
+    image: redis:latest
+    ports:
+      - target: 6379
+        published: 6379
+        protocol: tcp
+        mode: host
+
+#  elasticsearch:
+#    image: docker.elastic.co/elasticsearch/elasticsearch:8.10.2
+#    environment:
+#      - discovery.type=single-node
+#      - xpack.security.enabled=false
+#      - xpack.monitoring.collection.enabled=true
+#    ports:
+#      - target: 9200
+#        published: 9200
+#        protocol: tcp
+#        mode: host
+#    volumes:
+#      - esdata:/usr/share/elasticsearch/data
+
+volumes:
+  pgdata:
+  esdata:
+
+networks:
+  default:
+    enable_ipv6: true

@@ -22,7 +22,11 @@ public class Event {
     private String name;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "partner_id", nullable = false)
-    private Partner partner;
+    @JoinColumn(name = "owner_id", nullable = false)
+    private ManagerAccount owner;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean published = false;
 
 }

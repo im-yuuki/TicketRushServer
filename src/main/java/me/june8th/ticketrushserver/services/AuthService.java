@@ -1,7 +1,7 @@
 package me.june8th.ticketrushserver.services;
 
-import me.june8th.ticketrushserver.data.User;
-import me.june8th.ticketrushserver.data.UserRepository;
+import me.june8th.ticketrushserver.data.UserAccount;
+import me.june8th.ticketrushserver.data.UserAccountRepository;
 import me.june8th.ticketrushserver.security.JwtTokenProvider;
 import me.june8th.ticketrushserver.types.Gender;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,20 +13,20 @@ import java.util.Date;
 @Service
 public class AuthService {
 
-    private final UserRepository userRepository;
+    private final UserAccountRepository userAccountRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtTokenProvider tokenProvider) {
-        this.userRepository = userRepository;
+    public AuthService(UserAccountRepository userAccountRepository, PasswordEncoder passwordEncoder, JwtTokenProvider tokenProvider) {
+        this.userAccountRepository = userAccountRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenProvider = tokenProvider;
     }
 
     @Transactional
-    public User registerUser(String fullName, String email, String password, Date birthDate, String genderString) {
+    public UserAccount registerUser(String name, String email, String password, Date birthDate, String genderString) {
         // Validate input
-        if (fullName == null || fullName.trim().length() < 3) {
+        if (name == null || name.trim().length() < 3) {
             throw new IllegalArgumentException("Full name must be at least 3 characters long");
         }
         if (email == null || email.trim().isEmpty()) {
@@ -40,14 +40,14 @@ public class AuthService {
             throw new IllegalArgumentException("Invalid gender value");
         }
 
-        // Check if user already exists
-        if (userRepository.existsByEmail(email)) {
+        // Check if userAccount already exists
+        if (userAccountRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("Email already exists");
         }
 
-        // Create new user with encrypted password
-        User user = User.builder()
-                .fullName(fullName.trim())
+        // Create new userAccount with encrypted password
+        UserAccount userAccount = UserAccount.builder()
+                .name(name.trim())
                 .email(email.trim())
                 .passwordHash(passwordEncoder.encode(password))
                 .birthDate(birthDate)
@@ -55,27 +55,22 @@ public class AuthService {
                 .accountNonLocked(true)
                 .build();
 
-        return userRepository.save(user);
+        return userAccountRepository.save(userAccount);
     }
 
-    public User loginUser(String email, String password) {
-        User user = userRepository.findByEmail(email)
+    public UserAccount loginUser(String email, String password) {
+        UserAccount userAccount = userAccountRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
 
-        if (!passwordEncoder.matches(password, user.getPasswordHash())) {
+        if (!passwordEncoder.matches(password, userAccount.getPasswordHash())) {
             throw new IllegalArgumentException("Invalid email or password");
         }
 
-        return user;
+        return userAccount;
     }
 
-    public String generateAccessToken(Long userId, String email) {
-        return tokenProvider.generateAccessToken(userId, email);
-    }
-
-    public String generateRefreshToken(Long userId, String email) {
-        return tokenProvider.generateRefreshToken(userId, email);
+    public String generateAccessToken(Long userId) {
+        return tokenProvider.generateAccessToken(userId, 0);
     }
 
 }
-

@@ -3,6 +3,8 @@ package me.june8th.ticketrushserver.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -13,39 +15,36 @@ import java.util.Date;
 @Component
 public class JwtTokenProvider {
 
-    private final String secretKey;
+    private static final Logger logger = LoggerFactory.getLogger(JwtTokenProvider.class);
+
+    private final SecretKey secretKey;
     private final long accessTokenExpiration;
-    private final long refreshTokenExpiration;
 
     public JwtTokenProvider(
             @Value("${app.jwt.secret}") String secretKey,
             @Value("${app.jwt.access-token-expiration}") long accessTokenExpiration,
             @Value("${app.jwt.refresh-token-expiration}") long refreshTokenExpiration) {
-        this.secretKey = secretKey;
-        this.accessTokenExpiration = accessTokenExpiration;
-        this.refreshTokenExpiration = refreshTokenExpiration;
+        if (secretKey.isEmpty()) {
+            logger.warn("JWT secret key isn't set. Using randomly generated key.");
+            this.secretKey = Jwts.SIG.HS256.key().build();
+        } else {
+            this.secretKey = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
+        }
+        // Convert to milliseconds
+        this.accessTokenExpiration = accessTokenExpiration * 1000;
     }
 
-    public String generateAccessToken(Long userId, String email) {
-        return generateToken(userId, email, accessTokenExpiration);
-    }
-
-    public String generateRefreshToken(Long userId, String email) {
-        return generateToken(userId, email, refreshTokenExpiration);
-    }
-
-    private String generateToken(Long userId, String email, long expirationTime) {
+    public String generateAccessToken(Long userId, int tokenVersion) {
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + expirationTime);
-
-        SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
+        Date expiryDate = new Date(now.getTime() + accessTokenExpiration);
 
         return Jwts.builder()
-                .subject(email)
-                .claim("userId", userId)
+                .subject("user-" + userId)
+                .claim("id", userId)
+                .claim("version", tokenVersion)
                 .issuedAt(now)
                 .expiration(expiryDate)
-                .signWith(key)
+                .signWith(secretKey)
                 .compact();
     }
 
@@ -57,11 +56,14 @@ public class JwtTokenProvider {
         return getClaimsFromToken(token).get("userId", Long.class);
     }
 
+    public int extractTokenVersion(String token) {
+        return getClaimsFromToken(token).get("version", Integer.class);
+    }
+
     public boolean validateToken(String token) {
         try {
-            SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
             Jwts.parser()
-                    .verifyWith(key)
+                    .verifyWith(secretKey)
                     .build()
                     .parseSignedClaims(token);
             return true;
@@ -71,9 +73,8 @@ public class JwtTokenProvider {
     }
 
     private Claims getClaimsFromToken(String token) {
-        SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
         return Jwts.parser()
-                .verifyWith(key)
+                .verifyWith(secretKey)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();

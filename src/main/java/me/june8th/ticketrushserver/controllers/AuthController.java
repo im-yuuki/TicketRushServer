@@ -3,7 +3,7 @@ package me.june8th.ticketrushserver.controllers;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.*;
-import me.june8th.ticketrushserver.data.User;
+import me.june8th.ticketrushserver.data.UserAccount;
 import me.june8th.ticketrushserver.services.AuthService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -18,23 +18,19 @@ public class AuthController {
 
     private final AuthService authService;
     private final int accessTokenExpiration;
-    private final int refreshTokenExpiration;
 
     public AuthController(
             AuthService authService,
-            @Value("${app.jwt.access-token-expiration}") long accessTokenExpiration,
-            @Value("${app.jwt.refresh-token-expiration}") long refreshTokenExpiration) {
+            @Value("${app.jwt.access-token-expiration}") long accessTokenExpiration) {
         this.authService = authService;
-        // convert milliseconds to seconds for cookie maxAge
-        this.accessTokenExpiration = Math.toIntExact(accessTokenExpiration / 1000);
-        this.refreshTokenExpiration = Math.toIntExact(refreshTokenExpiration / 1000);
+        this.accessTokenExpiration = Math.toIntExact(accessTokenExpiration);
     }
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
         try {
-            User user = authService.registerUser(request.getFullName(), request.getEmail(), request.getPassword(), request.getBirthDate(), request.getGender());
-            return ResponseEntity.status(HttpStatus.CREATED).body(new AuthResponse(user.getId(), user.getEmail(), "User registered successfully"));
+            UserAccount userAccount = authService.registerUser(request.getFullName(), request.getEmail(), request.getPassword(), request.getBirthDate(), request.getGender());
+            return ResponseEntity.status(HttpStatus.CREATED).body(new AuthResponse(userAccount.getId(), userAccount.getEmail(), "UserAccount registered successfully"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(e.getMessage()));
         }
@@ -43,13 +39,9 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpServletResponse response) {
         try {
-            User user = authService.loginUser(request.getEmail(), request.getPassword());
+            UserAccount userAccount = authService.loginUser(request.getEmail(), request.getPassword());
+            String accessToken = authService.generateAccessToken(userAccount.getId());
 
-            // Generate tokens
-            String accessToken = authService.generateAccessToken(user.getId(), user.getEmail());
-            String refreshToken = authService.generateRefreshToken(user.getId(), user.getEmail());
-
-            // Set access token in httpOnly cookie
             Cookie accessTokenCookie = new Cookie("accessToken", accessToken);
             accessTokenCookie.setHttpOnly(true);
             accessTokenCookie.setSecure(true);
@@ -57,15 +49,7 @@ public class AuthController {
             accessTokenCookie.setMaxAge(accessTokenExpiration);
             response.addCookie(accessTokenCookie);
 
-            // Set refresh token in httpOnly cookie
-            Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
-            refreshTokenCookie.setHttpOnly(true);
-            refreshTokenCookie.setSecure(true);
-            refreshTokenCookie.setPath("/");
-            refreshTokenCookie.setMaxAge(refreshTokenExpiration);
-            response.addCookie(refreshTokenCookie);
-
-            return ResponseEntity.ok(new AuthResponse(user.getId(), user.getEmail(), "Login successful"));
+            return ResponseEntity.ok(new AuthResponse(userAccount.getId(), userAccount.getEmail(), "Login successful"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse(e.getMessage()));
         }
@@ -81,23 +65,7 @@ public class AuthController {
         accessTokenCookie.setMaxAge(0);
         response.addCookie(accessTokenCookie);
 
-        // Clear refresh token cookie
-        Cookie refreshTokenCookie = new Cookie("refreshToken", null);
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(true);
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(0);
-        response.addCookie(refreshTokenCookie);
-
         return ResponseEntity.ok(new ErrorResponse("Logout successful"));
-    }
-
-    @PostMapping("/refresh")
-    public ResponseEntity<?> refreshToken(HttpServletResponse response) {
-        // This endpoint should be called with valid refreshToken cookie
-        // The JWT filter will have already validated it
-        // In a real scenario, you would extract user info and generate new access token
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(new ErrorResponse("Refresh token endpoint needs to be implemented with session management"));
     }
 
     @Data

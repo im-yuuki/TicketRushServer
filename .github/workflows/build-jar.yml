@@ -25,7 +25,7 @@ jobs:
       - name: Build JAR
         run: |
           chmod +x ./gradlew
-          ./gradlew clean bootJar -x test
+          ./gradlew clean bootJar -x test --no-daemon
 
       - name: Upload JAR Artifact
         if: github.event_name != 'release'
