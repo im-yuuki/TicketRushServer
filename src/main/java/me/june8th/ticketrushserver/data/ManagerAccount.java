@@ -32,7 +32,8 @@ public class ManagerAccount implements Account {
     private String passwordHash;
 
     @Column(nullable = false)
-    private Role role = Role.PARTNER;
+    @Enumerated(EnumType.STRING)
+    private Role role;
 
     @Column(nullable = false)
     @Builder.Default

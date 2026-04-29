@@ -12,7 +12,7 @@ public interface Account {
 
     String getPasswordHash();
 
-    String getTokenVersion();
+    Integer getTokenVersion();
 
     LocalDateTime getCreatedAt();
 

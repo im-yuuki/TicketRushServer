@@ -56,7 +56,10 @@ public class UserAccount implements Account {
     @Builder.Default
     private Integer tokenVersion = 0;
 
-    private final Role role = Role.USER;
+    @Override
+    public Role getRole() {
+        return Role.USER;
+    }
 
 }
 

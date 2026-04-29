@@ -4,6 +4,8 @@ import me.june8th.ticketrushserver.data.UserAccount;
 import me.june8th.ticketrushserver.data.UserAccountRepository;
 import me.june8th.ticketrushserver.security.JwtTokenProvider;
 import me.june8th.ticketrushserver.types.Gender;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,6 +14,8 @@ import java.util.Date;
 
 @Service
 public class AuthService {
+
+    private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
 
     private final UserAccountRepository userAccountRepository;
     private final PasswordEncoder passwordEncoder;

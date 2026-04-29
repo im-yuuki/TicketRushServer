@@ -21,24 +21,25 @@ spring:
     password: ${DB_PWD:}
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     properties:
       hibernate:
         format_sql: true
         default_schema: v1
+    open-in-view: true
   mail:
     test-connection: true
     host: ${SMTP_HOST:localhost}
     port: ${SMTP_PORT:587}
-    username: ${SMTP_USR:}
-    password: ${SMTP_PWD:}
+    username: ${SMTP_USR:ticketrush}
+    password: ${SMTP_PWD:ticketrush}
     properties:
       mail:
         smtp:
           auth: true
           starttls:
             enable: true
-            required: ${SMTP_STARTTLS_REQUIRED:false}
+            required: false
           connectiontimeout: 5000
           timeout: 5000
           writetimeout: 5000
