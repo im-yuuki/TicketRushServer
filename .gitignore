@@ -36,3 +36,5 @@ out/
 ### VS Code ###
 .vscode/
 .worktrees/
+emails/node_modules/
+emails/dist/

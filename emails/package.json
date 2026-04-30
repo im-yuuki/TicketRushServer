@@ -1,0 +1,25 @@
+{
+  "name": "ticketrush-email-builder",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build:assets": "vite build",
+    "render": "tsx scripts/render-emails.mts",
+    "build": "npm run build:assets && npm run render"
+  },
+  "dependencies": {
+    "juice": "^11.0.3",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "@types/node": "^24.12.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "tsx": "^4.20.6",
+    "typescript": "~6.0.2",
+    "vite": "^8.0.4"
+  }
+}
