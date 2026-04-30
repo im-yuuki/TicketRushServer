@@ -4,6 +4,11 @@ plugins {
     id 'io.spring.dependency-management' version '1.1.7'
 }
 
+def emailsDir = layout.projectDirectory.dir('emails')
+def renderedEmailsDir = layout.projectDirectory.dir('emails/dist/rendered')
+def templatesDir = layout.projectDirectory.dir('src/main/resources/templates')
+def npmCommand = System.getProperty('os.name').toLowerCase().contains('windows') ? 'npm.cmd' : 'npm'
+
 group = 'me.june8th'
 version = '1.0.0-dev'
 description = 'TicketRushServer'
@@ -50,4 +55,35 @@ dependencies {
 
 tasks.withType(Test).configureEach {
     useJUnitPlatform()
+}
+
+tasks.register('buildEmailTemplates', Exec) {
+    group = 'build'
+    description = 'Builds static email HTML from the React email workspace.'
+    workingDir = emailsDir.asFile
+    commandLine npmCommand, 'run', 'build'
+
+    inputs.files(
+        fileTree(dir: 'emails/src'),
+        fileTree(dir: 'emails/scripts'),
+        'emails/package.json',
+        'emails/package-lock.json',
+        'emails/tsconfig.json',
+        'emails/vite.config.ts'
+    )
+    outputs.dir(renderedEmailsDir)
+}
+
+tasks.register('syncEmailTemplates', Sync) {
+    group = 'build'
+    description = 'Copies rendered email HTML into Spring template resources.'
+    dependsOn tasks.named('buildEmailTemplates')
+
+    from(renderedEmailsDir)
+    include '*.html'
+    into templatesDir
+}
+
+tasks.named('processResources') {
+    dependsOn tasks.named('syncEmailTemplates')
 }
