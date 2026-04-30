@@ -57,9 +57,19 @@ tasks.withType(Test).configureEach {
     useJUnitPlatform()
 }
 
+tasks.register('npmInstallEmails', Exec) {
+    group = 'build'
+    description = 'Installs npm dependencies for the email workspace.'
+    workingDir = emailsDir.asFile
+    commandLine npmCommand, 'ci'
+    inputs.file('emails/package-lock.json')
+    outputs.dir('emails/node_modules')
+}
+
 tasks.register('buildEmailTemplates', Exec) {
     group = 'build'
     description = 'Builds static email HTML from the React email workspace.'
+    dependsOn tasks.named('npmInstallEmails')
     workingDir = emailsDir.asFile
     commandLine npmCommand, 'run', 'build'
 
