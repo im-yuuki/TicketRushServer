@@ -16,10 +16,7 @@ export function RegisterConfirmationEmail({ darkModeCss, userName, otpCode }: Re
       previewText="Confirm your TicketRush account with your one-time passcode."
       darkModeCss={darkModeCss}
     >
-      <BrandHeader
-        title="Confirm your TicketRush account"
-        body="Use this code to verify your email address and finish setting up your account."
-      />
+      <BrandHeader title="Confirm your TicketRush account" />
 
       <table role="presentation" width="100%" cellPadding="0" cellSpacing="0" style={{ width: "100%", marginTop: "28px" }}>
         <tbody>
@@ -39,11 +36,23 @@ export function RegisterConfirmationEmail({ darkModeCss, userName, otpCode }: Re
             </td>
           </tr>
           <tr>
+            <td style={{ paddingTop: "12px" }}>
+              <p
+                className="email-muted"
+                style={{
+                  margin: 0,
+                  color: emailTheme.color.light.muted,
+                  fontSize: "15px",
+                  lineHeight: 1.6,
+                }}
+              >
+                Use this code to verify your email address and finish setting up your account.
+              </p>
+            </td>
+          </tr>
+          <tr>
             <td style={{ paddingTop: "14px" }}>
-              <OtpCard
-                code={<span data-th-text="${otpCode}">{otpCode}</span>}
-                hint="Enter this code in TicketRush to confirm your email address."
-              />
+              <OtpCard code={<span data-th-text="${otpCode}">{otpCode}</span>} />
             </td>
           </tr>
           <tr>
@@ -57,7 +66,7 @@ export function RegisterConfirmationEmail({ darkModeCss, userName, otpCode }: Re
                   lineHeight: 1.6,
                 }}
               >
-                This code only confirms this email address. If you did not create a TicketRush account, ignore this message. Need help? Reply to this email and the TicketRush team can help you finish setup.
+                Do not share it with anyone, including TicketRush staff. If you did not create a TicketRush account, ignore this message.
               </p>
             </td>
           </tr>

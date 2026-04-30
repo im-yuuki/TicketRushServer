@@ -16,10 +16,7 @@ export function PasswordResetEmail({ darkModeCss, userName, otpCode }: PasswordR
       previewText="Reset your TicketRush password with your one-time passcode."
       darkModeCss={darkModeCss}
     >
-      <BrandHeader
-        title="Reset your TicketRush password"
-        body="Use this code to continue resetting your password. Keep it private and enter it only in TicketRush."
-      />
+      <BrandHeader title="Reset your TicketRush password" />
 
       <table role="presentation" width="100%" cellPadding="0" cellSpacing="0" style={{ width: "100%", marginTop: "28px" }}>
         <tbody>
@@ -39,11 +36,23 @@ export function PasswordResetEmail({ darkModeCss, userName, otpCode }: PasswordR
             </td>
           </tr>
           <tr>
+            <td style={{ paddingTop: "12px" }}>
+              <p
+                className="email-muted"
+                style={{
+                  margin: 0,
+                  color: emailTheme.color.light.muted,
+                  fontSize: "15px",
+                  lineHeight: 1.6,
+                }}
+              >
+                Use this code to continue resetting your password. Keep it private and enter it only in TicketRush.
+              </p>
+            </td>
+          </tr>
+          <tr>
             <td style={{ paddingTop: "14px" }}>
-              <OtpCard
-                code={<span data-th-text="${otpCode}">{otpCode}</span>}
-                hint="Enter this code in TicketRush to continue. Do not share it with anyone."
-              />
+              <OtpCard code={<span data-th-text="${otpCode}">{otpCode}</span>} />
             </td>
           </tr>
           <tr>
@@ -57,7 +66,7 @@ export function PasswordResetEmail({ darkModeCss, userName, otpCode }: PasswordR
                   lineHeight: 1.6,
                 }}
               >
-                This code only starts the password reset flow. If you did not request it, ignore this message and keep your current password. For security, only use the latest code you requested.
+                Do not share it with anyone, including TicketRush staff. If you did not request it, ignore this message and keep your current password.
               </p>
             </td>
           </tr>

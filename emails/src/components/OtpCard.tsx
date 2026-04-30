@@ -4,10 +4,9 @@ import { emailTheme } from "../theme/tokens";
 
 type OtpCardProps = {
   code: ReactNode;
-  hint: string;
 };
 
-export function OtpCard({ code, hint }: OtpCardProps) {
+export function OtpCard({ code }: OtpCardProps) {
   return (
     <table
       role="presentation"
@@ -48,18 +47,6 @@ export function OtpCard({ code, hint }: OtpCardProps) {
                 {code}
               </div>
             </div>
-
-            <p
-              className="meta-muted"
-              style={{
-                margin: "14px 0 0",
-                color: emailTheme.color.light.muted,
-                fontSize: "13px",
-                lineHeight: 1.6,
-              }}
-            >
-              {hint}
-            </p>
           </td>
         </tr>
       </tbody>

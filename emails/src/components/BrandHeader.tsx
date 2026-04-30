@@ -2,10 +2,9 @@ import { emailTheme } from "../theme/tokens";
 
 type BrandHeaderProps = {
   title: string;
-  body: string;
 };
 
-export function BrandHeader({ title, body }: BrandHeaderProps) {
+export function BrandHeader({ title }: BrandHeaderProps) {
   return (
     <>
       <table role="presentation" width="100%" cellPadding="0" cellSpacing="0" style={{ width: "100%" }}>
@@ -41,21 +40,6 @@ export function BrandHeader({ title, body }: BrandHeaderProps) {
               >
                 {title}
               </h1>
-            </td>
-          </tr>
-          <tr>
-            <td style={{ paddingTop: "12px" }}>
-              <p
-                className="email-muted"
-                style={{
-                  margin: 0,
-                  color: emailTheme.color.light.muted,
-                  fontSize: "15px",
-                  lineHeight: 1.6,
-                }}
-              >
-                {body}
-              </p>
             </td>
           </tr>
         </tbody>

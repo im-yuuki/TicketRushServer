@@ -1,14 +1,19 @@
 package me.june8th.ticketrushserver.services;
 
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import me.june8th.ticketrushserver.utils.Validator;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailException;
-import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.MailPreparationException;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
+
+import java.nio.charset.StandardCharsets;
 
 @Service
 public class EmailService {
@@ -38,8 +43,8 @@ public class EmailService {
         ctx.setVariable("userName", userName);
         ctx.setVariable("otpCode", otpCode);
 
-        String emailContent = templateEngine.process("register_confirmation_email", ctx);
-        sendText(toAddress, REGISTER_CONFIRMATION_SUBJECT, emailContent);
+        String emailContent = templateEngine.process("register-confirmation-email", ctx);
+        sendHtml(toAddress, REGISTER_CONFIRMATION_SUBJECT, emailContent);
     }
 
     @NullMarked
@@ -54,19 +59,23 @@ public class EmailService {
         ctx.setVariable("userName", userName);
         ctx.setVariable("otpCode", otpCode);
 
-        String emailContent = templateEngine.process("password_reset_email", ctx);
-        sendText(toAddress, PASSWORD_RESET_SUBJECT, emailContent);
+        String emailContent = templateEngine.process("password-reset-email", ctx);
+        sendHtml(toAddress, PASSWORD_RESET_SUBJECT, emailContent);
     }
 
     @NullMarked
-    private void sendText(String toAddress, String subject, String otpCode) throws MailException {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(fromAddress);
-        message.setTo(toAddress);
-        message.setSubject(subject);
-        message.setText(otpCode);
-        mailSender.send(message);
+    private void sendHtml(String toAddress, String subject, String emailContent) throws MailException {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, false, StandardCharsets.UTF_8.name());
+            helper.setFrom(fromAddress);
+            helper.setTo(toAddress);
+            helper.setSubject(subject);
+            helper.setText(emailContent, true);
+            mailSender.send(message);
+        } catch (MessagingException e) {
+            throw new MailPreparationException("Failed to prepare email message", e);
+        }
     }
 
 }
-
