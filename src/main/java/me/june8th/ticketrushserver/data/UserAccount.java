@@ -52,6 +52,26 @@ public class UserAccount implements Account {
     @Builder.Default
     private String avatarKey = "";
 
+    @Column
+    @Builder.Default
+    private String phoneNumber = null;
+
+    @Column
+    @Builder.Default
+    private String addressLine = null;
+
+    @Column
+    @Builder.Default
+    private String city = null;
+
+    @Column
+    @Builder.Default
+    private String state = null;
+
+    @Column
+    @Builder.Default
+    private String country = null;
+
     @Column(nullable = false)
     @Builder.Default
     private Integer tokenVersion = 0;
