@@ -34,7 +34,7 @@ public class AuthService {
                 .validateName(name)
                 .validateEmail(email)
                 .validatePassword(password)
-                .throwIfInvalid();
+                .throwExceptionIfInvalid();
 
         Gender gender = Gender.fromString(genderString);
         if (gender == null) {
