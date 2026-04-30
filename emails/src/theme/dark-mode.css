@@ -1,0 +1,118 @@
+@media (prefers-color-scheme: dark) {
+  body[data-email-root="true"] {
+    background-color: #16120d !important;
+    color: #f6efe4 !important;
+  }
+
+  .email-shell {
+    background: #16120d !important;
+  }
+
+  .email-card {
+    background: #211a13 !important;
+    border-color: #3a2f20 !important;
+    box-shadow: 0 16px 44px rgba(0, 0, 0, 0.35) !important;
+  }
+
+  .email-card-secondary {
+    background: #2a2118 !important;
+    border-color: #3a2f20 !important;
+  }
+
+  .email-text,
+  .email-title,
+  .brand-primary,
+  .otp-caption,
+  .meta-text {
+    color: #f6efe4 !important;
+  }
+
+  .email-muted,
+  .email-caption,
+  .meta-muted,
+  .brand-secondary {
+    color: #c2b3a0 !important;
+  }
+
+  .accent-text,
+  .brand-accent,
+  .otp-code {
+    color: #e3b64f !important;
+  }
+
+  .accent-surface {
+    background: #553c08 !important;
+    border-color: #826423 !important;
+  }
+
+  .accent-pill {
+    background: #312619 !important;
+    border-color: #5b4622 !important;
+    color: #fde7ab !important;
+  }
+}
+
+[data-ogsc] body[data-email-root="true"],
+[data-ogsb] body[data-email-root="true"] {
+  background-color: #16120d !important;
+  color: #f6efe4 !important;
+}
+
+[data-ogsc] .email-card,
+[data-ogsb] .email-card {
+  background: #211a13 !important;
+  border-color: #3a2f20 !important;
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.35) !important;
+}
+
+[data-ogsc] .email-card-secondary,
+[data-ogsb] .email-card-secondary {
+  background: #2a2118 !important;
+  border-color: #3a2f20 !important;
+}
+
+[data-ogsc] .email-text,
+[data-ogsb] .email-text,
+[data-ogsc] .email-title,
+[data-ogsb] .email-title,
+[data-ogsc] .brand-primary,
+[data-ogsb] .brand-primary,
+[data-ogsc] .otp-caption,
+[data-ogsb] .otp-caption,
+[data-ogsc] .meta-text,
+[data-ogsb] .meta-text {
+  color: #f6efe4 !important;
+}
+
+[data-ogsc] .email-muted,
+[data-ogsb] .email-muted,
+[data-ogsc] .email-caption,
+[data-ogsb] .email-caption,
+[data-ogsc] .meta-muted,
+[data-ogsb] .meta-muted,
+[data-ogsc] .brand-secondary,
+[data-ogsb] .brand-secondary {
+  color: #c2b3a0 !important;
+}
+
+[data-ogsc] .accent-text,
+[data-ogsb] .accent-text,
+[data-ogsc] .brand-accent,
+[data-ogsb] .brand-accent,
+[data-ogsc] .otp-code,
+[data-ogsb] .otp-code {
+  color: #e3b64f !important;
+}
+
+[data-ogsc] .accent-surface,
+[data-ogsb] .accent-surface {
+  background: #553c08 !important;
+  border-color: #826423 !important;
+}
+
+[data-ogsc] .accent-pill,
+[data-ogsb] .accent-pill {
+  background: #312619 !important;
+  border-color: #5b4622 !important;
+  color: #fde7ab !important;
+}
