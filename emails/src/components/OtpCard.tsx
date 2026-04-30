@@ -1,8 +1,10 @@
+import type { ReactNode } from "react";
+
 import { emailTheme } from "../theme/tokens";
 
 type OtpCardProps = {
   label: string;
-  code: string;
+  code: ReactNode;
   hint: string;
 };
 
