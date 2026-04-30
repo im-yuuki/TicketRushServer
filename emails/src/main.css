@@ -1,1 +1,48 @@
-/* Email workspace styles arrive in later steps. */
+.email-shell {
+  background: #f6f1e8;
+}
+
+.email-card {
+  background: #fffdfa;
+  border: 1px solid #e7dcc9;
+  border-radius: 32px;
+  box-shadow: 0 18px 48px rgba(54, 36, 10, 0.12);
+}
+
+.email-card-secondary {
+  background: #f8f1e5;
+  border: 1px solid #e7dcc9;
+  border-radius: 24px;
+}
+
+.email-title,
+.email-text,
+.meta-text,
+.brand-primary,
+.otp-caption {
+  color: #1f1912;
+}
+
+.email-muted,
+.email-caption,
+.meta-muted,
+.brand-secondary {
+  color: #6d6458;
+}
+
+.brand-accent,
+.accent-text,
+.otp-code {
+  color: #d4a63c;
+}
+
+.accent-surface {
+  background: #f6e3a9;
+  border: 1px solid #f0d79a;
+}
+
+.accent-pill {
+  background: #f3ead8;
+  border: 1px solid #f0d79a;
+  color: #34230a;
+}

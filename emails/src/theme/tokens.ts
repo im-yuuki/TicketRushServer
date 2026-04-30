@@ -1,7 +1,7 @@
 export const emailTheme = {
   font: {
-    body: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-    brand: 'Nunito, Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    body: "Inter, Arial, Helvetica, sans-serif",
+    brand: "Nunito, Inter, Arial, Helvetica, sans-serif",
   },
   color: {
     light: {
