@@ -1,6 +1,6 @@
 package me.june8th.ticketrushserver.types;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public interface Account {
 
@@ -14,7 +14,7 @@ public interface Account {
 
     Integer getTokenVersion();
 
-    LocalDateTime getCreatedAt();
+    Instant getCreatedAt();
 
     Boolean getAccountNonLocked();
 

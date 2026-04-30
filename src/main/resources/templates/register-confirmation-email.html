@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">>
+<body>
+<p>Hello <span th:text="${name}" />,</p>
+<p>Please click the link below to confirm your email address and complete your registration:</p>
+<a th:href="${confirmEmailUrl}">Confirm your Email</a>
+<p>If you did not create an account, please ignore this email.</p>
+</body>
+</html>

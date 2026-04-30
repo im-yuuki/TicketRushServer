@@ -64,7 +64,7 @@ public class Validator {
         return this;
     }
 
-    public boolean valid() {
+    public boolean isValid() {
         return error == ValidateError.NONE;
     }
 

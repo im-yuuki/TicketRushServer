@@ -6,12 +6,13 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 @Service
-public class EmailSender {
+public class EmailService {
 
     private final JavaMailSender mailSender;
+    // private final ThymeleafEngine thymeleafEngine;
     private final String fromAddress;
 
-    public EmailSender(JavaMailSender mailSender, @Value("${app.mail.from}") String fromAddress) {
+    public EmailService(JavaMailSender mailSender, @Value("${app.mail.from}") String fromAddress) {
         this.mailSender = mailSender;
         this.fromAddress = fromAddress;
     }
@@ -24,10 +25,10 @@ public class EmailSender {
         // TODO: send email with link to reset password
     }
 
-    private void sendText(String to, String subject, String body) {
+    private void sendText(String toAddress, String subject, String body) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(fromAddress);
-        message.setTo(to);
+        message.setTo(toAddress);
         message.setSubject(subject);
         message.setText(body);
         mailSender.send(message);
