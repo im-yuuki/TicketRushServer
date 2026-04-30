@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import me.june8th.ticketrushserver.types.Account;
 import me.june8th.ticketrushserver.types.Role;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "managers")
@@ -41,10 +41,18 @@ public class ManagerAccount implements Account {
 
     @Column(nullable = false)
     @Builder.Default
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private Instant createdAt = Instant.now();
 
     @Column(nullable = false)
     @Builder.Default
     private Boolean accountNonLocked = true;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private String avatarKey = "";
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean verified = false;
 
 }

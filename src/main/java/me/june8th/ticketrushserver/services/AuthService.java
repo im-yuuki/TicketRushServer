@@ -1,9 +1,13 @@
 package me.june8th.ticketrushserver.services;
 
+import lombok.RequiredArgsConstructor;
+import me.june8th.ticketrushserver.data.ManagerAccount;
 import me.june8th.ticketrushserver.data.UserAccount;
-import me.june8th.ticketrushserver.data.UserAccountRepository;
+import me.june8th.ticketrushserver.repositories.ManagerAccountRepository;
+import me.june8th.ticketrushserver.repositories.UserAccountRepository;
 import me.june8th.ticketrushserver.security.JwtTokenProvider;
 import me.june8th.ticketrushserver.types.Gender;
+import me.june8th.ticketrushserver.utils.Validator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,32 +17,25 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Date;
 
 @Service
+@RequiredArgsConstructor
 public class AuthService {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
 
     private final UserAccountRepository userAccountRepository;
+    private final ManagerAccountRepository managerAccountRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
 
-    public AuthService(UserAccountRepository userAccountRepository, PasswordEncoder passwordEncoder, JwtTokenProvider tokenProvider) {
-        this.userAccountRepository = userAccountRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.tokenProvider = tokenProvider;
-    }
-
     @Transactional
-    public UserAccount registerUser(String name, String email, String password, Date birthDate, String genderString) {
-        // Validate input
-        if (name == null || name.trim().length() < 3) {
-            throw new IllegalArgumentException("Full name must be at least 3 characters long");
-        }
-        if (email == null || email.trim().isEmpty()) {
-            throw new IllegalArgumentException("Email cannot be empty");
-        }
-        if (password == null || password.length() < 6) {
-            throw new IllegalArgumentException("Password must be at least 6 characters long");
-        }
+    public UserAccount userRegister(String name, String email, String password, Date birthDate, String genderString) {
+
+        Validator.create()
+                .validateName(name)
+                .validateEmail(email)
+                .validatePassword(password)
+                .throwIfInvalid();
+
         Gender gender = Gender.fromString(genderString);
         if (gender == null) {
             throw new IllegalArgumentException("Invalid gender value");
@@ -62,7 +59,7 @@ public class AuthService {
         return userAccountRepository.save(userAccount);
     }
 
-    public UserAccount loginUser(String email, String password) {
+    public UserAccount userLogin(String email, String password) {
         UserAccount userAccount = userAccountRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
 
@@ -71,6 +68,40 @@ public class AuthService {
         }
 
         return userAccount;
+    }
+
+    public boolean userLogoutAllSessions(Long userId) {
+        UserAccount userAccount = userAccountRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        userAccount.setTokenVersion(userAccount.getTokenVersion() + 1);
+        userAccountRepository.save(userAccount);
+        return true;
+    }
+
+    public boolean userCreateResetPasswordToken(String email) {
+        UserAccount userAccount = userAccountRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        // TODO: send email with reset password token
+        return true;
+    }
+
+    public boolean userResetPassword(String token, String newPassword) {
+        // TODO: implement reset password logic
+        return false;
+    }
+
+
+    public ManagerAccount managerLogin(String email, String password) {
+        ManagerAccount managerAccount = managerAccountRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
+
+        if (!passwordEncoder.matches(password, managerAccount.getPasswordHash())) {
+            throw new IllegalArgumentException("Invalid email or password");
+        }
+
+        return managerAccount;
     }
 
     public String generateAccessToken(Long userId) {

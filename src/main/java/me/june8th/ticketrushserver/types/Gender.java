@@ -2,17 +2,15 @@ package me.june8th.ticketrushserver.types;
 
 import jakarta.annotation.Nullable;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 public enum Gender {
 
     MALE("male"), FEMALE("female"), OTHER("other");
 
     @Getter
     private final String value;
-
-    Gender(String value) {
-        this.value = value;
-    }
 
     @Nullable
     public static Gender fromString(String value) {

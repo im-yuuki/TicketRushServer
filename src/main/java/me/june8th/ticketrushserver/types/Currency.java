@@ -5,17 +5,17 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public enum Role {
+public enum Currency {
 
-    USER("user"), PARTNER("partner"), ADMIN("admin");
+    USD("USD"), EUR("EUR"), JPY("JPY"), VND("VND");
 
     @Getter
     private final String value;
 
     @Nullable
-    public static Role fromString(String value) {
-        for (Role role : values()) {
-            if (role.value.equalsIgnoreCase(value)) return role;
+    public static Currency fromString(String value) {
+        for (Currency currency : values()) {
+            if (currency.value.equalsIgnoreCase(value)) return currency;
         }
         return null;
     }

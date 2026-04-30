@@ -16,7 +16,15 @@ public class EmailSender {
         this.fromAddress = fromAddress;
     }
 
-    public void sendText(String to, String subject, String body) {
+    public void sendRegisterConfirmationEmail(String toAddress, String token) {
+        // TODO: send email with link to confirm registration
+    }
+
+    public void sendPasswordResetEmail(String toAddress, String token) {
+        // TODO: send email with link to reset password
+    }
+
+    private void sendText(String to, String subject, String body) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(fromAddress);
         message.setTo(to);

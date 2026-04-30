@@ -1,6 +1,6 @@
 package me.june8th.ticketrushserver;
 
-import me.june8th.ticketrushserver.middlewares.JwtAuthFilter;
+import me.june8th.ticketrushserver.security.JwtAuthFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;

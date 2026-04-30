@@ -9,7 +9,7 @@ import me.june8th.ticketrushserver.types.Account;
 import me.june8th.ticketrushserver.types.Gender;
 import me.june8th.ticketrushserver.types.Role;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Date;
 
 @Entity
@@ -35,7 +35,7 @@ public class UserAccount implements Account {
 
     @Column(nullable = false)
     @Builder.Default
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private Instant createdAt = Instant.now();
 
     @Column(nullable = false)
     @Builder.Default

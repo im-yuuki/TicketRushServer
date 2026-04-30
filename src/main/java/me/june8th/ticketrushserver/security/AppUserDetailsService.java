@@ -1,7 +1,7 @@
 package me.june8th.ticketrushserver.security;
 
 import me.june8th.ticketrushserver.data.UserAccount;
-import me.june8th.ticketrushserver.data.UserAccountRepository;
+import me.june8th.ticketrushserver.repositories.UserAccountRepository;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

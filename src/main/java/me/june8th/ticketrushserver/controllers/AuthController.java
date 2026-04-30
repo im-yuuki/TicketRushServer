@@ -29,7 +29,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
         try {
-            UserAccount userAccount = authService.registerUser(request.getFullName(), request.getEmail(), request.getPassword(), request.getBirthDate(), request.getGender());
+            UserAccount userAccount = authService.userRegister(request.getName(), request.getEmail(), request.getPassword(), request.getBirthDate(), request.getGender());
             return ResponseEntity.status(HttpStatus.CREATED).body(new AuthResponse(userAccount.getId(), userAccount.getEmail(), "UserAccount registered successfully"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(e.getMessage()));
@@ -39,7 +39,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpServletResponse response) {
         try {
-            UserAccount userAccount = authService.loginUser(request.getEmail(), request.getPassword());
+            UserAccount userAccount = authService.userLogin(request.getEmail(), request.getPassword());
             String accessToken = authService.generateAccessToken(userAccount.getId());
 
             Cookie accessTokenCookie = new Cookie("accessToken", accessToken);
@@ -57,7 +57,6 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletResponse response) {
-        // Clear access token cookie
         Cookie accessTokenCookie = new Cookie("accessToken", null);
         accessTokenCookie.setHttpOnly(true);
         accessTokenCookie.setSecure(true);
@@ -68,19 +67,28 @@ public class AuthController {
         return ResponseEntity.ok(new ErrorResponse("Logout successful"));
     }
 
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
+        return null;
+    }
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
     public static class RegisterRequest {
 
         @NonNull
-        private String fullName;
+        private String name;
+
         @NonNull
         private String email;
+
         @NonNull
         private String password;
+
         @NonNull
         private Date birthDate;
+
         @NonNull
         private String gender;
 
@@ -93,8 +101,19 @@ public class AuthController {
 
         @NonNull
         private String email;
+
         @NonNull
         private String password;
+
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ResetPasswordRequest {
+
+        @NonNull
+        private String email;
 
     }
 
@@ -105,8 +124,10 @@ public class AuthController {
 
         @NonNull
         private Long id;
+
         @NonNull
         private String email;
+
         @NonNull
         private String message;
 
