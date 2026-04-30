@@ -17,9 +17,8 @@ export function PasswordResetEmail({ darkModeCss, userName, otpCode }: PasswordR
       darkModeCss={darkModeCss}
     >
       <BrandHeader
-        badge="Password reset"
-        title="Reset your password securely"
-        body="Use the one-time passcode below to keep your TicketRush account moving without sharing a permanent password reset link."
+        title="Reset your TicketRush password"
+        body="Use this code to continue resetting your password. Keep it private and enter it only in TicketRush."
       />
 
       <table role="presentation" width="100%" cellPadding="0" cellSpacing="0" style={{ width: "100%", marginTop: "28px" }}>
@@ -31,8 +30,8 @@ export function PasswordResetEmail({ darkModeCss, userName, otpCode }: PasswordR
                 style={{
                   margin: 0,
                   color: emailTheme.color.light.foreground,
-                  fontSize: "16px",
-                  lineHeight: 1.7,
+                  fontSize: "15px",
+                  lineHeight: 1.6,
                 }}
               >
                 Hi <span data-th-text="${userName}">{userName}</span>,
@@ -42,9 +41,8 @@ export function PasswordResetEmail({ darkModeCss, userName, otpCode }: PasswordR
           <tr>
             <td style={{ paddingTop: "14px" }}>
               <OtpCard
-                label="Your reset code"
                 code={<span data-th-text="${otpCode}">{otpCode}</span>}
-                hint="Enter this passcode in the app to continue resetting your password. If you did not request this, you can ignore this email and keep your current password."
+                hint="Enter this code in TicketRush to continue. Do not share it with anyone."
               />
             </td>
           </tr>
@@ -55,11 +53,11 @@ export function PasswordResetEmail({ darkModeCss, userName, otpCode }: PasswordR
                 style={{
                   margin: 0,
                   color: emailTheme.color.light.foreground,
-                  fontSize: "14px",
-                  lineHeight: 1.7,
+                  fontSize: "13px",
+                  lineHeight: 1.6,
                 }}
               >
-                For security, only use the latest code you requested.
+                This code only starts the password reset flow. If you did not request it, ignore this message and keep your current password. For security, only use the latest code you requested.
               </p>
             </td>
           </tr>

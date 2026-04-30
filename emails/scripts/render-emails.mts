@@ -16,8 +16,8 @@ const distDir = join(rootDir, "dist");
 const renderedDir = join(distDir, "rendered");
 const darkModeCssPath = join(rootDir, "src", "theme", "dark-mode.css");
 
-const placeholderUserName = "__USER_NAME__";
-const placeholderOtpCode = "__OTP_CODE__";
+const placeholderUserName = "there";
+const placeholderOtpCode = "000000";
 
 async function main() {
   await viteBuild({

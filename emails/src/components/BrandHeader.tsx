@@ -1,12 +1,11 @@
 import { emailTheme } from "../theme/tokens";
 
 type BrandHeaderProps = {
-  badge: string;
   title: string;
   body: string;
 };
 
-export function BrandHeader({ badge, title, body }: BrandHeaderProps) {
+export function BrandHeader({ title, body }: BrandHeaderProps) {
   return (
     <>
       <table role="presentation" width="100%" cellPadding="0" cellSpacing="0" style={{ width: "100%" }}>
@@ -29,36 +28,15 @@ export function BrandHeader({ badge, title, body }: BrandHeaderProps) {
             </td>
           </tr>
           <tr>
-            <td style={{ paddingTop: "20px" }}>
-              <span
-                className="accent-pill meta-text"
-                style={{
-                  display: "inline-block",
-                  padding: "8px 12px",
-                  borderRadius: `${emailTheme.radius.badge}px`,
-                  border: `1px solid ${emailTheme.color.light.outline}`,
-                  backgroundColor: emailTheme.color.light.pillBackground,
-                  color: emailTheme.color.light.accentForeground,
-                  fontSize: "12px",
-                  fontWeight: 700,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                }}
-              >
-                {badge}
-              </span>
-            </td>
-          </tr>
-          <tr>
-            <td style={{ paddingTop: "20px" }}>
+            <td style={{ paddingTop: "24px" }}>
               <h1
                 className="email-title"
                 style={{
                   margin: 0,
                   color: emailTheme.color.light.foreground,
-                  fontSize: "30px",
-                  lineHeight: 1.2,
-                  fontWeight: 800,
+                  fontSize: "24px",
+                  lineHeight: 1.3,
+                  fontWeight: 500,
                 }}
               >
                 {title}
@@ -72,8 +50,8 @@ export function BrandHeader({ badge, title, body }: BrandHeaderProps) {
                 style={{
                   margin: 0,
                   color: emailTheme.color.light.muted,
-                  fontSize: "16px",
-                  lineHeight: 1.7,
+                  fontSize: "15px",
+                  lineHeight: 1.6,
                 }}
               >
                 {body}
@@ -89,8 +67,8 @@ export function BrandHeader({ badge, title, body }: BrandHeaderProps) {
 function BrandSquare() {
   return (
     <svg
-      width="28"
-      height="28"
+      width="24"
+      height="24"
       viewBox="0 0 24 24"
       aria-hidden="true"
       style={{ display: "block", color: emailTheme.color.light.accent }}
@@ -106,7 +84,7 @@ function BrandSquare() {
 const wordmarkStyle = {
   color: emailTheme.color.light.foreground,
   fontFamily: emailTheme.font.brand,
-  fontSize: "30px",
+  fontSize: "26px",
   fontWeight: 900,
   lineHeight: 1,
   letterSpacing: "-0.05em",

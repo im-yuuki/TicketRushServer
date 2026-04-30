@@ -1,48 +1,41 @@
 .email-shell {
-  background: #f6f1e8;
+  background: #ffffff;
 }
 
 .email-card {
-  background: #fffdfa;
-  border: 1px solid #e7dcc9;
-  border-radius: 32px;
-  box-shadow: 0 18px 48px rgba(54, 36, 10, 0.12);
+  background: #ffffff;
+  border: 1px solid #dadce0;
+  border-radius: 12px;
+  box-shadow: none;
 }
 
 .email-card-secondary {
-  background: #f8f1e5;
-  border: 1px solid #e7dcc9;
-  border-radius: 24px;
+  background: #f8f9fa;
+  border: 1px solid #dadce0;
+  border-radius: 10px;
 }
 
 .email-title,
 .email-text,
 .meta-text,
-.brand-primary,
-.otp-caption {
-  color: #1f1912;
+.brand-primary {
+  color: #202124;
 }
 
 .email-muted,
 .email-caption,
 .meta-muted,
 .brand-secondary {
-  color: #6d6458;
+  color: #5f6368;
 }
 
 .brand-accent,
 .accent-text,
 .otp-code {
-  color: #d4a63c;
+  color: #c48a12;
 }
 
 .accent-surface {
-  background: #f6e3a9;
-  border: 1px solid #f0d79a;
-}
-
-.accent-pill {
-  background: #f3ead8;
-  border: 1px solid #f0d79a;
-  color: #34230a;
+  background: #ffffff;
+  border: 1px solid #e8eaed;
 }

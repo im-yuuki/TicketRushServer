@@ -17,9 +17,8 @@ export function RegisterConfirmationEmail({ darkModeCss, userName, otpCode }: Re
       darkModeCss={darkModeCss}
     >
       <BrandHeader
-        badge="Email confirmation"
-        title="Finish creating your TicketRush account"
-        body="Confirm your email address to activate your account and lock in a smoother checkout next time you grab tickets."
+        title="Confirm your TicketRush account"
+        body="Use this code to verify your email address and finish setting up your account."
       />
 
       <table role="presentation" width="100%" cellPadding="0" cellSpacing="0" style={{ width: "100%", marginTop: "28px" }}>
@@ -31,8 +30,8 @@ export function RegisterConfirmationEmail({ darkModeCss, userName, otpCode }: Re
                 style={{
                   margin: 0,
                   color: emailTheme.color.light.foreground,
-                  fontSize: "16px",
-                  lineHeight: 1.7,
+                  fontSize: "15px",
+                  lineHeight: 1.6,
                 }}
               >
                 Hi <span data-th-text="${userName}">{userName}</span>,
@@ -42,9 +41,8 @@ export function RegisterConfirmationEmail({ darkModeCss, userName, otpCode }: Re
           <tr>
             <td style={{ paddingTop: "14px" }}>
               <OtpCard
-                label="Your confirmation code"
                 code={<span data-th-text="${otpCode}">{otpCode}</span>}
-                hint="Enter this passcode in the app to finish registration. If this was not you, you can safely ignore this email."
+                hint="Enter this code in TicketRush to confirm your email address."
               />
             </td>
           </tr>
@@ -55,11 +53,11 @@ export function RegisterConfirmationEmail({ darkModeCss, userName, otpCode }: Re
                 style={{
                   margin: 0,
                   color: emailTheme.color.light.foreground,
-                  fontSize: "14px",
-                  lineHeight: 1.7,
+                  fontSize: "13px",
+                  lineHeight: 1.6,
                 }}
               >
-                Need help? Reply to this email and the TicketRush team can help you finish setup.
+                This code only confirms this email address. If you did not create a TicketRush account, ignore this message. Need help? Reply to this email and the TicketRush team can help you finish setup.
               </p>
             </td>
           </tr>

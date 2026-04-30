@@ -60,7 +60,7 @@ export function EmailShell({ title, previewText, darkModeCss, children }: EmailS
                     backgroundColor: emailTheme.color.light.card,
                     border: `1px solid ${emailTheme.color.light.border}`,
                     borderRadius: `${emailTheme.radius.shell}px`,
-                    boxShadow: `0 18px 48px ${emailTheme.color.light.shadow}`,
+                    boxShadow: emailTheme.color.light.shadow,
                   }}
                 >
                   <tbody>
