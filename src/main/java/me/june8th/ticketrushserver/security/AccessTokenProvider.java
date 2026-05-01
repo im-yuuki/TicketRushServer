@@ -5,6 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import me.june8th.ticketrushserver.data.Account;
 import me.june8th.ticketrushserver.types.AccountType;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,15 +40,7 @@ public class AccessTokenProvider {
         this.accessTokenExpiration = accessTokenExpiration * 1000; // Convert to milliseconds
     }
 
-    public String generateAccessToken(Account account) {
-        return generateAccessToken(AccessTokenData.builder()
-                .id(account.getId())
-                .type(account.getType())
-                .domain(account.getDomain())
-                .version(account.getTokenVersion())
-                .build());
-    }
-
+    @NullMarked
     public String generateAccessToken(AccessTokenData data) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + accessTokenExpiration);

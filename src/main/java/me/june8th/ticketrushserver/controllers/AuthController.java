@@ -2,7 +2,7 @@ package me.june8th.ticketrushserver.controllers;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
-import me.june8th.ticketrushserver.data.UserAccount;
+import me.june8th.ticketrushserver.data.Account;
 import me.june8th.ticketrushserver.services.AuthService;
 import me.june8th.ticketrushserver.services.EmailService;
 import me.june8th.ticketrushserver.types.*;
@@ -52,29 +52,29 @@ public class AuthController {
     @PostMapping("/register/{key}")
     public ResponseEntity<OperationResponse> confirmRegistration(@PathVariable String key, @RequestBody OtpConfirmationRequest request) {
         try {
-            UserAccount userAccount = authService.userRegisterConfirm(key, request.otpCode());
-            return ResponseEntity.ok(OperationResponse.success("Registration successful"));
+            authService.userRegisterConfirm(key, request.otpCode());
+            return ResponseEntity.ok(OperationResponse.success("Registration successful."));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(OperationResponse.failure(e.getMessage()));
         }
     }
 
     @PostMapping("/login")
-    public ResponseEntity<OperationResponse> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<OperationResponse> login(@RequestBody LoginRequest request, HttpServletResponse response) {
         try {
-            authService.accountLogin(request.email(), request.password());
+            Account account = authService.accountLogin(request.email(), request.password());
 
-            // TODO: Generate access token and set it as an HTTP-only cookie
-            // String accessToken = authService.generateAccessToken(user.getId());
-            //
-            // Cookie accessTokenCookie = new Cookie("accessToken", accessToken);
-            // accessTokenCookie.setHttpOnly(true);
-            // accessTokenCookie.setSecure(true);
-            // accessTokenCookie.setPath("/");
-            // accessTokenCookie.setMaxAge(accessTokenExpiration);
-            // response.addCookie(accessTokenCookie);
+            String accessToken = authService.generateAccessToken(account);
+            Cookie accessTokenCookie = new Cookie("accessToken", accessToken);
+            accessTokenCookie.setHttpOnly(true);
+            accessTokenCookie.setSecure(true);
+            accessTokenCookie.setPath("/");
+            accessTokenCookie.setMaxAge(accessTokenExpiration);
+            response.addCookie(accessTokenCookie);
 
-            return ResponseEntity.ok(OperationResponse.success("Login successful"));
+            return ResponseEntity.ok(OperationResponse.success("Login successful")
+                    .addMetadataEntry("account_type", account.getType().name()
+            ));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(OperationResponse.failure(e.getMessage()));
         }

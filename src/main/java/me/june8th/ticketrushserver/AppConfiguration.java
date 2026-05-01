@@ -48,8 +48,7 @@ public class AppConfiguration implements WebMvcConfigurer {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/status", "/search").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/webjars/**").permitAll()
+                        .requestMatchers("/feeds/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

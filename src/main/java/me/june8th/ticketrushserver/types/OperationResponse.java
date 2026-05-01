@@ -19,8 +19,9 @@ public record OperationResponse (boolean success, String message, HashMap<String
         return new OperationResponse(false, message, new HashMap<>());
     }
 
-    public void addMetadataEntry(String key, String value) {
+    public OperationResponse addMetadataEntry(String key, String value) {
         metadata.put(key, value);
+        return this;
     }
 
 }

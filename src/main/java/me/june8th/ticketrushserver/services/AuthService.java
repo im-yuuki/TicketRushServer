@@ -6,6 +6,7 @@ import me.june8th.ticketrushserver.repositories.AccountRepository;
 import me.june8th.ticketrushserver.repositories.RegisterRequestRepository;
 import me.june8th.ticketrushserver.repositories.ResetPasswordRequestRepository;
 import me.june8th.ticketrushserver.repositories.UserRepository;
+import me.june8th.ticketrushserver.security.AccessTokenData;
 import me.june8th.ticketrushserver.security.AccessTokenProvider;
 import me.june8th.ticketrushserver.types.Country;
 import me.june8th.ticketrushserver.utils.Validator;
@@ -156,6 +157,23 @@ public class AuthService {
 
         logger.debug("Account {} ({}) logged in successfully", account.getId(), account.getName());
         return account;
+    }
+
+
+    /**
+     * Generate a new access token for the specified account.
+     *
+     * @param account account
+     * @return token string
+     */
+    @NullMarked
+    public String generateAccessToken(Account account) {
+        return accessTokenProvider.generateAccessToken(AccessTokenData.builder()
+                .id(account.getId())
+                .type(account.getType())
+                .domain(account.getDomain())
+                .version(account.getTokenVersion())
+                .build());
     }
 
     /**
