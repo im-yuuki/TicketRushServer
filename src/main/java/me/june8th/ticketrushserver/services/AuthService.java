@@ -121,6 +121,10 @@ public class AuthService {
             throw new IllegalArgumentException("Invalid OTP code");
         }
 
+        if (accountRepository.existsByEmail(registerRequest.getEmail())) {
+            throw new IllegalArgumentException("This email is already registered");
+        }
+
         User user = User.builder()
                 .name(registerRequest.getName())
                 .email(registerRequest.getEmail())

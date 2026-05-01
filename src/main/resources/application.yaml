@@ -61,8 +61,22 @@ spring:
       use-key-prefix: true
       time-to-live: 300s
 
+
 springdoc:
   api-docs:
-    enabled: false
+    enabled: true
   swagger-ui:
     enabled: true
+
+logging:
+  charset:
+    console: UTF-8
+    file: UTF-8
+  pattern:
+    console: "[%d{HH:mm:ss dd/MM/yyyy}] %clr(%-5level) %blue(%-40.40logger{39}) : %msg%n"
+    file: "[%d{HH:mm:ss dd/MM/yyyy}] %-5level %-40.40logger{39} : %msg%n"
+  level:
+    me:
+      june8th:
+        ticketrush: debug
+    root: info
