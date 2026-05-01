@@ -3,17 +3,14 @@ package me.june8th.ticketrushserver.controllers;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.*;
-import me.june8th.ticketrushserver.data.UserAccount;
+import me.june8th.ticketrushserver.data.User;
 import me.june8th.ticketrushserver.services.AuthService;
 import me.june8th.ticketrushserver.services.EmailService;
-import me.june8th.ticketrushserver.types.Gender;
-import me.june8th.ticketrushserver.types.OperationResponse;
+import me.june8th.ticketrushserver.types.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Date;
 
 @RestController
 @RequestMapping("/auth")
@@ -23,10 +20,7 @@ public class AuthController {
     private final EmailService emailService;
     private final int accessTokenExpiration;
 
-    public AuthController(
-            AuthService authService,
-            EmailService emailService,
-            @Value("${app.jwt.access-token-expiration}") long accessTokenExpiration) {
+    public AuthController(AuthService authService, EmailService emailService, @Value("${app.jwt.access-token-expiration}") long accessTokenExpiration) {
         this.authService = authService;
         this.emailService = emailService;
         this.accessTokenExpiration = Math.toIntExact(accessTokenExpiration);
@@ -35,11 +29,11 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<OperationResponse> register(@RequestBody RegisterRequest request) {
         try {
-            String key = authService.userRegisterRequest(request.getName(), request.getEmail(), request.getPassword(), request.getBirthDate(), request.getGender());
+            String key = authService.userRegisterRequest(request.getName(), request.getEmail(), request.getPassword(), request.getBirthDate(), request.getGender(), request.getPhoneNumber(), request.getAddressLine(), request.getCountry());
             OperationResponse response = OperationResponse.success("Waiting for confirmation");
             response.addMetadataEntry("confirm_key", key);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } catch (IllegalArgumentException e) {
+        } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(OperationResponse.failure(e.getMessage()));
         }
     }
@@ -57,20 +51,20 @@ public class AuthController {
     @PostMapping("/register/{key}")
     public ResponseEntity<OperationResponse> confirmRegistration(@PathVariable String key, @RequestBody OtpConfirmationRequest request) {
         try {
-            UserAccount userAccount = authService.userRegisterConfirm(key, request.getOtpCode());
+            User user = authService.userRegisterConfirm(key, request.otpCode());
             return ResponseEntity.ok(OperationResponse.success("Registration successful"));
-        } catch (IllegalArgumentException e) {
+        } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(OperationResponse.failure(e.getMessage()));
         }
     }
 
     @PostMapping("/login")
-    public ResponseEntity<OperationResponse> login(@RequestBody LoginRequest request, HttpServletResponse response) {
+    public ResponseEntity<OperationResponse> login(@RequestBody LoginRequest request) {
         try {
-            UserAccount userAccount = authService.userLogin(request.getEmail(), request.getPassword());
+            authService.accountLogin(request.email(), request.password());
 
             // TODO: Generate access token and set it as an HTTP-only cookie
-            // String accessToken = authService.generateAccessToken(userAccount.getId());
+            // String accessToken = authService.generateAccessToken(user.getId());
             //
             // Cookie accessTokenCookie = new Cookie("accessToken", accessToken);
             // accessTokenCookie.setHttpOnly(true);
@@ -80,7 +74,7 @@ public class AuthController {
             // response.addCookie(accessTokenCookie);
 
             return ResponseEntity.ok(OperationResponse.success("Login successful"));
-        } catch (IllegalArgumentException e) {
+        } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(OperationResponse.failure(e.getMessage()));
         }
     }
@@ -100,11 +94,11 @@ public class AuthController {
     @PostMapping("/reset")
     public ResponseEntity<OperationResponse> resetPassword(@RequestBody ResetPasswordRequest request) {
         try {
-            String key = authService.userResetPasswordRequest(request.getEmail(), request.getNewPassword());
+            String key = authService.accountResetPasswordRequest(request.email(), request.newPassword());
             OperationResponse response = OperationResponse.success("Reset password token created");
             response.addMetadataEntry("confirm_key", key);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } catch (IllegalArgumentException e) {
+        } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(OperationResponse.failure(e.getMessage()));
         }
     }
@@ -122,69 +116,11 @@ public class AuthController {
     @PostMapping("/reset/{key}")
     public ResponseEntity<?> confirmResetPassword(@PathVariable String key, @RequestBody OtpConfirmationRequest request) {
         try {
-            authService.userResetPasswordConfirm(key, request.getOtpCode());
+            authService.accountResetPasswordConfirm(key, request.otpCode());
             return ResponseEntity.ok(OperationResponse.success("Password reset successful"));
-        } catch (IllegalArgumentException e) {
+        } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(OperationResponse.failure(e.getMessage()));
         }
-    }
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class RegisterRequest {
-
-        @NonNull
-        private String name;
-
-        @NonNull
-        private String email;
-
-        @NonNull
-        private String password;
-
-        @NonNull
-        private Date birthDate;
-
-        @NonNull
-        private Gender gender;
-
-    }
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class LoginRequest {
-
-        @NonNull
-        private String email;
-
-        @NonNull
-        private String password;
-
-    }
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class ResetPasswordRequest {
-
-        @NonNull
-        private String email;
-
-        @NonNull
-        private String newPassword;
-
-    }
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class OtpConfirmationRequest {
-
-        @NonNull
-        private String otpCode;
-
     }
 
 }

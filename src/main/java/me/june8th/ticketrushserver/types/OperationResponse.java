@@ -1,22 +1,19 @@
 package me.june8th.ticketrushserver.types;
 
-import lombok.Data;
-
 import java.util.HashMap;
 
-@Data
-public class OperationResponse {
+public record OperationResponse (boolean success, String message, HashMap<String, String> metadata) {
 
-    private final boolean success;
-    private final String message;
-    private final HashMap<String, String> metadata = new HashMap<>();
+    public OperationResponse(boolean success, String message) {
+        this(success, message, new HashMap<>());
+    }
 
     public static OperationResponse success(String message) {
-        return new OperationResponse(true, message);
+        return new OperationResponse(true, message, new HashMap<>());
     }
 
     public static OperationResponse failure(String message) {
-        return new OperationResponse(false, message);
+        return new OperationResponse(false, message, new HashMap<>());
     }
 
     public void addMetadataEntry(String key, String value) {

@@ -9,12 +9,12 @@ import me.june8th.ticketrushserver.types.Currency;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-@Entity
-@Table(name = "ticket_classes")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Entity
+@Table(name = "ticket_classes")
 public class TicketClass {
 
     @Id
@@ -26,7 +26,7 @@ public class TicketClass {
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "sales_round_id", nullable = false)
+    @JoinColumn(nullable = false)
     private SalesRound salesRound;
 
     @Column(nullable = false)

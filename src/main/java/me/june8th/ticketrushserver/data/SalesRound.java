@@ -10,12 +10,12 @@ import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "sales_rounds")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Entity
+@Table(name = "sales_rounds")
 public class SalesRound {
 
     @Id
@@ -27,7 +27,7 @@ public class SalesRound {
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "event_id", nullable = false)
+    @JoinColumn(nullable = false)
     private Event event;
 
     @Column(nullable = false)

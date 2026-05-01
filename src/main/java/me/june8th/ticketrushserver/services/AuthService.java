@@ -1,18 +1,17 @@
 package me.june8th.ticketrushserver.services;
 
 import lombok.RequiredArgsConstructor;
-import me.june8th.ticketrushserver.data.ManagerAccount;
-import me.june8th.ticketrushserver.data.RegisterRequest;
-import me.june8th.ticketrushserver.data.UserAccount;
-import me.june8th.ticketrushserver.data.ResetPasswordRequest;
-import me.june8th.ticketrushserver.repositories.ManagerAccountRepository;
+import me.june8th.ticketrushserver.data.*;
+import me.june8th.ticketrushserver.repositories.AccountRepository;
 import me.june8th.ticketrushserver.repositories.RegisterRequestRepository;
 import me.june8th.ticketrushserver.repositories.ResetPasswordRequestRepository;
-import me.june8th.ticketrushserver.repositories.UserAccountRepository;
+import me.june8th.ticketrushserver.repositories.UserRepository;
 import me.june8th.ticketrushserver.security.JwtTokenProvider;
+import me.june8th.ticketrushserver.types.Country;
 import me.june8th.ticketrushserver.types.Gender;
 import me.june8th.ticketrushserver.utils.Validator;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,13 +27,12 @@ public class AuthService {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
 
-    private final UserAccountRepository userAccountRepository;
-    private final ManagerAccountRepository managerAccountRepository;
+    private final UserRepository userRepository;
+    private final AccountRepository accountRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
     private final RegisterRequestRepository registerRequestRepository;
     private final ResetPasswordRequestRepository resetPasswordRequestRepository;
-    private final EmailService emailService;
 
     /**
      * Create a new user registration request. This will create a new entry in the RegisterRequest table.
@@ -44,23 +42,29 @@ public class AuthService {
      * @param password plain text password (will be hashed before saving)
      * @param birthDate birth date
      * @param gender gender
+     * @param phoneNumber optional phone number
+     * @param addressLine address line
+     * @param country country of residence
      * @return key of the created RegisterRequest, which can be used to confirm the registration
      */
     @NullMarked
     @Transactional
-    public String userRegisterRequest(String name, String email, String password, Date birthDate, Gender gender) {
+    public String userRegisterRequest(
+            String name, String email, String password, Date birthDate, Gender gender,
+            @Nullable String phoneNumber, String addressLine, Country country) {
         Validator.create()
                 .validateName(name)
                 .validateEmail(email)
                 .validatePassword(password)
                 .validateBirthDate(birthDate)
+                .validateNotBlank(addressLine)
                 .throwExceptionIfInvalid();
 
         if (registerRequestRepository.findByEmail(email).isPresent()) {
             throw new IllegalArgumentException("A registration session with this email already exists");
         }
 
-        if (userAccountRepository.findByEmail(email).isPresent()) {
+        if (accountRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("This email is already registered");
         }
 
@@ -73,6 +77,9 @@ public class AuthService {
                 .passwordHash(passwordHash)
                 .birthDate(birthDate)
                 .gender(gender)
+                .phoneNumber(phoneNumber)
+                .addressLine(addressLine)
+                .country(country)
                 .build();
 
         logger.debug("Creating registration request {} for email {}", registerRequest.getKey(), email);
@@ -82,15 +89,15 @@ public class AuthService {
 
     /**
      * Confirm a user registration request by providing the OTP code sent to the user's email address.
-     * If the OTP code is correct and the registration request is still valid, a new UserAccount will be created.
+     * If the OTP code is correct and the registration request is still valid, a new User will be created.
      *
      * @param key the key of the RegisterRequest entry to confirm
      * @param otpCode the OTP code sent to the user's email address
-     * @return created UserAccount if the registration is successful
+     * @return created User if the registration is successful
      */
     @NullMarked
     @Transactional
-    public UserAccount userRegisterConfirm(String key, String otpCode) {
+    public User userRegisterConfirm(String key, String otpCode) {
         Validator.create()
                 .validateRequestKey(key)
                 .validateOtpCode(otpCode)
@@ -114,12 +121,15 @@ public class AuthService {
             throw new IllegalArgumentException("Invalid OTP code");
         }
 
-        UserAccount userAccount = UserAccount.builder()
+        User user = User.builder()
                 .name(registerRequest.getName())
                 .email(registerRequest.getEmail())
                 .passwordHash(registerRequest.getPasswordHash())
                 .birthDate(registerRequest.getBirthDate())
                 .gender(registerRequest.getGender())
+                .phoneNumber(registerRequest.getPhoneNumber())
+                .addressLine(registerRequest.getAddressLine())
+                .country(registerRequest.getCountry())
                 .build();
 
         logger.debug("Validation passed, creating user account for {} ({})", registerRequest.getName(), registerRequest.getEmail());
@@ -128,50 +138,50 @@ public class AuthService {
         } catch (Exception e) {
             logger.warn("Failed to delete registration request with key {}: {}", key, e.getMessage());
         }
-        return userAccountRepository.save(userAccount);
+        return userRepository.save(user);
     }
 
     /**
      * Authenticate a user by their email and password.
-     * If the credentials are correct, return the corresponding UserAccount.
+     * If the credentials are correct, return the corresponding User.
      *
      * @param email the user's email address
      * @param password the user's plain text password
-     * @return the authenticated UserAccount
+     * @return the authenticated User
      */
     @NullMarked
-    public UserAccount userLogin(String email, String password) {
+    public Account accountLogin(String email, String password) {
         Validator.create()
                 .validateEmail(email)
                 .validatePassword(password)
                 .throwExceptionIfInvalid();
 
-        UserAccount userAccount = userAccountRepository.findByEmail(email).orElseThrow(
+        Account account = accountRepository.findByEmail(email).orElseThrow(
                 () -> new IllegalArgumentException("Invalid email or password")
         );
 
-        if (!passwordEncoder.matches(password, userAccount.getPasswordHash())) {
+        if (!passwordEncoder.matches(password, account.getPasswordHash())) {
             throw new IllegalArgumentException("Invalid email or password");
         }
 
-        logger.debug("User {} ({}) logged in successfully", userAccount.getId(), userAccount.getName());
-        return userAccount;
+        logger.debug("Account {} ({}) logged in successfully", account.getId(), account.getName());
+        return account;
     }
 
     /**
-     * Invalidate all active sessions for the specified user by incrementing the token version.
+     * Invalidate all active sessions for the specified account by incrementing the token version.
      *
-     * @param userId the ID of the user whose sessions should be invalidated
+     * @param accountId the ID of the account whose sessions should be invalidated
      * @return true if the operation is successful, false otherwise
      */
     @NullMarked
     @Transactional
-    public boolean userLogoutAllSessions(Long userId) {
-        UserAccount userAccount = userAccountRepository.findById(userId).orElseThrow(
-                () -> new IllegalArgumentException("User not found")
+    public boolean accountLogoutAllSessions(Long accountId) {
+        Account account = accountRepository.findById(accountId).orElseThrow(
+                () -> new IllegalArgumentException("Account not found")
         );
-        userAccount.setTokenVersion(userAccount.getTokenVersion() + 1);
-        userAccountRepository.save(userAccount);
+        account.setTokenVersion(account.getTokenVersion() + 1);
+        accountRepository.save(account);
         return true;
     }
 
@@ -182,7 +192,7 @@ public class AuthService {
      */
     @NullMarked
     @Transactional
-    public String userResetPasswordRequest(String email, String newPassword) {
+    public String accountResetPasswordRequest(String email, String newPassword) {
         Validator.create()
                 .validateEmail(email)
                 .validatePassword(newPassword)
@@ -192,7 +202,7 @@ public class AuthService {
             throw new IllegalArgumentException("A password reset session with this account already exists");
         }
 
-        UserAccount userAccount = userAccountRepository.findByEmail(email).orElseThrow(
+        Account account = accountRepository.findByEmail(email).orElseThrow(
                 () -> new IllegalArgumentException("This email is not registered")
         );
 
@@ -200,7 +210,7 @@ public class AuthService {
         assert newPasswordHash != null;
 
         ResetPasswordRequest resetPasswordRequest = ResetPasswordRequest.builder()
-                .userId(userAccount.getId())
+                .accountId(account.getId())
                 .email(email)
                 .newPasswordHash(newPasswordHash)
                 .build();
@@ -220,7 +230,7 @@ public class AuthService {
      */
     @NullMarked
     @Transactional
-    public boolean userResetPasswordConfirm(String token, String otpCode) {
+    public boolean accountResetPasswordConfirm(String token, String otpCode) {
         Validator.create()
                 .validateRequestKey(token)
                 .validateOtpCode(otpCode)
@@ -244,48 +254,23 @@ public class AuthService {
             throw new IllegalArgumentException("Invalid OTP code");
         }
 
-        UserAccount userAccount = userAccountRepository.findById(resetPasswordRequest.getUserId()).orElseThrow(
+        Account account = accountRepository.findById(resetPasswordRequest.getAccountId()).orElseThrow(
                 () -> new IllegalArgumentException("Invalid request")
         );
-        if (!userAccount.getEmail().equals(resetPasswordRequest.getEmail())) {
+        if (!account.getEmail().equals(resetPasswordRequest.getEmail())) {
             throw new IllegalArgumentException("Invalid request");
         }
 
-        userAccount.setPasswordHash(resetPasswordRequest.getNewPasswordHash());
-        userAccountRepository.save(userAccount);
+        account.setPasswordHash(resetPasswordRequest.getNewPasswordHash());
+        accountRepository.save(account);
 
-        logger.debug("Password reset successful for user {} ({})", userAccount.getId(), userAccount.getEmail());
+        logger.debug("Password reset successful for account {} ({})", account.getId(), account.getEmail());
         try {
             resetPasswordRequestRepository.delete(resetPasswordRequest);
         } catch (Exception e) {
             logger.warn("Failed to delete password reset request with key {}: {}", token, e.getMessage());
         }
         return true;
-    }
-
-    /**
-     * Authenticate a manager by their email and password.
-     * If the credentials are correct, return the corresponding ManagerAccount.
-     *
-     * @param email email address of the manager
-     * @param password plain text password
-     * @return the authenticated ManagerAccount if the credentials are correct
-     */
-    public ManagerAccount managerLogin(String email, String password) {
-        Validator.create()
-                .validateEmail(email)
-                .validatePassword(password)
-                .throwExceptionIfInvalid();
-
-        ManagerAccount managerAccount = managerAccountRepository.findByEmail(email).orElseThrow(
-                () -> new IllegalArgumentException("Invalid email or password")
-        );
-        if (!passwordEncoder.matches(password, managerAccount.getPasswordHash())) {
-            throw new IllegalArgumentException("Invalid email or password");
-        }
-
-        logger.debug("Manager {} ({}) logged in successfully", managerAccount.getId(), managerAccount.getName());
-        return managerAccount;
     }
 
 }

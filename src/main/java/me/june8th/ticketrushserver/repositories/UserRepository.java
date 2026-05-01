@@ -1,14 +1,15 @@
 package me.june8th.ticketrushserver.repositories;
 
-import me.june8th.ticketrushserver.data.ManagerAccount;
+import me.june8th.ticketrushserver.data.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Repository
-public interface ManagerAccountRepository extends JpaRepository<ManagerAccount, Long> {
+public interface UserRepository extends JpaRepository<User, Long> {
 
-    Optional<ManagerAccount> findByEmail(String email);
+    Optional<User> findByEmail(String email);
 
 }
+

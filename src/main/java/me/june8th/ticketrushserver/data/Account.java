@@ -5,18 +5,18 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import me.june8th.ticketrushserver.types.Account;
-import me.june8th.ticketrushserver.types.Role;
+import lombok.experimental.SuperBuilder;
 
 import java.time.Instant;
 
-@Entity
-@Table(name = "managers")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class ManagerAccount implements Account {
+@SuperBuilder
+@Entity
+@Table(name = "accounts")
+@Inheritance(strategy = InheritanceType.JOINED)
+public abstract class Account {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,15 +25,11 @@ public class ManagerAccount implements Account {
     @Column(nullable = false)
     private String name;
 
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false, unique = true)
     private String email;
 
     @Column(nullable = false)
     private String passwordHash;
-
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private Role role;
 
     @Column(nullable = false)
     @Builder.Default
@@ -50,9 +46,5 @@ public class ManagerAccount implements Account {
     @Column(nullable = false)
     @Builder.Default
     private String avatarKey = "";
-
-    @Column(nullable = false)
-    @Builder.Default
-    private Boolean verified = false;
 
 }

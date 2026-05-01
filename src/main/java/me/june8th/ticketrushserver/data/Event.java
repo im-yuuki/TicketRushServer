@@ -8,12 +8,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Entity
-@Table(name = "events")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Entity
+@Table(name = "events")
 public class Event {
 
     @Id
@@ -25,8 +25,8 @@ public class Event {
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "owner_id", nullable = false)
-    private ManagerAccount owner;
+    @JoinColumn(nullable = false)
+    private Organization organization;
 
     @Column(nullable = false)
     @Builder.Default

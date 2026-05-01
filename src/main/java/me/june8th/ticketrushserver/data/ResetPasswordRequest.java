@@ -9,9 +9,9 @@ import org.springframework.data.redis.core.index.Indexed;
 
 import java.time.Instant;
 
-@RedisHash(value = "reset_password_request")
 @Data
 @Builder
+@RedisHash(value = "reset_password_request")
 public class ResetPasswordRequest {
 
     @TimeToLive
@@ -31,22 +31,17 @@ public class ResetPasswordRequest {
     @Builder.Default
     private Instant expiresAt = Instant.now().plusSeconds(600);
 
-    @NonNull
     @Builder.Default
     private Instant nextResendAvailable = Instant.now();
 
-    @NonNull
     @Builder.Default
     private Integer availableAttempts = 5;
 
-    @NonNull
-	private Long userId;
-
     @Indexed
-    @NonNull
-	private String email;
+    private String email;
 
-    @NonNull
+	private Long accountId;
+
     private String newPasswordHash;
 
 }
