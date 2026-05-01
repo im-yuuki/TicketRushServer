@@ -1,7 +1,6 @@
 package me.june8th.ticketrushserver.utils;
 
 import lombok.Getter;
-import me.june8th.ticketrushserver.types.ValidateError;
 
 import java.util.Date;
 
@@ -109,6 +108,32 @@ public class Validator {
         }
         if (date.before(new Date())) {
             error = ValidateError.DATE_NOT_IN_FUTURE;
+        }
+        return this;
+    }
+
+    public Validator validateRequestKey(String key) {
+        if (error != ValidateError.NONE) return this;
+        if (key == null) {
+            error = ValidateError.MISSING_REQUIRED_FIELD;
+            return this;
+        }
+        String trimmedKey = key.trim();
+        if (trimmedKey.length() != RandomGenerator.REQUEST_KEY_LENGTH) {
+            error = ValidateError.REQUESTKEY_INVALID;
+        }
+        return this;
+    }
+
+    public Validator validateOtpCode(String otpCode) {
+        if (error != ValidateError.NONE) return this;
+        if (otpCode == null) {
+            error = ValidateError.MISSING_REQUIRED_FIELD;
+            return this;
+        }
+        String trimmedOtpCode = otpCode.trim();
+        if (trimmedOtpCode.length() != RandomGenerator.OTP_CODE_LENGTH || !trimmedOtpCode.matches("\\d+")) {
+            error = ValidateError.OTPCODE_INVALID;
         }
         return this;
     }

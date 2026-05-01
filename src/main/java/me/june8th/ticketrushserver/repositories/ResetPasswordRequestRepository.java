@@ -9,14 +9,16 @@ import java.util.Optional;
 @Repository
 public interface ResetPasswordRequestRepository extends CrudRepository<ResetPasswordRequest, String> {
 
-    Optional<ResetPasswordRequest> findByToken(String token);
-
-    Optional<ResetPasswordRequest> findByEmail(String email);
+    Optional<ResetPasswordRequest> findByKey(String key);
 
     Optional<ResetPasswordRequest> findByUserId(Long userId);
 
-    void deleteByEmail(String email);
+    Optional<ResetPasswordRequest> findByEmail(String email);
+
+    void deleteByKey(String key);
 
     void deleteByUserId(Long userId);
-}
 
+    void deleteByEmail(String email);
+
+}

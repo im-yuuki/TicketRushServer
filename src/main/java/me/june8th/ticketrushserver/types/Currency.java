@@ -1,5 +1,6 @@
 package me.june8th.ticketrushserver.types;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import jakarta.annotation.Nullable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -12,12 +13,14 @@ public enum Currency {
     @Getter
     private final String value;
 
-    @Nullable
+    @JsonCreator
     public static Currency fromString(String value) {
         for (Currency currency : values()) {
-            if (currency.value.equalsIgnoreCase(value)) return currency;
+            if (currency.value.equalsIgnoreCase(value) || currency.name().equalsIgnoreCase(value)) {
+                return currency;
+            }
         }
-        return null;
+        throw new IllegalArgumentException("Invalid gender: " + value);
     }
 
 }

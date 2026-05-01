@@ -1,4 +1,4 @@
-package me.june8th.ticketrushserver.types;
+package me.june8th.ticketrushserver.utils;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +14,8 @@ public enum ValidateError {
     BIRTHDATE_INVALID("birthdate_invalid", "Invalid birth date"),
     DATE_NOT_IN_PAST("date_not_in_past", "Date must be in the past"),
     DATE_NOT_IN_FUTURE("date_not_in_future", "Date must be in the future"),
+    REQUESTKEY_INVALID("requestkey_invalid", "Invalid request key"),
+    OTPCODE_INVALID("otpcode_invalid", "Invalid OTP code"),
 
     MISSING_REQUIRED_FIELD("missing_required_field", "Missing required field"),
     NONE("none", "");

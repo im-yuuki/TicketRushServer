@@ -1,5 +1,6 @@
 package me.june8th.ticketrushserver.types;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import jakarta.annotation.Nullable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -12,12 +13,14 @@ public enum Gender {
     @Getter
     private final String value;
 
-    @Nullable
+    @JsonCreator
     public static Gender fromString(String value) {
         for (Gender gender : values()) {
-            if (gender.value.equalsIgnoreCase(value)) return gender;
+            if (gender.value.equalsIgnoreCase(value) || gender.name().equalsIgnoreCase(value)) {
+                return gender;
+            }
         }
-        return null;
+        throw new IllegalArgumentException("Invalid gender: " + value);
     }
 
 }

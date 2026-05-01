@@ -5,6 +5,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.*;
 import me.june8th.ticketrushserver.data.UserAccount;
 import me.june8th.ticketrushserver.services.AuthService;
+import me.june8th.ticketrushserver.services.EmailService;
+import me.june8th.ticketrushserver.types.Gender;
+import me.june8th.ticketrushserver.types.OperationResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,46 +20,73 @@ import java.util.Date;
 public class AuthController {
 
     private final AuthService authService;
+    private final EmailService emailService;
     private final int accessTokenExpiration;
 
     public AuthController(
             AuthService authService,
+            EmailService emailService,
             @Value("${app.jwt.access-token-expiration}") long accessTokenExpiration) {
         this.authService = authService;
+        this.emailService = emailService;
         this.accessTokenExpiration = Math.toIntExact(accessTokenExpiration);
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<OperationResponse> register(@RequestBody RegisterRequest request) {
         try {
-            UserAccount userAccount = authService.userRegister(request.getName(), request.getEmail(), request.getPassword(), request.getBirthDate(), request.getGender());
-            return ResponseEntity.status(HttpStatus.CREATED).body(new AuthResponse(userAccount.getId(), userAccount.getEmail(), "UserAccount registered successfully"));
+            String key = authService.userRegisterRequest(request.getName(), request.getEmail(), request.getPassword(), request.getBirthDate(), request.getGender());
+            OperationResponse response = OperationResponse.success("Waiting for confirmation");
+            response.addMetadataEntry("confirm_key", key);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(e.getMessage()));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(OperationResponse.failure(e.getMessage()));
+        }
+    }
+
+    @GetMapping("/register/{key}")
+    public ResponseEntity<OperationResponse> sendRegistrationOtp(@PathVariable String key) {
+        try {
+            emailService.sendRegisterConfirmationEmail(key);
+            return ResponseEntity.ok(OperationResponse.success("Please check your email for the OTP code to confirm your registration"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(OperationResponse.failure(e.getMessage()));
+        }
+    }
+
+    @PostMapping("/register/{key}")
+    public ResponseEntity<OperationResponse> confirmRegistration(@PathVariable String key, @RequestBody OtpConfirmationRequest request) {
+        try {
+            UserAccount userAccount = authService.userRegisterConfirm(key, request.getOtpCode());
+            return ResponseEntity.ok(OperationResponse.success("Registration successful"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(OperationResponse.failure(e.getMessage()));
         }
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpServletResponse response) {
+    public ResponseEntity<OperationResponse> login(@RequestBody LoginRequest request, HttpServletResponse response) {
         try {
             UserAccount userAccount = authService.userLogin(request.getEmail(), request.getPassword());
-            String accessToken = authService.generateAccessToken(userAccount.getId());
 
-            Cookie accessTokenCookie = new Cookie("accessToken", accessToken);
-            accessTokenCookie.setHttpOnly(true);
-            accessTokenCookie.setSecure(true);
-            accessTokenCookie.setPath("/");
-            accessTokenCookie.setMaxAge(accessTokenExpiration);
-            response.addCookie(accessTokenCookie);
+            // TODO: Generate access token and set it as an HTTP-only cookie
+            // String accessToken = authService.generateAccessToken(userAccount.getId());
+            //
+            // Cookie accessTokenCookie = new Cookie("accessToken", accessToken);
+            // accessTokenCookie.setHttpOnly(true);
+            // accessTokenCookie.setSecure(true);
+            // accessTokenCookie.setPath("/");
+            // accessTokenCookie.setMaxAge(accessTokenExpiration);
+            // response.addCookie(accessTokenCookie);
 
-            return ResponseEntity.ok(new AuthResponse(userAccount.getId(), userAccount.getEmail(), "Login successful"));
+            return ResponseEntity.ok(OperationResponse.success("Login successful"));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse(e.getMessage()));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(OperationResponse.failure(e.getMessage()));
         }
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletResponse response) {
+    public ResponseEntity<OperationResponse> logout(HttpServletResponse response) {
         Cookie accessTokenCookie = new Cookie("accessToken", null);
         accessTokenCookie.setHttpOnly(true);
         accessTokenCookie.setSecure(true);
@@ -64,12 +94,37 @@ public class AuthController {
         accessTokenCookie.setMaxAge(0);
         response.addCookie(accessTokenCookie);
 
-        return ResponseEntity.ok(new ErrorResponse("Logout successful"));
+        return ResponseEntity.ok(OperationResponse.success("Logout successful"));
     }
 
-    @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
-        return null;
+    @PostMapping("/reset")
+    public ResponseEntity<OperationResponse> resetPassword(@RequestBody ResetPasswordRequest request) {
+        try {
+            authService.userResetPasswordRequest(request.getEmail(), request.getNewPassword());
+            return ResponseEntity.status(HttpStatus.CREATED).body(OperationResponse.success("Reset password token created"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(OperationResponse.failure(e.getMessage()));
+        }
+    }
+
+    @GetMapping("/reset/{key}")
+    public ResponseEntity<OperationResponse> sendResetPasswordOtp(@PathVariable String key) {
+        try {
+            emailService.sendPasswordResetEmail(key);
+            return ResponseEntity.ok(OperationResponse.success("Please check your email for the OTP code to confirm your password reset"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(OperationResponse.failure(e.getMessage()));
+        }
+    }
+
+    @PostMapping("/reset/{key}")
+    public ResponseEntity<?> confirmResetPassword(@PathVariable String key, @RequestBody OtpConfirmationRequest request) {
+        try {
+            authService.userResetPasswordConfirm(key, request.getOtpCode());
+            return ResponseEntity.ok(OperationResponse.success("Password reset successful"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(OperationResponse.failure(e.getMessage()));
+        }
     }
 
     @Data
@@ -90,7 +145,7 @@ public class AuthController {
         private Date birthDate;
 
         @NonNull
-        private String gender;
+        private Gender gender;
 
     }
 
@@ -115,31 +170,18 @@ public class AuthController {
         @NonNull
         private String email;
 
-    }
-
-    @Data
-    public static class AuthResponse {
-
-        private final boolean success = true;
-
         @NonNull
-        private Long id;
-
-        @NonNull
-        private String email;
-
-        @NonNull
-        private String message;
+        private String newPassword;
 
     }
 
     @Data
-    public static class ErrorResponse {
-
-        private final boolean success = false;
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class OtpConfirmationRequest {
 
         @NonNull
-        private String error;
+        private String otpCode;
 
     }
 

@@ -1,5 +1,6 @@
 package me.june8th.ticketrushserver.types;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import jakarta.annotation.Nullable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -12,12 +13,14 @@ public enum Role {
     @Getter
     private final String value;
 
-    @Nullable
+    @JsonCreator
     public static Role fromString(String value) {
         for (Role role : values()) {
-            if (role.value.equalsIgnoreCase(value)) return role;
+            if (role.value.equalsIgnoreCase(value) || role.name().equalsIgnoreCase(value)) {
+                return role;
+            }
         }
-        return null;
+        throw new IllegalArgumentException("Invalid role: " + value);
     }
 
 }
