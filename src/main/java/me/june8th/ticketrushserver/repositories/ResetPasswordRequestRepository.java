@@ -11,14 +11,6 @@ public interface ResetPasswordRequestRepository extends CrudRepository<ResetPass
 
     Optional<ResetPasswordRequest> findByKey(String key);
 
-    Optional<ResetPasswordRequest> findByUserId(Long userId);
-
     Optional<ResetPasswordRequest> findByEmail(String email);
-
-    void deleteByKey(String key);
-
-    void deleteByUserId(Long userId);
-
-    void deleteByEmail(String email);
 
 }

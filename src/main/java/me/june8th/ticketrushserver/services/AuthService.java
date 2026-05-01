@@ -19,6 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.Date;
 
 @Service
@@ -74,6 +75,7 @@ public class AuthService {
                 .gender(gender)
                 .build();
 
+        logger.debug("Creating registration request {} for email {}", registerRequest.getKey(), email);
         registerRequestRepository.save(registerRequest);
         return registerRequest.getKey();
     }
@@ -98,7 +100,7 @@ public class AuthService {
                 () -> new IllegalArgumentException("Invalid registration key")
         );
 
-        if (registerRequest.getExpiresAt().isBefore(new Date().toInstant())) {
+        if (Instant.now().isAfter(registerRequest.getExpiresAt())) {
             throw new RuntimeException("This registration request has expired");
         }
 
@@ -120,6 +122,7 @@ public class AuthService {
                 .gender(registerRequest.getGender())
                 .build();
 
+        logger.debug("Validation passed, creating user account for {} ({})", registerRequest.getName(), registerRequest.getEmail());
         try {
             registerRequestRepository.delete(registerRequest);
         } catch (Exception e) {
@@ -151,6 +154,7 @@ public class AuthService {
             throw new IllegalArgumentException("Invalid email or password");
         }
 
+        logger.debug("User {} ({}) logged in successfully", userAccount.getId(), userAccount.getName());
         return userAccount;
     }
 
@@ -201,6 +205,7 @@ public class AuthService {
                 .newPasswordHash(newPasswordHash)
                 .build();
 
+        logger.debug("Creating password reset request {} for email {}", resetPasswordRequest.getKey(), email);
         resetPasswordRequestRepository.save(resetPasswordRequest);
         return resetPasswordRequest.getKey();
     }
@@ -225,7 +230,7 @@ public class AuthService {
                 () -> new IllegalArgumentException("Invalid password reset key")
         );
 
-        if (resetPasswordRequest.getExpiresAt().isBefore(new Date().toInstant())) {
+        if (Instant.now().isAfter(resetPasswordRequest.getExpiresAt())) {
             throw new RuntimeException("This password reset request has expired");
         }
 
@@ -249,6 +254,7 @@ public class AuthService {
         userAccount.setPasswordHash(resetPasswordRequest.getNewPasswordHash());
         userAccountRepository.save(userAccount);
 
+        logger.debug("Password reset successful for user {} ({})", userAccount.getId(), userAccount.getEmail());
         try {
             resetPasswordRequestRepository.delete(resetPasswordRequest);
         } catch (Exception e) {
@@ -278,6 +284,7 @@ public class AuthService {
             throw new IllegalArgumentException("Invalid email or password");
         }
 
+        logger.debug("Manager {} ({}) logged in successfully", managerAccount.getId(), managerAccount.getName());
         return managerAccount;
     }
 

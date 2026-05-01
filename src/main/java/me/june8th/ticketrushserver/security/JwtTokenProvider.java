@@ -22,8 +22,7 @@ public class JwtTokenProvider {
 
     public JwtTokenProvider(
             @Value("${app.jwt.secret}") String secretKey,
-            @Value("${app.jwt.access-token-expiration}") long accessTokenExpiration,
-            @Value("${app.jwt.refresh-token-expiration}") long refreshTokenExpiration) {
+            @Value("${app.jwt.access-token-expiration}") long accessTokenExpiration) {
         if (secretKey.isEmpty()) {
             logger.warn("JWT secret key isn't set. Using randomly generated key.");
             this.secretKey = Jwts.SIG.HS256.key().build();

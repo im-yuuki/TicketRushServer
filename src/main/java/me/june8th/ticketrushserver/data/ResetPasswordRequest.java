@@ -5,27 +5,31 @@ import me.june8th.ticketrushserver.utils.RandomGenerator;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.TimeToLive;
+import org.springframework.data.redis.core.index.Indexed;
 
 import java.time.Instant;
 
 @RedisHash(value = "reset_password_request")
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
 public class ResetPasswordRequest {
 
     @TimeToLive
-    private final Long ttl = 600L;
+    @Builder.Default
+    private Long ttl = 600L;
 
     @Id
-    private final String key = RandomGenerator.generateRequestKey();
+    @Builder.Default
+    private String key = RandomGenerator.generateRequestKey();
 
-    private final String otpCode = RandomGenerator.generateOtpCode();
+    @Builder.Default
+    private String otpCode = RandomGenerator.generateOtpCode();
 
-    private final Instant createdAt = Instant.now();
+    @Builder.Default
+    private Instant createdAt = Instant.now();
 
-    private final Instant expiresAt = createdAt.plusSeconds(600);
+    @Builder.Default
+    private Instant expiresAt = Instant.now().plusSeconds(600);
 
     @NonNull
     @Builder.Default
@@ -38,6 +42,7 @@ public class ResetPasswordRequest {
     @NonNull
 	private Long userId;
 
+    @Indexed
     @NonNull
 	private String email;
 

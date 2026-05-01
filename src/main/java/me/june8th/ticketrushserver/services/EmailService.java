@@ -47,18 +47,18 @@ public class EmailService {
     @NullMarked
     public void sendRegisterConfirmationEmail(String key) throws MessagingException {
         RegisterRequest registerRequest = registerRequestRepository.findByKey(key).orElseThrow(
-                () -> new IllegalArgumentException("Invalid key: " + key)
+                () -> new IllegalArgumentException("Invalid registration key")
         );
 
         if (registerRequest.getAvailableAttempts() <= 0) {
             throw new RuntimeException("No available attempts left for this registration request");
         }
 
-        if (registerRequest.getExpiresAt().isAfter(Instant.now())) {
+        Instant now = Instant.now();
+        if (now.isAfter(registerRequest.getExpiresAt())) {
             throw new RuntimeException("This registration request has expired");
         }
-
-        if (registerRequest.getNextResendAvailable().isBefore(Instant.now())) {
+        if (now.isBefore(registerRequest.getNextResendAvailable())) {
             throw new RuntimeException("You are in cooldown period. Please wait before requesting another email.");
         } else {
             registerRequest.setNextResendAvailable(Instant.now().plusSeconds(RESEND_COOLDOWN));
@@ -100,11 +100,11 @@ public class EmailService {
             throw new RuntimeException("No available attempts left for this password reset request");
         }
 
-        if (resetPasswordRequest.getExpiresAt().isAfter(Instant.now())) {
+        Instant now = Instant.now();
+        if (now.isAfter(resetPasswordRequest.getExpiresAt())) {
             throw new RuntimeException("This password reset request has expired");
         }
-
-        if (resetPasswordRequest.getNextResendAvailable().isBefore(Instant.now())) {
+        if (now.isBefore(resetPasswordRequest.getNextResendAvailable())) {
             throw new RuntimeException("You are in cooldown period. Please wait before requesting another email.");
         } else {
             resetPasswordRequest.setNextResendAvailable(Instant.now().plusSeconds(RESEND_COOLDOWN));

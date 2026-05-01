@@ -13,8 +13,4 @@ public interface RegisterRequestRepository extends CrudRepository<RegisterReques
 
     Optional<RegisterRequest> findByEmail(String email);
 
-    void deleteByKey(String key);
-
-    void deleteByEmail(String email);
-
 }

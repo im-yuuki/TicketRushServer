@@ -100,8 +100,10 @@ public class AuthController {
     @PostMapping("/reset")
     public ResponseEntity<OperationResponse> resetPassword(@RequestBody ResetPasswordRequest request) {
         try {
-            authService.userResetPasswordRequest(request.getEmail(), request.getNewPassword());
-            return ResponseEntity.status(HttpStatus.CREATED).body(OperationResponse.success("Reset password token created"));
+            String key = authService.userResetPasswordRequest(request.getEmail(), request.getNewPassword());
+            OperationResponse response = OperationResponse.success("Reset password token created");
+            response.addMetadataEntry("confirm_key", key);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(OperationResponse.failure(e.getMessage()));
         }

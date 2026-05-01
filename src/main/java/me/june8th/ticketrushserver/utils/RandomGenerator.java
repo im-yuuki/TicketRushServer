@@ -2,7 +2,7 @@ package me.june8th.ticketrushserver.utils;
 
 public class RandomGenerator {
 
-    static final String RANDOM_CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?";
+    static final String RANDOM_CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     static final String NUMERIC_CHARACTERS = "0123456789";
     static final int REQUEST_KEY_LENGTH = 32;
     static final int OTP_CODE_LENGTH = 6;
