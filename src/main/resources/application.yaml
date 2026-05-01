@@ -29,7 +29,7 @@ spring:
     password: ${DB_PWD:}
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     properties:
       hibernate:
         format_sql: true
@@ -61,13 +61,6 @@ spring:
       use-key-prefix: true
       time-to-live: 300s
 
-
-springdoc:
-  api-docs:
-    enabled: true
-  swagger-ui:
-    enabled: true
-
 logging:
   charset:
     console: UTF-8
@@ -78,5 +71,5 @@ logging:
   level:
     me:
       june8th:
-        ticketrushserver: info
-    root: warn
+        ticketrushserver: debug
+    root: info
