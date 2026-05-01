@@ -23,4 +23,9 @@ public enum Currency {
         throw new IllegalArgumentException("Invalid gender: " + value);
     }
 
+    @Override
+    public String toString() {
+        return value;
+    }
+
 }

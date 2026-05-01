@@ -11,7 +11,6 @@ import java.time.Instant;
 
 @Data
 @Builder
-@RedisHash(value = "reset_password_request")
 public class ResetPasswordRequest {
 
     @TimeToLive

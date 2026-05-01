@@ -6,12 +6,10 @@ import me.june8th.ticketrushserver.repositories.AccountRepository;
 import me.june8th.ticketrushserver.repositories.RegisterRequestRepository;
 import me.june8th.ticketrushserver.repositories.ResetPasswordRequestRepository;
 import me.june8th.ticketrushserver.repositories.UserRepository;
-import me.june8th.ticketrushserver.security.JwtTokenProvider;
+import me.june8th.ticketrushserver.security.AccessTokenProvider;
 import me.june8th.ticketrushserver.types.Country;
-import me.june8th.ticketrushserver.types.Gender;
 import me.june8th.ticketrushserver.utils.Validator;
 import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -30,7 +28,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final AccountRepository accountRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtTokenProvider tokenProvider;
+    private final AccessTokenProvider accessTokenProvider;
     private final RegisterRequestRepository registerRequestRepository;
     private final ResetPasswordRequestRepository resetPasswordRequestRepository;
 
@@ -41,23 +39,17 @@ public class AuthService {
      * @param email email address (must be unique)
      * @param password plain text password (will be hashed before saving)
      * @param birthDate birth date
-     * @param gender gender
-     * @param phoneNumber optional phone number
-     * @param addressLine address line
      * @param country country of residence
      * @return key of the created RegisterRequest, which can be used to confirm the registration
      */
     @NullMarked
     @Transactional
-    public String userRegisterRequest(
-            String name, String email, String password, Date birthDate, Gender gender,
-            @Nullable String phoneNumber, String addressLine, Country country) {
+    public String userRegisterRequest(String name, String email, String password, Date birthDate, Country country) {
         Validator.create()
                 .validateName(name)
                 .validateEmail(email)
                 .validatePassword(password)
                 .validateBirthDate(birthDate)
-                .validateNotBlank(addressLine)
                 .throwExceptionIfInvalid();
 
         if (registerRequestRepository.findByEmail(email).isPresent()) {
@@ -76,9 +68,6 @@ public class AuthService {
                 .email(email)
                 .passwordHash(passwordHash)
                 .birthDate(birthDate)
-                .gender(gender)
-                .phoneNumber(phoneNumber)
-                .addressLine(addressLine)
                 .country(country)
                 .build();
 
@@ -89,15 +78,15 @@ public class AuthService {
 
     /**
      * Confirm a user registration request by providing the OTP code sent to the user's email address.
-     * If the OTP code is correct and the registration request is still valid, a new User will be created.
+     * If the OTP code is correct and the registration request is still valid, a new UserAccount will be created.
      *
      * @param key the key of the RegisterRequest entry to confirm
      * @param otpCode the OTP code sent to the user's email address
-     * @return created User if the registration is successful
+     * @return created UserAccount if the registration is successful
      */
     @NullMarked
     @Transactional
-    public User userRegisterConfirm(String key, String otpCode) {
+    public UserAccount userRegisterConfirm(String key, String otpCode) {
         Validator.create()
                 .validateRequestKey(key)
                 .validateOtpCode(otpCode)
@@ -125,33 +114,30 @@ public class AuthService {
             throw new IllegalArgumentException("This email is already registered");
         }
 
-        User user = User.builder()
+        UserAccount userAccount = UserAccount.builder()
                 .name(registerRequest.getName())
                 .email(registerRequest.getEmail())
                 .passwordHash(registerRequest.getPasswordHash())
                 .birthDate(registerRequest.getBirthDate())
-                .gender(registerRequest.getGender())
-                .phoneNumber(registerRequest.getPhoneNumber())
-                .addressLine(registerRequest.getAddressLine())
                 .country(registerRequest.getCountry())
                 .build();
 
-        logger.debug("Validation passed, creating user account for {} ({})", registerRequest.getName(), registerRequest.getEmail());
+        logger.debug("Validation passed, creating userAccount account for {} ({})", registerRequest.getName(), registerRequest.getEmail());
         try {
             registerRequestRepository.delete(registerRequest);
         } catch (Exception e) {
             logger.warn("Failed to delete registration request with key {}: {}", key, e.getMessage());
         }
-        return userRepository.save(user);
+        return userRepository.save(userAccount);
     }
 
     /**
      * Authenticate a user by their email and password.
-     * If the credentials are correct, return the corresponding User.
+     * If the credentials are correct, return the corresponding UserAccount.
      *
      * @param email the user's email address
      * @param password the user's plain text password
-     * @return the authenticated User
+     * @return the authenticated UserAccount
      */
     @NullMarked
     public Account accountLogin(String email, String password) {

@@ -78,5 +78,5 @@ logging:
   level:
     me:
       june8th:
-        ticketrush: debug
-    root: info
+        ticketrushserver: info
+    root: warn

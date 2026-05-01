@@ -1,12 +1,9 @@
 package me.june8th.ticketrushserver.data;
 
-import jakarta.annotation.Nullable;
 import lombok.*;
 import me.june8th.ticketrushserver.types.Country;
-import me.june8th.ticketrushserver.types.Gender;
 import me.june8th.ticketrushserver.utils.RandomGenerator;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.TimeToLive;
 import org.springframework.data.redis.core.index.Indexed;
 
@@ -15,7 +12,6 @@ import java.util.Date;
 
 @Data
 @Builder
-@RedisHash(value = "register_account_request")
 public class RegisterRequest {
 
     @TimeToLive
@@ -50,13 +46,6 @@ public class RegisterRequest {
 
     private Date birthDate;
 
-    private Gender gender;
-
-    private String addressLine;
-
     private Country country;
-
-    @Nullable
-    private String phoneNumber;
 
 }

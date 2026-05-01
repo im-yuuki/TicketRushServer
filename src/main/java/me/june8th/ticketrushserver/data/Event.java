@@ -26,7 +26,7 @@ public class Event {
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(nullable = false)
-    private Organization organization;
+    private OrganizationAccount organizationAccount;
 
     @Column(nullable = false)
     @Builder.Default

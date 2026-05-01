@@ -2,8 +2,7 @@ package me.june8th.ticketrushserver.controllers;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.*;
-import me.june8th.ticketrushserver.data.User;
+import me.june8th.ticketrushserver.data.UserAccount;
 import me.june8th.ticketrushserver.services.AuthService;
 import me.june8th.ticketrushserver.services.EmailService;
 import me.june8th.ticketrushserver.types.*;
@@ -11,6 +10,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Date;
 
 @RestController
 @RequestMapping("/auth")
@@ -29,7 +30,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<OperationResponse> register(@RequestBody RegisterRequest request) {
         try {
-            String key = authService.userRegisterRequest(request.getName(), request.getEmail(), request.getPassword(), request.getBirthDate(), request.getGender(), request.getPhoneNumber(), request.getAddressLine(), request.getCountry());
+            String key = authService.userRegisterRequest(request.name(), request.email(), request.password(), request.birthDate(), request.country());
             OperationResponse response = OperationResponse.success("Waiting for confirmation");
             response.addMetadataEntry("confirm_key", key);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -51,7 +52,7 @@ public class AuthController {
     @PostMapping("/register/{key}")
     public ResponseEntity<OperationResponse> confirmRegistration(@PathVariable String key, @RequestBody OtpConfirmationRequest request) {
         try {
-            User user = authService.userRegisterConfirm(key, request.otpCode());
+            UserAccount userAccount = authService.userRegisterConfirm(key, request.otpCode());
             return ResponseEntity.ok(OperationResponse.success("Registration successful"));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(OperationResponse.failure(e.getMessage()));
@@ -122,6 +123,14 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(OperationResponse.failure(e.getMessage()));
         }
     }
+
+    public record RegisterRequest(String name, String email, String password, Date birthDate, Country country) {}
+
+    public record OtpConfirmationRequest(String otpCode) {}
+
+    public record LoginRequest(String email, String password) {}
+
+    public record ResetPasswordRequest (String email, String newPassword) {}
 
 }
 

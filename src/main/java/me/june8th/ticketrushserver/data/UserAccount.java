@@ -4,6 +4,7 @@ import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import me.june8th.ticketrushserver.types.AccountType;
 import me.june8th.ticketrushserver.types.Country;
 import me.june8th.ticketrushserver.types.Gender;
 
@@ -16,25 +17,39 @@ import java.util.Date;
 @SuperBuilder
 @Entity
 @Table(name = "users")
-public class User extends Account {
+public class UserAccount extends Account {
+
+    @Override
+    public AccountType getType() {
+        return AccountType.USER;
+    }
 
     @Column(nullable = false)
     private Date birthDate;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Gender gender;
+    private Country country;
+
+    @Column
+    @Builder.Default
+    @Nullable
+    private String avatarKey = null;
+
+    @Enumerated(EnumType.STRING)
+    @Column
+    @Builder.Default
+    @Nullable
+    private Gender gender = null;
 
     @Column
     @Builder.Default
     @Nullable
     private String phoneNumber = null;
 
-    @Column(nullable = false)
-    private String addressLine;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Country country;
+    @Column
+    @Builder.Default
+    @Nullable
+    private String addressLine = null;
 
 }

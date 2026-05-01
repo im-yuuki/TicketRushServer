@@ -1,7 +1,6 @@
 package me.june8th.ticketrushserver.repositories;
 
 import me.june8th.ticketrushserver.data.Account;
-import me.june8th.ticketrushserver.data.Organization;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

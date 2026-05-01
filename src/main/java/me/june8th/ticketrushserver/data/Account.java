@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import me.june8th.ticketrushserver.types.AccountType;
 
 import java.time.Instant;
 
@@ -41,10 +42,14 @@ public abstract class Account {
 
     @Column(nullable = false)
     @Builder.Default
-    private Boolean accountNonLocked = true;
+    private Boolean locked = false;
 
-    @Column(nullable = false)
-    @Builder.Default
-    private String avatarKey = "";
+    @Transient
+    public abstract AccountType getType();
+
+    @Transient
+    public String getDomain() {
+        return getType().toString();
+    }
 
 }

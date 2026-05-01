@@ -27,4 +27,9 @@ public enum Country {
         throw new IllegalArgumentException("Invalid country: " + value);
     }
 
+    @Override
+    public String toString() {
+        return code;
+    }
+
 }

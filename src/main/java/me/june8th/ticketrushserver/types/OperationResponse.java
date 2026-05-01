@@ -1,7 +1,10 @@
 package me.june8th.ticketrushserver.types;
 
+import lombok.Builder;
+
 import java.util.HashMap;
 
+@Builder
 public record OperationResponse (boolean success, String message, HashMap<String, String> metadata) {
 
     public OperationResponse(boolean success, String message) {

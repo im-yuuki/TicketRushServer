@@ -1,13 +1,13 @@
 package me.june8th.ticketrushserver.repositories;
 
 import me.june8th.ticketrushserver.data.RegisterRequest;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.keyvalue.repository.KeyValueRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Repository
-public interface RegisterRequestRepository extends CrudRepository<RegisterRequest, String> {
+public interface RegisterRequestRepository extends KeyValueRepository<RegisterRequest, String> {
 
     Optional<RegisterRequest> findByKey(String key);
 

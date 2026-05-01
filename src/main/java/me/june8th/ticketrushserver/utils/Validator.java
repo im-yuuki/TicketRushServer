@@ -7,6 +7,7 @@ import java.util.Date;
 public class Validator {
 
     private static final String EMAIL_REGEX = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
+    private static final String PHONE_REGEX = "^\\+?[0-9]{7,15}$";
     private static final long ONE_YEAR_IN_MILLIS = 365L * 24 * 60 * 60 * 1000;
 
     @Getter
@@ -134,6 +135,18 @@ public class Validator {
         String trimmedOtpCode = otpCode.trim();
         if (trimmedOtpCode.length() != RandomGenerator.OTP_CODE_LENGTH || !trimmedOtpCode.matches("\\d+")) {
             error = ValidateError.OTPCODE_INVALID;
+        }
+        return this;
+    }
+
+    public Validator validateOptionalPhoneNumber(String phoneNumber) {
+        if (error != ValidateError.NONE) return this;
+        if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
+            return this;
+        }
+        String trimmedPhone = phoneNumber.trim();
+        if (!trimmedPhone.matches(PHONE_REGEX)) {
+            error = ValidateError.PHONENUMBER_INVALID;
         }
         return this;
     }

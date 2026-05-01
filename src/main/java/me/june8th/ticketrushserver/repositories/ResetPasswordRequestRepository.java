@@ -1,13 +1,13 @@
 package me.june8th.ticketrushserver.repositories;
 
 import me.june8th.ticketrushserver.data.ResetPasswordRequest;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.keyvalue.repository.KeyValueRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Repository
-public interface ResetPasswordRequestRepository extends CrudRepository<ResetPasswordRequest, String> {
+public interface ResetPasswordRequestRepository extends KeyValueRepository<ResetPasswordRequest, String> {
 
     Optional<ResetPasswordRequest> findByKey(String key);
 
