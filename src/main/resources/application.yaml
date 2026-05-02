@@ -32,11 +32,12 @@ spring:
       database: ${REDIS_DB:0}
   jpa:
     hibernate:
-      ddl-auto: ${DDL_AUTO:update}
+      ddl-auto: update
     properties:
       hibernate:
-        format_sql: true
-        default_schema: v1
+        format_sql: false
+        show_sql: false
+        default_schema: ${PGSQL_SCH:public}
     open-in-view: true
   mail:
     test-connection: true
