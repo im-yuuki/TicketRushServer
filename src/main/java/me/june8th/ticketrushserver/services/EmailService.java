@@ -35,8 +35,8 @@ public class EmailService {
     private final RegisterRequestRepository registerRequestRepository;
     private final ResetPasswordRequestRepository resetPasswordRequestRepository;
 
-    @Value("${app.mail.from}")
-    private String fromAddress;
+    @Value("${app.mail}")
+    private String mailFromAddress;
 
     /**
      * Send an email containing an OTP code that the user can use to confirm their registration.
@@ -131,7 +131,7 @@ public class EmailService {
     private void sendHtmlEmail(String toAddress, String subject, String htmlContent) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-        helper.setFrom(fromAddress);
+        helper.setFrom(mailFromAddress);
         helper.setTo(toAddress);
         helper.setSubject(subject);
         helper.setText(htmlContent, true);

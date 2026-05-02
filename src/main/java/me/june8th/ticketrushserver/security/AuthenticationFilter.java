@@ -50,7 +50,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                         accessTokenData.getPrincipal(),
                         Collections.singleton(new SimpleGrantedAuthority(accessTokenData.type().toString()))
                 );
-                authentication.setDetails(accessTokenData.domain());
+                authentication.setDetails(accessTokenData);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception e) {

@@ -1,9 +1,12 @@
 app:
   jwt:
-    secret: ${JWT_SECRET:}
+    secret: ${JWT_SEC:}
     access-token-expiration: 86400
-  mail:
-    from: ${MAIL_FROM:}
+  s3:
+    url: ${S3_URL}
+    access-id: ${S3_KEY_ID}
+    secret-key: ${S3_KEY_SEC}
+  mail: ${MAIL_ADDR}
 
 server:
   servlet:
@@ -15,18 +18,18 @@ server:
 spring:
   application:
     name: TicketRushServer
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${PGSQL_URL:jdbc:postgresql://localhost:5432/ticketrush}
+    username: ${PGSQL_USR:ticketrush}
+    password: ${PGSQL_PWD:ticketrush}
   data:
     redis:
       client-name: ticketrush-server
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PWD:}
-      database: 0
-  datasource:
-    driver-class-name: org.postgresql.Driver
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/ticketrush}
-    username: ${DB_USR:ticketrush}
-    password: ${DB_PWD:}
+      database: ${REDIS_DB:0}
   jpa:
     hibernate:
       ddl-auto: update
@@ -37,10 +40,10 @@ spring:
     open-in-view: true
   mail:
     test-connection: true
-    host: ${SMTP_HOST:localhost}
-    port: ${SMTP_PORT:587}
-    username: ${SMTP_USR:ticketrush}
-    password: ${SMTP_PWD:ticketrush}
+    host: ${SMTP_HOST}
+    port: ${SMTP_PORT}
+    username: ${SMTP_USR}
+    password: ${SMTP_PWD}
     properties:
       mail:
         smtp:
@@ -69,7 +72,5 @@ logging:
     console: "[%d{HH:mm:ss dd/MM/yyyy}] %clr(%-5level) %blue(%-40.40logger{39}) : %msg%n"
     file: "[%d{HH:mm:ss dd/MM/yyyy}] %-5level %-40.40logger{39} : %msg%n"
   level:
-    me:
-      june8th:
-        ticketrushserver: debug
+    me.june8th.ticketrushserver: debug
     root: info
