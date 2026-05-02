@@ -32,7 +32,7 @@ spring:
       database: ${REDIS_DB:0}
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: ${DDL_AUTO:update}
     properties:
       hibernate:
         format_sql: true

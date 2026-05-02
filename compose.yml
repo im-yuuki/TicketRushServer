@@ -44,23 +44,23 @@ services:
         protocol: tcp
         mode: host
 
-  elasticsearch:
-    image: elasticsearch:latest
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - xpack.monitoring.collection.enabled=true
-    ports:
-      - target: 9200
-        published: 9200
-        protocol: tcp
-        mode: host
-    volumes:
-      - esdata:/usr/share/elasticsearch
+#  elasticsearch:
+#    image: elasticsearch:9.3.4
+#    environment:
+#      - discovery.type=single-node
+#      - xpack.security.enabled=false
+#      - xpack.monitoring.collection.enabled=true
+#    ports:
+#      - target: 9200
+#        published: 9200
+#        protocol: tcp
+#        mode: host
+#    volumes:
+#      - esdata:/usr/share/elasticsearch
 
 volumes:
   pgdata:
-  esdata:
+#  esdata:
 
 networks:
   default:

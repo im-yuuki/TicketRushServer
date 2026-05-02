@@ -1,4 +1,4 @@
-name: Build Executable JAR
+name: Build Spring Boot executable JAR
 on:
   push:
   pull_request:

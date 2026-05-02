@@ -1,5 +1,4 @@
-name: Build and Push Docker Image
-
+name: Build Docker Image
 on:
   push:
     branches: ["main", "master"]
@@ -40,7 +39,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          platforms: linux/amd64,linux/arm64
+          # platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
