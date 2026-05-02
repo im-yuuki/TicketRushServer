@@ -17,7 +17,7 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     env_file:
-      - .env.compose
+      - compose.env
     depends_on:
       - postgres
       - redis
