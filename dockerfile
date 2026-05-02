@@ -2,6 +2,7 @@ FROM eclipse-temurin:25-jdk-alpine AS builder
 
 WORKDIR /app
 COPY . .
+RUN chmod +x gradlew
 RUN ./gradlew bootJar -x test --no-daemon
 
 FROM eclipse-temurin:25-jre-alpine
