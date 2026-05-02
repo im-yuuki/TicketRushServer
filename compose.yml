@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: dockerfile
-    image: ticketrush-server:latest
+    image: ghcr.io/im-yuuki/ticketrushserver:master
     ports:
       - target: 8080
         published: 8080
@@ -34,7 +34,7 @@ services:
         protocol: tcp
         mode: host
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql
 
   redis:
     image: redis:latest
@@ -45,7 +45,7 @@ services:
         mode: host
 
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:latest
+    image: elasticsearch:latest
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
@@ -56,7 +56,7 @@ services:
         protocol: tcp
         mode: host
     volumes:
-      - esdata:/usr/share/elasticsearch/data
+      - esdata:/usr/share/elasticsearch
 
 volumes:
   pgdata:
