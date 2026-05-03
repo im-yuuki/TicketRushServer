@@ -1,6 +1,5 @@
 package me.june8th.ticketrushserver;
 
-import lombok.RequiredArgsConstructor;
 import me.june8th.ticketrushserver.security.AuthenticationFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
@@ -39,10 +38,7 @@ import java.net.URI;
 @EnableWebSecurity
 @EnableMethodSecurity
 @EnableRedisRepositories
-@RequiredArgsConstructor
 public class AppConfiguration implements WebMvcConfigurer {
-
-    private final AuthenticationFilter authenticationFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -50,7 +46,7 @@ public class AppConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity httpSecurity) {
+    public SecurityFilterChain filterChain(HttpSecurity httpSecurity, AuthenticationFilter authenticationFilter) {
         httpSecurity.csrf(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authz -> authz
@@ -66,8 +62,8 @@ public class AppConfiguration implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost:5173", "https://ticketrush.june8th.me")
-                .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE")
+                .allowedOriginPatterns("*")
+                .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true);
     }

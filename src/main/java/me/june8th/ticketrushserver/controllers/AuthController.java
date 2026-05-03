@@ -3,7 +3,7 @@ package me.june8th.ticketrushserver.controllers;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import me.june8th.ticketrushserver.data.Account;
-import me.june8th.ticketrushserver.services.AuthService;
+import me.june8th.ticketrushserver.services.AccountService;
 import me.june8th.ticketrushserver.services.EmailService;
 import me.june8th.ticketrushserver.types.*;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,12 +17,12 @@ import java.util.Date;
 @RequestMapping("/auth")
 public class AuthController {
 
-    private final AuthService authService;
+    private final AccountService accountService;
     private final EmailService emailService;
     private final int accessTokenExpiration;
 
-    public AuthController(AuthService authService, EmailService emailService, @Value("${app.jwt.access-token-expiration}") long accessTokenExpiration) {
-        this.authService = authService;
+    public AuthController(AccountService accountService, EmailService emailService, @Value("${app.jwt.access-token-expiration}") long accessTokenExpiration) {
+        this.accountService = accountService;
         this.emailService = emailService;
         this.accessTokenExpiration = Math.toIntExact(accessTokenExpiration);
     }
@@ -30,7 +30,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<OperationResponse> register(@RequestBody RegisterRequest request) {
         try {
-            String key = authService.userRegisterRequest(request.name(), request.email(), request.password(), request.birthDate(), request.country());
+            String key = accountService.userRegisterRequest(request.name(), request.email(), request.password(), request.birthDate(), request.country());
             OperationResponse response = OperationResponse.success("Waiting for confirmation");
             response.addMetadataEntry("confirm_key", key);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -52,7 +52,7 @@ public class AuthController {
     @PostMapping("/register/{key}")
     public ResponseEntity<OperationResponse> confirmRegistration(@PathVariable String key, @RequestBody OtpConfirmationRequest request) {
         try {
-            authService.userRegisterConfirm(key, request.otpCode());
+            accountService.userRegisterConfirm(key, request.otpCode());
             return ResponseEntity.ok(OperationResponse.success("Registration successful."));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(OperationResponse.failure(e.getMessage()));
@@ -62,9 +62,9 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<OperationResponse> login(@RequestBody LoginRequest request, HttpServletResponse response) {
         try {
-            Account account = authService.accountLogin(request.email(), request.password());
+            Account account = accountService.accountLogin(request.email(), request.password());
 
-            String accessToken = authService.generateAccessToken(account);
+            String accessToken = accountService.generateAccessToken(account);
             Cookie accessTokenCookie = new Cookie("accessToken", accessToken);
             accessTokenCookie.setHttpOnly(true);
             accessTokenCookie.setSecure(true);
@@ -95,7 +95,7 @@ public class AuthController {
     @PostMapping("/reset")
     public ResponseEntity<OperationResponse> resetPassword(@RequestBody ResetPasswordRequest request) {
         try {
-            String key = authService.accountResetPasswordRequest(request.email(), request.newPassword());
+            String key = accountService.accountResetPasswordRequest(request.email(), request.newPassword());
             OperationResponse response = OperationResponse.success("Reset password token created");
             response.addMetadataEntry("confirm_key", key);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -117,7 +117,7 @@ public class AuthController {
     @PostMapping("/reset/{key}")
     public ResponseEntity<?> confirmResetPassword(@PathVariable String key, @RequestBody OtpConfirmationRequest request) {
         try {
-            authService.accountResetPasswordConfirm(key, request.otpCode());
+            accountService.accountResetPasswordConfirm(key, request.otpCode());
             return ResponseEntity.ok(OperationResponse.success("Password reset successful"));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(OperationResponse.failure(e.getMessage()));

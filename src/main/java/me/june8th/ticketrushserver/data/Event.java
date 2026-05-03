@@ -40,4 +40,8 @@ public class Event {
     @Builder.Default
     private String bannerKey = "";
 
+    @Column(nullable = false)
+    @Builder.Default
+    private Long views = 0L;
+
 }

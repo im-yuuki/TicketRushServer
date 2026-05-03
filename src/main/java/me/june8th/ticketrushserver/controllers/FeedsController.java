@@ -9,11 +9,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/feeds")
 public class FeedsController {
 
-    @GetMapping("/banner")
-    public ResponseEntity<?> getBannerItems() {
-        return null;
-    }
-
     @GetMapping("/promoted")
     public ResponseEntity<?> getPromotedEvents() {
         return null;

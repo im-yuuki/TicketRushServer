@@ -70,8 +70,8 @@ logging:
     console: UTF-8
     file: UTF-8
   pattern:
-    console: "[%d{HH:mm:ss dd/MM/yyyy}] %clr(%-5level) %blue(%-40.40logger{39}) : %msg%n"
-    file: "[%d{HH:mm:ss dd/MM/yyyy}] %-5level %-40.40logger{39} : %msg%n"
+    console: "[%d{yyyy-MM-dd HH:mm:ss}] %clr(%-5level) %blue(%-40.40logger{39}) : %msg%n"
+    file: "[%d{yyyy-MM-dd HH:mm:ss}] %-5level %-40.40logger{39} : %msg%n"
   level:
     me.june8th.ticketrushserver: debug
     root: info

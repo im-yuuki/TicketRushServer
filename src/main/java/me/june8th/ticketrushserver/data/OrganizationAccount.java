@@ -35,6 +35,11 @@ public class OrganizationAccount extends Account {
     @Builder.Default
     private String description = "";
 
+    @Column(unique = true)
+    @Builder.Default
+    @Nullable
+    private String aliasName = null;
+
     @Column
     @Builder.Default
     @Nullable

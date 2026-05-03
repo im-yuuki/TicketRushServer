@@ -5,6 +5,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/org/{id}")
-public class OrganizationController {
+public class PublicOrganizationController {
 
 }

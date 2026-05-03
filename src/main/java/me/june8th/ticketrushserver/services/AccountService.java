@@ -22,9 +22,9 @@ import java.util.Date;
 
 @Service
 @RequiredArgsConstructor
-public class AuthService {
+public class AccountService {
 
-    private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
+    private static final Logger logger = LoggerFactory.getLogger(AccountService.class);
 
     private final UserRepository userRepository;
     private final AccountRepository accountRepository;
