@@ -1,6 +1,12 @@
 package me.june8th.ticketrushserver;
 
+import lombok.RequiredArgsConstructor;
 import me.june8th.ticketrushserver.security.AuthenticationFilter;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import me.june8th.ticketrushserver.utils.ClientIPResolver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
@@ -38,7 +44,12 @@ import java.net.URI;
 @EnableWebSecurity
 @EnableMethodSecurity
 @EnableRedisRepositories
+@RequiredArgsConstructor
 public class AppConfiguration implements WebMvcConfigurer {
+
+    private static final Logger logger = LoggerFactory.getLogger(AppConfiguration.class);
+
+    private final ClientIPResolver clientIPResolver;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -53,6 +64,16 @@ public class AppConfiguration implements WebMvcConfigurer {
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/feeds/**").permitAll()
                         .anyRequest().authenticated()
+                )
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            logSecurityTrace("Authentication required", request, authException);
+                            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            logSecurityTrace("Access denied", request, accessDeniedException);
+                            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+                        })
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -94,6 +115,13 @@ public class AppConfiguration implements WebMvcConfigurer {
                         AwsBasicCredentials.create(accessId, secretKey)
                 ))
                 .build();
+    }
+
+    private void logSecurityTrace(String message, HttpServletRequest request, Exception exception) {
+        String origin = request.getHeader("Origin");
+        String path = request.getRequestURI();
+        String clientIp = clientIPResolver.resolve(request);
+        logger.trace("{} [ip={}, origin={}, path={}]", message, clientIp, origin, path, exception);
     }
 
 }

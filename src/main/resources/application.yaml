@@ -7,6 +7,7 @@ app:
     access-id: ${S3_KEY_ID}
     secret-key: ${S3_KEY_SEC}
   mail: ${MAIL_ADDR}
+  proxied: ${APP_PROXIED:false}
 
 server:
   servlet:
@@ -73,5 +74,5 @@ logging:
     console: "[%d{yyyy-MM-dd HH:mm:ss}] %clr(%-5level) %blue(%-40.40logger{39}) : %msg%n"
     file: "[%d{yyyy-MM-dd HH:mm:ss}] %-5level %-40.40logger{39} : %msg%n"
   level:
-    me.june8th.ticketrushserver: debug
+    me.june8th.ticketrushserver: trace
     root: info
