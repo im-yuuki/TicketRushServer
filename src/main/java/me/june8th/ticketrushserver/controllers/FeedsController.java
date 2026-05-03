@@ -1,5 +1,6 @@
 package me.june8th.ticketrushserver.controllers;
 
+import me.june8th.ticketrushserver.types.NotImplementedException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,17 +12,17 @@ public class FeedsController {
 
     @GetMapping("/promoted")
     public ResponseEntity<?> getPromotedEvents() {
-        return null;
+        throw new NotImplementedException();
     }
 
     @GetMapping("/trending")
     public ResponseEntity<?> getTrendingEvents() {
-        return null;
+        throw new NotImplementedException();
     }
 
     @GetMapping("/recommended")
     public ResponseEntity<?> getRecommendedEvents() {
-        return null;
+        throw new NotImplementedException();
     }
 
 }

@@ -3,6 +3,7 @@ package me.june8th.ticketrushserver.controllers;
 import lombok.Builder;
 import lombok.Data;
 import me.june8th.ticketrushserver.types.AccountType;
+import me.june8th.ticketrushserver.types.NotImplementedException;
 import me.june8th.ticketrushserver.types.OperationResponse;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,32 +13,32 @@ public class AccountController {
 
     @GetMapping
     public String getProfile() {
-        return null;
+        throw new NotImplementedException();
     }
 
     @PatchMapping
     public String updateProfile() {
-        return null;
+        throw new NotImplementedException();
     }
 
     @PatchMapping("/avatar")
     public String changeAvatar() {
-        return null;
+        throw new NotImplementedException();
     }
 
     @PatchMapping("/email")
     public OperationResponse changeEmail(@RequestBody UpdateEmailRequest request) {
-        return null;
+        throw new NotImplementedException();
     }
 
     @PatchMapping("/password")
     public OperationResponse changePassword(@RequestBody UpdatePasswordRequest request) {
-        return null;
+        throw new NotImplementedException();
     }
 
     @PostMapping("/revoke-all-sessions")
     public OperationResponse revokeAllSessions() {
-        return null;
+        throw new NotImplementedException();
     }
 
     @Builder

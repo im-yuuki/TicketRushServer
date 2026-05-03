@@ -1,4 +1,4 @@
-package me.june8th.ticketrushserver.utils;
+package me.june8th.ticketrushserver.types;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

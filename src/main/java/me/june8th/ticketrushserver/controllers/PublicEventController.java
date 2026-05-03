@@ -1,5 +1,6 @@
 package me.june8th.ticketrushserver.controllers;
 
+import me.june8th.ticketrushserver.types.NotImplementedException;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -8,22 +9,22 @@ public class PublicEventController {
 
     @GetMapping("/{id}")
     public String getEventInfo(@PathVariable String id) {
-        return null;
+        throw new NotImplementedException();
     }
 
     @GetMapping("/interested")
     public String getInterestedEvents() {
-        return null;
+        throw new NotImplementedException();
     }
 
     @PutMapping("/interested/{id}")
     public String markInterested(@PathVariable String id) {
-        return null;
+        throw new NotImplementedException();
     }
 
     @DeleteMapping("/interested/{id}")
     public String unmarkInterested(@PathVariable String id) {
-        return null;
+        throw new NotImplementedException();
     }
 
 }

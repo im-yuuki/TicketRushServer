@@ -8,7 +8,7 @@ import me.june8th.ticketrushserver.repositories.ResetPasswordRequestRepository;
 import me.june8th.ticketrushserver.repositories.UserRepository;
 import me.june8th.ticketrushserver.security.AccessTokenData;
 import me.june8th.ticketrushserver.security.AccessTokenProvider;
-import me.june8th.ticketrushserver.types.Country;
+import me.june8th.ticketrushserver.types.*;
 import me.june8th.ticketrushserver.utils.Validator;
 import org.jspecify.annotations.NullMarked;
 import org.slf4j.Logger;
@@ -54,11 +54,11 @@ public class AccountService {
                 .throwExceptionIfInvalid();
 
         if (registerRequestRepository.findByEmail(email).isPresent()) {
-            throw new IllegalArgumentException("A registration session with this email already exists");
+            throw new RatelimitedException("A registration session with this email already exists");
         }
 
         if (accountRepository.existsByEmail(email)) {
-            throw new IllegalArgumentException("This email is already registered");
+            throw new ResourceConflictException("This email is already registered");
         }
 
         String passwordHash = passwordEncoder.encode(password);
@@ -81,38 +81,37 @@ public class AccountService {
      * Confirm a user registration request by providing the OTP code sent to the user's email address.
      * If the OTP code is correct and the registration request is still valid, a new UserAccount will be created.
      *
-     * @param key the key of the RegisterRequest entry to confirm
+     * @param key     the key of the RegisterRequest entry to confirm
      * @param otpCode the OTP code sent to the user's email address
-     * @return created UserAccount if the registration is successful
      */
     @NullMarked
     @Transactional
-    public UserAccount userRegisterConfirm(String key, String otpCode) {
+    public void userRegisterConfirm(String key, String otpCode) {
         Validator.create()
                 .validateRequestKey(key)
                 .validateOtpCode(otpCode)
                 .throwExceptionIfInvalid();
 
         RegisterRequest registerRequest = registerRequestRepository.findByKey(key).orElseThrow(
-                () -> new IllegalArgumentException("Invalid registration key")
+                () -> new ResourceNotFoundException("Invalid request")
         );
 
         if (Instant.now().isAfter(registerRequest.getExpiresAt())) {
-            throw new RuntimeException("This registration request has expired");
+            throw new TimedOutException("This registration request has expired");
         }
 
         if (registerRequest.getAvailableAttempts() <= 0) {
-            throw new RuntimeException("No available attempts left for this registration request");
+            throw new RatelimitedException("No available attempts left for this registration request");
         }
 
         if (!registerRequest.getOtpCode().equals(otpCode)) {
             registerRequest.setAvailableAttempts(registerRequest.getAvailableAttempts() - 1);
             registerRequestRepository.save(registerRequest);
-            throw new IllegalArgumentException("Invalid OTP code");
+            throw new AuthenticationFailedException("Invalid OTP code");
         }
 
         if (accountRepository.existsByEmail(registerRequest.getEmail())) {
-            throw new IllegalArgumentException("This email is already registered");
+            throw new InvalidStateException("This email is already registered");
         }
 
         UserAccount userAccount = UserAccount.builder()
@@ -129,7 +128,7 @@ public class AccountService {
         } catch (Exception e) {
             logger.warn("Failed to delete registration request with key {}: {}", key, e.getMessage());
         }
-        return userRepository.save(userAccount);
+        userRepository.save(userAccount);
     }
 
     /**
@@ -148,11 +147,11 @@ public class AccountService {
                 .throwExceptionIfInvalid();
 
         Account account = accountRepository.findByEmail(email).orElseThrow(
-                () -> new IllegalArgumentException("Invalid email or password")
+                () -> new AuthenticationFailedException("Invalid credentials")
         );
 
         if (!passwordEncoder.matches(password, account.getPasswordHash())) {
-            throw new IllegalArgumentException("Invalid email or password");
+            throw new AuthenticationFailedException("Invalid credentials");
         }
 
         logger.debug("Account {} ({}) logged in successfully", account.getId(), account.getName());
@@ -186,7 +185,7 @@ public class AccountService {
     @Transactional
     public boolean accountLogoutAllSessions(Long accountId) {
         Account account = accountRepository.findById(accountId).orElseThrow(
-                () -> new IllegalArgumentException("Account not found")
+                () -> new ResourceNotFoundException("Account not found")
         );
         account.setTokenVersion(account.getTokenVersion() + 1);
         accountRepository.save(account);
@@ -207,11 +206,11 @@ public class AccountService {
                 .throwExceptionIfInvalid();
 
         if (resetPasswordRequestRepository.findByEmail(email).isPresent()) {
-            throw new IllegalArgumentException("A password reset session with this account already exists");
+            throw new RatelimitedException("A password reset session with this account already exists");
         }
 
         Account account = accountRepository.findByEmail(email).orElseThrow(
-                () -> new IllegalArgumentException("This email is not registered")
+                () -> new ResourceNotFoundException("This email is not registered")
         );
 
         String newPasswordHash = passwordEncoder.encode(newPassword);
@@ -220,6 +219,7 @@ public class AccountService {
         ResetPasswordRequest resetPasswordRequest = ResetPasswordRequest.builder()
                 .accountId(account.getId())
                 .email(email)
+                .oldPasswordHash(account.getPasswordHash())
                 .newPasswordHash(newPasswordHash)
                 .build();
 
@@ -234,39 +234,41 @@ public class AccountService {
      *
      * @param token the key of the ResetPasswordRequest entry to confirm
      * @param otpCode the OTP code sent to the user's email address
-     * @return true if the password reset is successful, false otherwise
      */
     @NullMarked
     @Transactional
-    public boolean accountResetPasswordConfirm(String token, String otpCode) {
+    public void accountResetPasswordConfirm(String token, String otpCode) {
         Validator.create()
                 .validateRequestKey(token)
                 .validateOtpCode(otpCode)
                 .throwExceptionIfInvalid();
 
         ResetPasswordRequest resetPasswordRequest = resetPasswordRequestRepository.findByKey(token).orElseThrow(
-                () -> new IllegalArgumentException("Invalid password reset key")
+                () -> new ResourceNotFoundException("Invalid request")
         );
 
         if (Instant.now().isAfter(resetPasswordRequest.getExpiresAt())) {
-            throw new RuntimeException("This password reset request has expired");
+            throw new TimedOutException("This password reset request has expired");
         }
 
         if (resetPasswordRequest.getAvailableAttempts() <= 0) {
-            throw new RuntimeException("No available attempts left for this password reset request");
+            throw new RatelimitedException("No available attempts left for this password reset request");
         }
 
         if (!resetPasswordRequest.getOtpCode().equals(otpCode)) {
             resetPasswordRequest.setAvailableAttempts(resetPasswordRequest.getAvailableAttempts() - 1);
             resetPasswordRequestRepository.save(resetPasswordRequest);
-            throw new IllegalArgumentException("Invalid OTP code");
+            throw new AuthenticationFailedException("Invalid OTP code");
         }
 
         Account account = accountRepository.findById(resetPasswordRequest.getAccountId()).orElseThrow(
-                () -> new IllegalArgumentException("Invalid request")
+                () -> new InvalidStateException("Invalid request")
         );
         if (!account.getEmail().equals(resetPasswordRequest.getEmail())) {
-            throw new IllegalArgumentException("Invalid request");
+            throw new InvalidStateException("Invalid request");
+        }
+        if (!account.getPasswordHash().equals(resetPasswordRequest.getOldPasswordHash())) {
+            throw new InvalidStateException("Invalid request");
         }
 
         account.setPasswordHash(resetPasswordRequest.getNewPasswordHash());
@@ -278,7 +280,24 @@ public class AccountService {
         } catch (Exception e) {
             logger.warn("Failed to delete password reset request with key {}: {}", token, e.getMessage());
         }
-        return true;
+    }
+
+    @NullMarked
+    @Transactional
+    public void changeAccountEmail(Long accountId, String newEmail, String currentPassword) {
+        Validator.create()
+                .validateEmail(newEmail)
+                .throwExceptionIfInvalid();
+
+        if (accountRepository.existsByEmail(newEmail)) {
+            throw new ResourceConflictException("This email is already registered");
+        }
+
+        Account account = accountRepository.findById(accountId).orElseThrow(
+                () -> new ResourceNotFoundException("Account not found")
+        );
+        account.setEmail(newEmail);
+        accountRepository.save(account);
     }
 
 }

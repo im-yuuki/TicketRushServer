@@ -1,5 +1,6 @@
 package me.june8th.ticketrushserver.controllers;
 
+import jakarta.mail.MessagingException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import me.june8th.ticketrushserver.data.Account;
@@ -29,55 +30,39 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<OperationResponse> register(@RequestBody RegisterRequest request) {
-        try {
-            String key = accountService.userRegisterRequest(request.name(), request.email(), request.password(), request.birthDate(), request.country());
-            OperationResponse response = OperationResponse.success("Waiting for confirmation");
-            response.addMetadataEntry("confirm_key", key);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(OperationResponse.failure(e.getMessage()));
-        }
+        String key = accountService.userRegisterRequest(request.name(), request.email(), request.password(), request.birthDate(), request.country());
+        OperationResponse response = OperationResponse.success("Waiting for confirmation");
+        response.addMetadataEntry("confirm_key", key);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/register/{key}")
-    public ResponseEntity<OperationResponse> sendRegistrationOtp(@PathVariable String key) {
-        try {
-            emailService.sendRegisterConfirmationEmail(key);
-            return ResponseEntity.ok(OperationResponse.success("Please check your email for the OTP code to confirm your registration"));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(OperationResponse.failure(e.getMessage()));
-        }
+    public ResponseEntity<OperationResponse> sendRegistrationOtp(@PathVariable String key) throws MessagingException {
+        emailService.sendRegisterConfirmationEmail(key);
+        return ResponseEntity.ok(OperationResponse.success("Please check your email for the OTP code to confirm your registration"));
     }
 
     @PostMapping("/register/{key}")
     public ResponseEntity<OperationResponse> confirmRegistration(@PathVariable String key, @RequestBody OtpConfirmationRequest request) {
-        try {
-            accountService.userRegisterConfirm(key, request.otpCode());
-            return ResponseEntity.ok(OperationResponse.success("Registration successful."));
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(OperationResponse.failure(e.getMessage()));
-        }
+        accountService.userRegisterConfirm(key, request.otpCode());
+        return ResponseEntity.ok(OperationResponse.success("Registration successful."));
     }
 
     @PostMapping("/login")
     public ResponseEntity<OperationResponse> login(@RequestBody LoginRequest request, HttpServletResponse response) {
-        try {
-            Account account = accountService.accountLogin(request.email(), request.password());
+        Account account = accountService.accountLogin(request.email(), request.password());
 
-            String accessToken = accountService.generateAccessToken(account);
-            Cookie accessTokenCookie = new Cookie("accessToken", accessToken);
-            accessTokenCookie.setHttpOnly(true);
-            accessTokenCookie.setSecure(true);
-            accessTokenCookie.setPath("/");
-            accessTokenCookie.setMaxAge(accessTokenExpiration);
-            response.addCookie(accessTokenCookie);
+        String accessToken = accountService.generateAccessToken(account);
+        Cookie accessTokenCookie = new Cookie("accessToken", accessToken);
+        accessTokenCookie.setHttpOnly(true);
+        accessTokenCookie.setSecure(true);
+        accessTokenCookie.setPath("/");
+        accessTokenCookie.setMaxAge(accessTokenExpiration);
+        response.addCookie(accessTokenCookie);
 
-            return ResponseEntity.ok(OperationResponse.success("Login successful")
-                    .addMetadataEntry("account_type", account.getType().name()
-            ));
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(OperationResponse.failure(e.getMessage()));
-        }
+        return ResponseEntity.ok(OperationResponse.success("Login successful")
+                .addMetadataEntry("account_type", account.getType().name()
+        ));
     }
 
     @PostMapping("/logout")
@@ -94,34 +79,22 @@ public class AuthController {
 
     @PostMapping("/reset")
     public ResponseEntity<OperationResponse> resetPassword(@RequestBody ResetPasswordRequest request) {
-        try {
-            String key = accountService.accountResetPasswordRequest(request.email(), request.newPassword());
-            OperationResponse response = OperationResponse.success("Reset password token created");
-            response.addMetadataEntry("confirm_key", key);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(OperationResponse.failure(e.getMessage()));
-        }
+        String key = accountService.accountResetPasswordRequest(request.email(), request.newPassword());
+        OperationResponse response = OperationResponse.success("Reset password token created");
+        response.addMetadataEntry("confirm_key", key);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/reset/{key}")
-    public ResponseEntity<OperationResponse> sendResetPasswordOtp(@PathVariable String key) {
-        try {
-            emailService.sendPasswordResetEmail(key);
-            return ResponseEntity.ok(OperationResponse.success("Please check your email for the OTP code to confirm your password reset"));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(OperationResponse.failure(e.getMessage()));
-        }
+    public ResponseEntity<OperationResponse> sendResetPasswordOtp(@PathVariable String key) throws MessagingException {
+        emailService.sendPasswordResetEmail(key);
+        return ResponseEntity.ok(OperationResponse.success("Please check your email for the OTP code to confirm your password reset"));
     }
 
     @PostMapping("/reset/{key}")
-    public ResponseEntity<?> confirmResetPassword(@PathVariable String key, @RequestBody OtpConfirmationRequest request) {
-        try {
-            accountService.accountResetPasswordConfirm(key, request.otpCode());
-            return ResponseEntity.ok(OperationResponse.success("Password reset successful"));
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(OperationResponse.failure(e.getMessage()));
-        }
+    public ResponseEntity<OperationResponse> confirmResetPassword(@PathVariable String key, @RequestBody OtpConfirmationRequest request) {
+        accountService.accountResetPasswordConfirm(key, request.otpCode());
+        return ResponseEntity.ok(OperationResponse.success("Password reset successful"));
     }
 
     public record RegisterRequest(String name, String email, String password, Date birthDate, Country country) {}
@@ -133,4 +106,3 @@ public class AuthController {
     public record ResetPasswordRequest (String email, String newPassword) {}
 
 }
-

@@ -39,7 +39,9 @@ public class ResetPasswordRequest {
     @Indexed
     private String email;
 
-	private Long accountId;
+    private Long accountId;
+
+    private String oldPasswordHash;
 
     private String newPasswordHash;
 
