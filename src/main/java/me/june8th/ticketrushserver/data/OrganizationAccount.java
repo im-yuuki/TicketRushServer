@@ -53,6 +53,6 @@ public class OrganizationAccount extends Account {
     @Column
     @Builder.Default
     @Nullable
-    private String website = null;
+    private String websiteUrl = null;
 
 }

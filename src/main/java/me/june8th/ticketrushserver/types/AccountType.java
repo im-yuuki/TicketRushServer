@@ -25,4 +25,8 @@ public enum AccountType {
         return value;
     }
 
+    public String toSecurityAuthority() {
+        return "ROLE_" + name();
+    }
+
 }

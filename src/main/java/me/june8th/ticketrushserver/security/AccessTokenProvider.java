@@ -48,7 +48,7 @@ public class AccessTokenProvider {
         return Jwts.builder()
                 .subject(data.getPrincipal())
                 .claim(ID_CLAIM, data.id())
-                .claim(TYPE_CLAIM, data.type())
+                .claim(TYPE_CLAIM, data.type().toString())
                 .claim(DOMAIN_CLAIM, data.domain())
                 .claim(VERSION_CLAIM, data.version())
                 .issuer(ISSUER)
@@ -83,7 +83,7 @@ public class AccessTokenProvider {
             }
             else {
                 Long id = claims.get(ID_CLAIM, Long.class);
-                AccountType type = claims.get(TYPE_CLAIM, AccountType.class);
+                AccountType type = AccountType.fromString(claims.get(TYPE_CLAIM, String.class));
                 String domain = claims.get(DOMAIN_CLAIM, String.class);
                 Integer version = claims.get(VERSION_CLAIM, Integer.class);
 
@@ -103,4 +103,3 @@ public class AccessTokenProvider {
     }
 
 }
-

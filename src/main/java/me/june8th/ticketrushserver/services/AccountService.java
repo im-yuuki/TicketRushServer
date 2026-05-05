@@ -45,7 +45,7 @@ public class AccountService {
      */
     @NullMarked
     @Transactional
-    public String userRegisterRequest(String name, String email, String password, Date birthDate, Country country) {
+    public String userRegisterRequest(String name, String email, String password, Date birthDate, Gender gender, Country country) {
         Validator.create()
                 .validateName(name)
                 .validateEmail(email)
@@ -69,6 +69,7 @@ public class AccountService {
                 .email(email)
                 .passwordHash(passwordHash)
                 .birthDate(birthDate)
+                .genderString(gender.toString())
                 .country(country)
                 .build();
 
@@ -96,6 +97,8 @@ public class AccountService {
                 () -> new ResourceNotFoundException("Invalid request")
         );
 
+        Gender gender = Gender.fromString(registerRequest.getGenderString());
+
         if (Instant.now().isAfter(registerRequest.getExpiresAt())) {
             throw new TimedOutException("This registration request has expired");
         }
@@ -119,6 +122,7 @@ public class AccountService {
                 .email(registerRequest.getEmail())
                 .passwordHash(registerRequest.getPasswordHash())
                 .birthDate(registerRequest.getBirthDate())
+                .gender(gender)
                 .country(registerRequest.getCountry())
                 .build();
 

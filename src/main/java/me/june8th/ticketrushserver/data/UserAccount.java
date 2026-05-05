@@ -31,16 +31,14 @@ public class UserAccount extends Account {
     @Column(nullable = false)
     private Country country;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Gender gender;
+
     @Column
     @Builder.Default
     @Nullable
     private String avatarKey = null;
-
-    @Enumerated(EnumType.STRING)
-    @Column
-    @Builder.Default
-    @Nullable
-    private Gender gender = null;
 
     @Column
     @Builder.Default

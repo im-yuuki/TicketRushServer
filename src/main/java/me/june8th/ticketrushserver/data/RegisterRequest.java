@@ -46,6 +46,8 @@ public class RegisterRequest {
 
     private Date birthDate;
 
+    private String genderString;
+
     private Country country;
 
 }

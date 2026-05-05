@@ -30,7 +30,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<OperationResponse> register(@RequestBody RegisterRequest request) {
-        String key = accountService.userRegisterRequest(request.name(), request.email(), request.password(), request.birthDate(), request.country());
+        String key = accountService.userRegisterRequest(request.name(), request.email(), request.password(), request.birthDate(), request.gender(), request.country());
         OperationResponse response = OperationResponse.success("Waiting for confirmation");
         response.addMetadataEntry("confirm_key", key);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -97,7 +97,7 @@ public class AuthController {
         return ResponseEntity.ok(OperationResponse.success("Password reset successful"));
     }
 
-    public record RegisterRequest(String name, String email, String password, Date birthDate, Country country) {}
+    public record RegisterRequest(String name, String email, String password, Date birthDate, Gender gender, Country country) {}
 
     public record OtpConfirmationRequest(String otpCode) {}
 

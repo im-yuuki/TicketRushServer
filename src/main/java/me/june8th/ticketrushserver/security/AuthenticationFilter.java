@@ -8,8 +8,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import me.june8th.ticketrushserver.data.Account;
 import me.june8th.ticketrushserver.repositories.AccountRepository;
+import me.june8th.ticketrushserver.types.AuthenticationFailedException;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.ott.OneTimeTokenAuthentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,6 +27,8 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class AuthenticationFilter extends OncePerRequestFilter {
 
+    private static final Logger logger = LoggerFactory.getLogger(AuthenticationFilter.class);
+
     private final AccessTokenProvider accessTokenProvider;
     private final AccountRepository accountRepository;
 
@@ -34,24 +39,28 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             AccessTokenData accessTokenData = accessTokenProvider.parseAccessToken(extractCookie(request));
             if (accessTokenData != null) {
                 Account account = accountRepository.findById(accessTokenData.id()).orElseThrow(
-                        () -> new RuntimeException("Account not found")
+                        () -> new AuthenticationFailedException("Account not found")
                 );
                 // compare token data with account
                 if (!Objects.equals(account.getTokenVersion(), accessTokenData.version())) {
-                    throw new RuntimeException("Invalid token version");
+                    logger.trace("Account {} token version mismatch: {} != {}", account.getId(), account.getTokenVersion(), accessTokenData.version());
+                    throw new AuthenticationFailedException("Invalid token");
                 }
                 if (!Objects.equals(account.getType(), accessTokenData.type())) {
-                    throw new RuntimeException("Invalid account type");
+                    logger.trace("Account {} type mismatch: {} != {}", account.getId(), account.getType(), accessTokenData.type());
+                    throw new AuthenticationFailedException("Invalid token");
                 }
                 if (!Objects.equals(account.getDomain(), accessTokenData.domain())) {
-                    throw new RuntimeException("Invalid token domain");
+                    logger.trace("Account {} domain mismatch: {} != {}", account.getId(), account.getDomain(), accessTokenData.domain());
+                    throw new AuthenticationFailedException("Invalid token");
                 }
                 OneTimeTokenAuthentication authentication = new OneTimeTokenAuthentication(
                         accessTokenData.getPrincipal(),
-                        Collections.singleton(new SimpleGrantedAuthority(accessTokenData.type().toString()))
+                        Collections.singleton(new SimpleGrantedAuthority(accessTokenData.type().toSecurityAuthority()))
                 );
                 authentication.setDetails(accessTokenData);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+                logger.debug("Authenticated account {} with authority {}", account.getId(), accessTokenData.type().toSecurityAuthority());
             }
         } catch (Exception e) {
             logger.error("Could not set user authentication in security context", e);
