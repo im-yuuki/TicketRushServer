@@ -48,7 +48,7 @@ public abstract class Account {
 
     @Transient
     public String getDomain() {
-        return getType().toString();
+        return getId().toString();
     }
 
 }

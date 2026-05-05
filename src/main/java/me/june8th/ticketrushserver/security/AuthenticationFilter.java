@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import me.june8th.ticketrushserver.data.Account;
 import me.june8th.ticketrushserver.repositories.AccountRepository;
 import me.june8th.ticketrushserver.types.AuthenticationFailedException;
+import me.june8th.ticketrushserver.utils.CookieUtils;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -36,7 +37,9 @@ public class AuthenticationFilter extends OncePerRequestFilter {
     @NullMarked
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try {
-            AccessTokenData accessTokenData = accessTokenProvider.parseAccessToken(extractCookie(request));
+            AccessTokenData accessTokenData = accessTokenProvider.parseAccessToken(
+                    CookieUtils.getCookie(request, CookieUtils.ACCESS_TOKEN_COOKIE_NAME)
+            );
             if (accessTokenData != null) {
                 Account account = accountRepository.findById(accessTokenData.id()).orElseThrow(
                         () -> new AuthenticationFailedException("Account not found")
@@ -67,15 +70,6 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         } finally {
             filterChain.doFilter(request, response);
         }
-    }
-
-    @Nullable
-    private String extractCookie(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) for (Cookie cookie : cookies) {
-            if ("accessToken".equals(cookie.getName())) return cookie.getValue();
-        }
-        return null;
     }
 
 }

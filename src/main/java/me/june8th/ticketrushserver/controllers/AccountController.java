@@ -1,5 +1,6 @@
 package me.june8th.ticketrushserver.controllers;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import me.june8th.ticketrushserver.data.Account;
@@ -11,11 +12,12 @@ import me.june8th.ticketrushserver.services.AccountService;
 import me.june8th.ticketrushserver.types.AccountType;
 import me.june8th.ticketrushserver.types.NotImplementedException;
 import me.june8th.ticketrushserver.types.OperationResponse;
+import me.june8th.ticketrushserver.utils.CookieUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.Instant;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/account")
@@ -27,51 +29,46 @@ public class AccountController {
 
     @GetMapping
     public ResponseEntity<ProfileModel> getProfile(Authentication authentication) {
-        Object authenticationDetails = authentication.getDetails();
-        if (authenticationDetails instanceof AccessTokenData) {
-            Account account = accountRepository.findById(((AccessTokenData) authenticationDetails).id()).orElseThrow(
-                    () -> new RuntimeException("Account not found")
+        AccessTokenData authenticationDetails = (AccessTokenData) authentication.getDetails();
+        assert authenticationDetails != null;
+        Account account = accountRepository.findById(authenticationDetails.id()).orElseThrow(
+                () -> new RuntimeException("Account not found")
+        );
+        if (account.getType() == AccountType.USER) {
+            UserAccount userAccount = (UserAccount) account;
+            return ResponseEntity.ok(UserProfileModel.builder()
+                    .name(userAccount.getName())
+                    .email(userAccount.getEmail())
+                    .type(userAccount.getType())
+                    .avatarUrl(userAccount.getAvatarKey())
+                    .birthDate(userAccount.getBirthDate().toString())
+                    .country(userAccount.getCountry().toString())
+                    .gender(userAccount.getGender().toString())
+                    .phoneNumber(userAccount.getPhoneNumber())
+                    .addressLine(userAccount.getAddressLine())
+                    .build()
             );
-            if (account.getType() == AccountType.USER) {
-                UserAccount userAccount = (UserAccount) account;
-                return ResponseEntity.ok(UserProfileModel.builder()
-                        .name(userAccount.getName())
-                        .email(userAccount.getEmail())
-                        .createdAt(userAccount.getCreatedAt())
-                        .type(userAccount.getType())
-                        .avatarUrl(userAccount.getAvatarKey())
-                        .birthDate(userAccount.getBirthDate().toString())
-                        .country(userAccount.getCountry().toString())
-                        .gender(userAccount.getGender().toString())
-                        .phoneNumber(userAccount.getPhoneNumber())
-                        .addressLine(userAccount.getAddressLine())
-                        .build()
-                );
-            } else if (account.getType() == AccountType.ORGANIZATION) {
-                OrganizationAccount organizationAccount = (OrganizationAccount) account;
-                return ResponseEntity.ok(OrganizationProfileModel.builder()
-                        .name(organizationAccount.getName())
-                        .email(organizationAccount.getEmail())
-                        .createdAt(organizationAccount.getCreatedAt())
-                        .type(organizationAccount.getType())
-                        .avatarUrl(organizationAccount.getAvatarKey())
-                        .bannerUrl(organizationAccount.getBannerKey())
-                        .aliasName(organizationAccount.getAliasName())
-                        .description(organizationAccount.getDescription())
-                        .websiteUrl(organizationAccount.getWebsiteUrl())
-                        .build()
-                );
-            } else {
-                return ResponseEntity.ok(ProfileModel.builder()
-                        .name(account.getName())
-                        .email(account.getEmail())
-                        .createdAt(account.getCreatedAt())
-                        .type(account.getType())
-                        .build()
-                );
-            }
+        } else if (account.getType() == AccountType.ORGANIZATION) {
+            OrganizationAccount organizationAccount = (OrganizationAccount) account;
+            return ResponseEntity.ok(OrganizationProfileModel.builder()
+                    .name(organizationAccount.getName())
+                    .email(organizationAccount.getEmail())
+                    .type(organizationAccount.getType())
+                    .avatarUrl(organizationAccount.getAvatarKey())
+                    .bannerUrl(organizationAccount.getBannerKey())
+                    .aliasName(organizationAccount.getAliasName())
+                    .description(organizationAccount.getDescription())
+                    .websiteUrl(organizationAccount.getWebsiteUrl())
+                    .build()
+            );
+        } else {
+            return ResponseEntity.ok(ProfileModel.builder()
+                    .name(account.getName())
+                    .email(account.getEmail())
+                    .type(account.getType())
+                    .build()
+            );
         }
-        throw new RuntimeException("Invalid authentication details");
     }
 
     @PatchMapping
@@ -94,10 +91,11 @@ public class AccountController {
         throw new NotImplementedException();
     }
 
-    @PostMapping("/revoke-all-sessions")
-    public ResponseEntity<OperationResponse> revokeAllSessions() {
-
-        throw new NotImplementedException();
+    @PostMapping("/logout-all")
+    public ResponseEntity<OperationResponse> logoutAllDevices(Authentication authentication, HttpServletResponse response) {
+        accountService.accountLogoutAllSessions((Long) Objects.requireNonNull(authentication.getPrincipal()));
+        CookieUtils.deleteHttpOnlyCookie(response, CookieUtils.ACCESS_TOKEN_COOKIE_NAME);
+        return ResponseEntity.ok(OperationResponse.success("Logged out from all devices. Please log in again."));
     }
 
     @Builder
@@ -112,7 +110,6 @@ public class AccountController {
     public static class ProfileModel {
         private String name;
         private String email;
-        private Instant createdAt;
         private AccountType type;
     }
 

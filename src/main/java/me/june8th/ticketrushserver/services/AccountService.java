@@ -87,7 +87,7 @@ public class AccountService {
      */
     @NullMarked
     @Transactional
-    public void userRegisterConfirm(String key, String otpCode) {
+    public Account userRegisterConfirm(String key, String otpCode) {
         Validator.create()
                 .validateRequestKey(key)
                 .validateOtpCode(otpCode)
@@ -132,7 +132,7 @@ public class AccountService {
         } catch (Exception e) {
             logger.warn("Failed to delete registration request with key {}: {}", key, e.getMessage());
         }
-        userRepository.save(userAccount);
+        return userRepository.save(userAccount);
     }
 
     /**
@@ -183,17 +183,15 @@ public class AccountService {
      * Invalidate all active sessions for the specified account by incrementing the token version.
      *
      * @param accountId the ID of the account whose sessions should be invalidated
-     * @return true if the operation is successful, false otherwise
      */
     @NullMarked
     @Transactional
-    public boolean accountLogoutAllSessions(Long accountId) {
+    public void accountLogoutAllSessions(Long accountId) {
         Account account = accountRepository.findById(accountId).orElseThrow(
                 () -> new ResourceNotFoundException("Account not found")
         );
         account.setTokenVersion(account.getTokenVersion() + 1);
         accountRepository.save(account);
-        return true;
     }
 
     /**

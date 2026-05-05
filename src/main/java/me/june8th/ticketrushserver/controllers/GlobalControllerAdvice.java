@@ -24,63 +24,63 @@ public class GlobalControllerAdvice {
     public ResponseEntity<OperationResponse> handleAuthenticationFailed(AuthenticationFailedException exception, HttpServletRequest request) {
         logTrace("Authentication failed", exception, request);
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(OperationResponse.failure("auth_failed", exception.getMessage()));
+                .body(OperationResponse.failure(HttpStatus.UNAUTHORIZED.value(), exception.getMessage()));
     }
 
     @ExceptionHandler(ResourceConflictException.class)
     public ResponseEntity<OperationResponse> handleConflict(ResourceConflictException exception, HttpServletRequest request) {
         logTrace("Resource conflict", exception, request);
         return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(OperationResponse.failure("conflict", exception.getMessage()));
+                .body(OperationResponse.failure(HttpStatus.CONFLICT.value(), exception.getMessage()));
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<OperationResponse> handleNotFound(ResourceNotFoundException exception, HttpServletRequest request) {
         logTrace("Resource not found", exception, request);
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(OperationResponse.failure("not_found", exception.getMessage()));
+                .body(OperationResponse.failure(HttpStatus.NOT_FOUND.value(), exception.getMessage()));
     }
 
     @ExceptionHandler(RatelimitedException.class)
     public ResponseEntity<OperationResponse> handleRatelimited(RatelimitedException exception, HttpServletRequest request) {
         logTrace("Rate limited", exception, request);
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                .body(OperationResponse.failure("too_many_requests", exception.getMessage()));
+                .body(OperationResponse.failure(HttpStatus.TOO_MANY_REQUESTS.value(), exception.getMessage()));
     }
 
     @ExceptionHandler(TimedOutException.class)
     public ResponseEntity<OperationResponse> handleTimedOut(TimedOutException exception, HttpServletRequest request) {
         logTrace("Request timed out", exception, request);
         return ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT)
-                .body(OperationResponse.failure("timed_out", exception.getMessage()));
+                .body(OperationResponse.failure(HttpStatus.REQUEST_TIMEOUT.value(), exception.getMessage()));
     }
 
     @ExceptionHandler(InvalidStateException.class)
     public ResponseEntity<OperationResponse> handleInvalidState(InvalidStateException exception, HttpServletRequest request) {
         logTrace("Invalid state", exception, request);
         return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(OperationResponse.failure("invalid_state", exception.getMessage()));
+                .body(OperationResponse.failure(HttpStatus.CONFLICT.value(), exception.getMessage()));
     }
 
     @ExceptionHandler(NotImplementedException.class)
     public ResponseEntity<OperationResponse> handleNotImplemented(NotImplementedException exception, HttpServletRequest request) {
         logTrace("Not implemented", exception, request);
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
-                .body(OperationResponse.failure("not_implemented", exception.getMessage()));
+                .body(OperationResponse.failure(HttpStatus.NOT_IMPLEMENTED.value(), exception.getMessage()));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<OperationResponse> handleIllegalArgument(IllegalArgumentException exception, HttpServletRequest request) {
         logTrace("Bad request", exception, request);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(OperationResponse.failure("bad_request", exception.getMessage()));
+                .body(OperationResponse.failure(HttpStatus.BAD_REQUEST.value(), exception.getMessage()));
     }
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<OperationResponse> handleGenericRuntime(RuntimeException exception, HttpServletRequest request) {
         logTrace("Unhandled runtime exception", exception, request);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(OperationResponse.failure("server_error", exception.getMessage()));
+                .body(OperationResponse.failure(HttpStatus.INTERNAL_SERVER_ERROR.value(), exception.getMessage()));
     }
 
     @ExceptionHandler(MessagingException.class)
@@ -88,7 +88,7 @@ public class GlobalControllerAdvice {
         logTrace("Messaging exception", exception, request);
         logger.error("Failed to send email to user", exception);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(OperationResponse.failure("email_service_error", "Failed to send email. Please try again later."));
+                .body(OperationResponse.failure(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Failed to send email. Please try again later."));
     }
 
     @ExceptionHandler(Exception.class)
@@ -96,7 +96,7 @@ public class GlobalControllerAdvice {
         logTrace("Unexpected exception", exception, request);
         logger.error("Exception throwed from controller", exception);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(OperationResponse.failure("server_error","Unexpected error occurred on server"));
+                .body(OperationResponse.failure(HttpStatus.INTERNAL_SERVER_ERROR.value(),"Unexpected error occurred on server"));
     }
 
     private void logTrace(String message, Exception exception, HttpServletRequest request) {
