@@ -46,7 +46,7 @@ public class AuthController {
         return ResponseEntity.ok(OperationResponse.success("Please check your email for the OTP code to confirm your registration"));
     }
 
-    @PostMapping("/register/confirmation/")
+    @PostMapping("/register/confirmation")
     public ResponseEntity<OperationResponse> confirmRegistration(@RequestBody OtpConfirmationRequest requestBody, HttpServletRequest request, HttpServletResponse response) {
         String key = CookieUtils.getCookie(request, CookieUtils.OPERATION_ID_COOKIE_NAME);
         assert key != null;
