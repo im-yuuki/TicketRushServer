@@ -32,7 +32,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<OperationResponse> register(@RequestBody RegisterRequest request, HttpServletResponse response) {
-        String key = accountService.userRegisterRequest(request.name(), request.email(), request.password(), request.birthDate(), request.gender(), request.country());
+        String key = accountService.userRegisterRequest(request.name(), request.email(), request.password(), request.birthDate(), request.gender());
         CookieUtils.setHttpOnlyCookie(response, CookieUtils.OPERATION_ID_COOKIE_NAME, key, operationExpiration);
         return ResponseEntity.status(HttpStatus.CREATED).body(OperationResponse.success("Waiting for confirmation"));
     }
@@ -90,7 +90,7 @@ public class AuthController {
         return ResponseEntity.ok(OperationResponse.success("Password reset successful"));
     }
 
-    public record RegisterRequest(String name, String email, String password, Date birthDate, Gender gender, Country country) {}
+    public record RegisterRequest(String name, String email, String password, Date birthDate, Gender gender) {}
 
     public record OtpConfirmationRequest(String otpCode) {}
 

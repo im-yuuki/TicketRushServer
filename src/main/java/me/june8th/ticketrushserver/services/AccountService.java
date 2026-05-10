@@ -44,12 +44,11 @@ public class AccountService {
      * @param email email address (must be unique)
      * @param password plain text password (will be hashed before saving)
      * @param birthDate birth date
-     * @param country country of residence
      * @return key of the created RegisterRequest, which can be used to confirm the registration
      */
     @NullMarked
     @Transactional
-    public String userRegisterRequest(String name, String email, String password, Date birthDate, Gender gender, Country country) {
+    public String userRegisterRequest(String name, String email, String password, Date birthDate, Gender gender) {
         Validator.create()
                 .validateName(name)
                 .validateEmail(email)
@@ -74,7 +73,6 @@ public class AccountService {
                 .passwordHash(passwordHash)
                 .birthDate(birthDate)
                 .genderString(gender.toString())
-                .country(country)
                 .build();
 
         logger.debug("Creating registration request {} for email {}", registerRequest.getKey(), email);
@@ -127,7 +125,6 @@ public class AccountService {
                 .passwordHash(registerRequest.getPasswordHash())
                 .birthDate(registerRequest.getBirthDate())
                 .gender(gender)
-                .country(registerRequest.getCountry())
                 .build();
 
         logger.debug("Validation passed, creating userAccount account for {} ({})", registerRequest.getName(), registerRequest.getEmail());
@@ -319,7 +316,6 @@ public class AccountService {
                     .type(userAccount.getType())
                     .avatarUrl(userAccount.getAvatarKey())
                     .birthDate(userAccount.getBirthDate().toString())
-                    .country(userAccount.getCountry().toString())
                     .gender(userAccount.getGender().toString())
                     .phoneNumber(userAccount.getPhoneNumber())
                     .addressLine(userAccount.getAddressLine())

@@ -1,7 +1,6 @@
 package me.june8th.ticketrushserver.data;
 
 import lombok.*;
-import me.june8th.ticketrushserver.types.Country;
 import me.june8th.ticketrushserver.utils.RandomGenerator;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.TimeToLive;
@@ -47,7 +46,5 @@ public class RegisterRequest {
     private Date birthDate;
 
     private String genderString;
-
-    private Country country;
 
 }

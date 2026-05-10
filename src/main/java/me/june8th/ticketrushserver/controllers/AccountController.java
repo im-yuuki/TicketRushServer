@@ -2,8 +2,6 @@ package me.june8th.ticketrushserver.controllers;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.*;
-import me.june8th.ticketrushserver.repositories.AccountRepository;
-import me.june8th.ticketrushserver.security.AccessTokenData;
 import me.june8th.ticketrushserver.services.AccountService;
 import me.june8th.ticketrushserver.types.NotImplementedException;
 import me.june8th.ticketrushserver.views.OperationResponse;
@@ -11,6 +9,7 @@ import me.june8th.ticketrushserver.utils.CookieUtils;
 import me.june8th.ticketrushserver.views.ProfileView;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Objects;
@@ -21,17 +20,14 @@ import java.util.Objects;
 public class AccountController {
 
     private final AccountService accountService;
-    private final AccountRepository accountRepository;
 
     @GetMapping
-    public ResponseEntity<ProfileView> getProfile(Authentication authentication) {
-        AccessTokenData authenticationDetails = (AccessTokenData) authentication.getDetails();
-        assert authenticationDetails != null;
-        return ResponseEntity.ok(accountService.getAccountProfile(authenticationDetails.id()));
+    public ResponseEntity<ProfileView> getProfile(@AuthenticationPrincipal Long id) {
+        return ResponseEntity.ok(accountService.getAccountProfile(id));
     }
 
     @PatchMapping
-    public ResponseEntity<OperationResponse> updateProfile() {
+    public ResponseEntity<OperationResponse> updateProfile(@RequestBody ProfileView profile, Authentication authentication) {
         throw new NotImplementedException();
     }
 

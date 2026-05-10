@@ -58,12 +58,12 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                     throw new AuthenticationFailedException("Invalid token");
                 }
                 OneTimeTokenAuthentication authentication = new OneTimeTokenAuthentication(
-                        accessTokenData.getPrincipal(),
+                        accessTokenData.id(),
                         Collections.singleton(new SimpleGrantedAuthority(accessTokenData.type().toSecurityAuthority()))
                 );
                 authentication.setDetails(accessTokenData);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-                logger.debug("Authenticated account {} with authority {}", account.getId(), accessTokenData.type().toSecurityAuthority());
+                logger.debug("Authenticated principal {} with authority {}", account.getId(), accessTokenData.type().toSecurityAuthority());
             }
         } catch (Exception e) {
             logger.error("Could not set user authentication in security context", e);

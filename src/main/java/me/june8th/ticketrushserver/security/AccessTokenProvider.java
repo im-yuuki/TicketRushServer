@@ -46,7 +46,7 @@ public class AccessTokenProvider {
         Date expiryDate = new Date(now.getTime() + accessTokenExpiration);
 
         return Jwts.builder()
-                .subject(data.getPrincipal())
+                .subject(data.toAccessTokenSubject())
                 .claim(ID_CLAIM, data.id())
                 .claim(TYPE_CLAIM, data.type().toString())
                 .claim(DOMAIN_CLAIM, data.domain())
@@ -90,8 +90,8 @@ public class AccessTokenProvider {
                 logger.debug("Parsed access token ID: {}, Type: {}, Domain: {}, Version: {}", id, type, domain, version);
                 AccessTokenData data = new AccessTokenData(id, type, domain, version);
 
-                if (!data.getPrincipal().equals(claims.getSubject())) {
-                    logger.debug("Token subject is compromised.");
+                if (!data.toAccessTokenSubject().equals(claims.getSubject())) {
+                    logger.debug("Invalid token subject");
                 } else {
                     return data;
                 }

@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import me.june8th.ticketrushserver.types.AccountType;
-import me.june8th.ticketrushserver.types.Country;
 import me.june8th.ticketrushserver.types.Gender;
 
 import java.util.Date;
@@ -26,10 +25,6 @@ public class UserAccount extends Account {
 
     @Column(nullable = false)
     private Date birthDate;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Country country;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
