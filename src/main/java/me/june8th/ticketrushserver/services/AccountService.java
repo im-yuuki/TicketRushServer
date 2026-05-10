@@ -1,6 +1,7 @@
 package me.june8th.ticketrushserver.services;
 
 import lombok.RequiredArgsConstructor;
+import me.june8th.ticketrushserver.controllers.AccountController;
 import me.june8th.ticketrushserver.data.*;
 import me.june8th.ticketrushserver.repositories.AccountRepository;
 import me.june8th.ticketrushserver.repositories.RegisterRequestRepository;
@@ -10,6 +11,9 @@ import me.june8th.ticketrushserver.security.AccessTokenData;
 import me.june8th.ticketrushserver.security.AccessTokenProvider;
 import me.june8th.ticketrushserver.types.*;
 import me.june8th.ticketrushserver.utils.Validator;
+import me.june8th.ticketrushserver.views.OrganizationProfileView;
+import me.june8th.ticketrushserver.views.ProfileView;
+import me.june8th.ticketrushserver.views.UserProfileView;
 import org.jspecify.annotations.NullMarked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -300,6 +304,45 @@ public class AccountService {
         );
         account.setEmail(newEmail);
         accountRepository.save(account);
+    }
+    
+    @NullMarked
+    public ProfileView getAccountProfile(Long id) {
+        Account account = accountRepository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException("Account not found")
+        );
+        if (account.getType() == AccountType.USER) {
+            UserAccount userAccount = (UserAccount) account;
+            return UserProfileView.builder()
+                    .name(userAccount.getName())
+                    .email(userAccount.getEmail())
+                    .type(userAccount.getType())
+                    .avatarUrl(userAccount.getAvatarKey())
+                    .birthDate(userAccount.getBirthDate().toString())
+                    .country(userAccount.getCountry().toString())
+                    .gender(userAccount.getGender().toString())
+                    .phoneNumber(userAccount.getPhoneNumber())
+                    .addressLine(userAccount.getAddressLine())
+                    .build();
+        } else if (account.getType() == AccountType.ORGANIZATION) {
+            OrganizationAccount organizationAccount = (OrganizationAccount) account;
+            return OrganizationProfileView.builder()
+                    .name(organizationAccount.getName())
+                    .email(organizationAccount.getEmail())
+                    .type(organizationAccount.getType())
+                    .avatarUrl(organizationAccount.getAvatarKey())
+                    .bannerUrl(organizationAccount.getBannerKey())
+                    .aliasName(organizationAccount.getAliasName())
+                    .description(organizationAccount.getDescription())
+                    .websiteUrl(organizationAccount.getWebsiteUrl())
+                    .build();
+        } else {
+            return ProfileView.builder()
+                    .name(account.getName())
+                    .email(account.getEmail())
+                    .type(account.getType())
+                    .build();
+        }
     }
 
 }

@@ -1,8 +1,6 @@
-package me.june8th.ticketrushserver.types;
+package me.june8th.ticketrushserver.views;
 
 import lombok.Builder;
-
-import java.util.HashMap;
 
 @Builder
 public record OperationResponse (boolean success, int code, String message) {

@@ -1,14 +1,13 @@
 package me.june8th.ticketrushserver.controllers;
 
 import jakarta.mail.MessagingException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import me.june8th.ticketrushserver.data.Account;
 import me.june8th.ticketrushserver.services.AccountService;
 import me.june8th.ticketrushserver.services.EmailService;
 import me.june8th.ticketrushserver.types.*;
 import me.june8th.ticketrushserver.utils.CookieUtils;
+import me.june8th.ticketrushserver.views.OperationResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

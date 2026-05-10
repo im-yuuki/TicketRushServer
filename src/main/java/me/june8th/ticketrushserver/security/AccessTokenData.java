@@ -7,7 +7,7 @@ import me.june8th.ticketrushserver.types.AccountType;
 public record AccessTokenData(Long id, AccountType type, String domain, Integer version) {
 
     public String getPrincipal() {
-        return "account-" + id;
+        return type.toString() + id;
     }
 
 }
