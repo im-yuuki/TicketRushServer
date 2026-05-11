@@ -10,9 +10,11 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @SuperBuilder
 public final class OrganizationProfileView extends ProfileView {
+
     private String avatarUrl;
     private String bannerUrl;
     private String aliasName;
     private String description;
     private String websiteUrl;
+
 }

@@ -4,7 +4,7 @@ import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import me.june8th.ticketrushserver.types.AccountType;
+import me.june8th.ticketrushserver.types.Role;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -18,8 +18,8 @@ import org.hibernate.annotations.OnDeleteAction;
 public class OrganizationAccount extends Account {
 
     @Override
-    public AccountType getType() {
-        return AccountType.ORGANIZATION;
+    public Role getType() {
+        return Role.ORGANIZATION;
     }
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)

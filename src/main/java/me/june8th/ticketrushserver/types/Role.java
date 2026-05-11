@@ -2,17 +2,18 @@ package me.june8th.ticketrushserver.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 @RequiredArgsConstructor
-public enum AccountType {
+public enum Role {
 
     USER("user"), INSPECTOR("inspector"), ORGANIZATION("organization"), ADMINISTRATOR("administrator");
 
     private final String value;
 
     @JsonCreator
-    public static AccountType fromString(String value) {
-        for (AccountType type : values()) {
+    public static Role fromString(String value) {
+        for (Role type : values()) {
             if (type.value.equalsIgnoreCase(value) || type.name().equalsIgnoreCase(value)) {
                 return type;
             }
@@ -25,8 +26,8 @@ public enum AccountType {
         return value;
     }
 
-    public String toSecurityAuthority() {
-        return "ROLE_" + name();
+    public SimpleGrantedAuthority toSecurityAuthority() {
+        return new SimpleGrantedAuthority("ROLE_" + name().toUpperCase());
     }
 
 }

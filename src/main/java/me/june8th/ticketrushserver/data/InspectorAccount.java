@@ -3,7 +3,7 @@ package me.june8th.ticketrushserver.data;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import me.june8th.ticketrushserver.types.AccountType;
+import me.june8th.ticketrushserver.types.Role;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -17,8 +17,8 @@ import org.hibernate.annotations.OnDeleteAction;
 public class InspectorAccount extends Account {
 
     @Override
-    public AccountType getType() {
-        return AccountType.INSPECTOR;
+    public Role getType() {
+        return Role.INSPECTOR;
     }
 
     @Override

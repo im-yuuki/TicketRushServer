@@ -26,7 +26,7 @@ public class Event {
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(nullable = false)
-    private OrganizationAccount organizationAccount;
+    private OrganizationAccount organization;
 
     @Column(nullable = false)
     @Builder.Default
@@ -35,6 +35,14 @@ public class Event {
     @Column(nullable = false)
     @Builder.Default
     private String description = "";
+
+    @Column(nullable = false)
+    @Builder.Default
+    private String locationName = "";
+
+    @Column(nullable = false)
+    @Builder.Default
+    private String locationAddress = "";
 
     @Column(nullable = false)
     @Builder.Default

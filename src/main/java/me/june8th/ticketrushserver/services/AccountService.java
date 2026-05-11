@@ -1,7 +1,6 @@
 package me.june8th.ticketrushserver.services;
 
 import lombok.RequiredArgsConstructor;
-import me.june8th.ticketrushserver.controllers.AccountController;
 import me.june8th.ticketrushserver.data.*;
 import me.june8th.ticketrushserver.repositories.AccountRepository;
 import me.june8th.ticketrushserver.repositories.RegisterRequestRepository;
@@ -308,7 +307,7 @@ public class AccountService {
         Account account = accountRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Account not found")
         );
-        if (account.getType() == AccountType.USER) {
+        if (account.getType() == Role.USER) {
             UserAccount userAccount = (UserAccount) account;
             return UserProfileView.builder()
                     .name(userAccount.getName())
@@ -320,7 +319,7 @@ public class AccountService {
                     .phoneNumber(userAccount.getPhoneNumber())
                     .addressLine(userAccount.getAddressLine())
                     .build();
-        } else if (account.getType() == AccountType.ORGANIZATION) {
+        } else if (account.getType() == Role.ORGANIZATION) {
             OrganizationAccount organizationAccount = (OrganizationAccount) account;
             return OrganizationProfileView.builder()
                     .name(organizationAccount.getName())

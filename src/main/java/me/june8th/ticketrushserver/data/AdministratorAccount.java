@@ -6,7 +6,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import me.june8th.ticketrushserver.types.AccountType;
+import me.june8th.ticketrushserver.types.Role;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -18,8 +18,8 @@ import me.june8th.ticketrushserver.types.AccountType;
 public class AdministratorAccount extends Account {
 
     @Override
-    public AccountType getType() {
-        return AccountType.ADMINISTRATOR;
+    public Role getType() {
+        return Role.ADMINISTRATOR;
     }
 
     @Column

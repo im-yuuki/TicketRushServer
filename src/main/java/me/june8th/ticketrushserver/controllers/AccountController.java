@@ -27,12 +27,12 @@ public class AccountController {
     }
 
     @PatchMapping
-    public ResponseEntity<OperationResponse> updateProfile(@RequestBody ProfileView profile, Authentication authentication) {
+    public ResponseEntity<OperationResponse> updateProfile(@AuthenticationPrincipal Long id, @RequestBody ProfileView profile) {
         throw new NotImplementedException();
     }
 
     @PatchMapping("/avatar")
-    public ResponseEntity<OperationResponse> changeAvatar() {
+    public ResponseEntity<OperationResponse> changeAvatar(@AuthenticationPrincipal Long id) {
         throw new NotImplementedException();
     }
 

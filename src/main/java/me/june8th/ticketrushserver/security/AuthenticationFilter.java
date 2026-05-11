@@ -59,7 +59,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                 }
                 OneTimeTokenAuthentication authentication = new OneTimeTokenAuthentication(
                         accessTokenData.id(),
-                        Collections.singleton(new SimpleGrantedAuthority(accessTokenData.type().toSecurityAuthority()))
+                        Collections.singleton(accessTokenData.type().toSecurityAuthority())
                 );
                 authentication.setDetails(accessTokenData);
                 SecurityContextHolder.getContext().setAuthentication(authentication);

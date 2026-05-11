@@ -3,8 +3,7 @@ package me.june8th.ticketrushserver.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import me.june8th.ticketrushserver.data.Account;
-import me.june8th.ticketrushserver.types.AccountType;
+import me.june8th.ticketrushserver.types.Role;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -83,7 +82,7 @@ public class AccessTokenProvider {
             }
             else {
                 Long id = claims.get(ID_CLAIM, Long.class);
-                AccountType type = AccountType.fromString(claims.get(TYPE_CLAIM, String.class));
+                Role type = Role.fromString(claims.get(TYPE_CLAIM, String.class));
                 String domain = claims.get(DOMAIN_CLAIM, String.class);
                 Integer version = claims.get(VERSION_CLAIM, Integer.class);
 

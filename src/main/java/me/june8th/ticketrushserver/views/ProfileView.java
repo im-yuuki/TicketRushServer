@@ -3,7 +3,7 @@ package me.june8th.ticketrushserver.views;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import me.june8th.ticketrushserver.types.AccountType;
+import me.june8th.ticketrushserver.types.Role;
 
 @Data
 @NoArgsConstructor
@@ -11,6 +11,6 @@ import me.june8th.ticketrushserver.types.AccountType;
 public class ProfileView {
     private String name;
     private String email;
-    private AccountType type;
+    private Role type;
 }
 

@@ -4,7 +4,7 @@ import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import me.june8th.ticketrushserver.types.AccountType;
+import me.june8th.ticketrushserver.types.Role;
 import me.june8th.ticketrushserver.types.Gender;
 
 import java.util.Date;
@@ -19,8 +19,8 @@ import java.util.Date;
 public class UserAccount extends Account {
 
     @Override
-    public AccountType getType() {
-        return AccountType.USER;
+    public Role getType() {
+        return Role.USER;
     }
 
     @Column(nullable = false)

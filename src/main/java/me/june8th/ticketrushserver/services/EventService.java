@@ -2,6 +2,7 @@ package me.june8th.ticketrushserver.services;
 
 import lombok.RequiredArgsConstructor;
 import me.june8th.ticketrushserver.data.OrganizationAccount;
+import me.june8th.ticketrushserver.repositories.AccountRepository;
 import me.june8th.ticketrushserver.repositories.EventRepository;
 import org.springframework.stereotype.Service;
 
@@ -10,19 +11,20 @@ import org.springframework.stereotype.Service;
 public class EventService {
 
     private final EventRepository eventRepository;
+    private final AccountRepository accountRepository;
 
-    public void createEvent(OrganizationAccount org, String eventName) {
+    public void createEvent(Long orgId, String eventName) {
     }
 
-    public void updateEvent(OrganizationAccount org, Long eventId, String eventName) {
-
-    }
-
-    public void publishEvent(OrganizationAccount org, Long eventId) {
+    public void updateEvent(Long orgId, Long eventId, String eventName) {
 
     }
 
-    public void deleteEvent(OrganizationAccount org, Long eventId) {
+    public void publishEvent(Long orgId, Long eventId) {
+
+    }
+
+    public void deleteEvent(Long orgId, Long eventId) {
 
     }
 

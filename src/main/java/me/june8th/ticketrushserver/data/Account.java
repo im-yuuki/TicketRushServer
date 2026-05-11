@@ -1,12 +1,11 @@
 package me.june8th.ticketrushserver.data;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import me.june8th.ticketrushserver.types.AccountType;
+import me.june8th.ticketrushserver.types.Role;
 
 import java.time.Instant;
 
@@ -44,7 +43,7 @@ public abstract class Account {
     private Boolean locked = false;
 
     @Transient
-    public abstract AccountType getType();
+    public abstract Role getType();
 
     @Transient
     public String getDomain() {
