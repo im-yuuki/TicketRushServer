@@ -37,13 +37,15 @@ public class AccountController {
     }
 
     @PatchMapping("/email")
-    public ResponseEntity<OperationResponse> changeEmail(@RequestBody UpdateEmailRequest request) {
-        throw new NotImplementedException();
+    public ResponseEntity<OperationResponse> changeEmail(@AuthenticationPrincipal Long id, @RequestBody UpdateEmailRequest request) {
+        accountService.changeAccountEmail(id, request.newEmail(), request.currentPassword());
+        return ResponseEntity.ok(OperationResponse.success("Email changed successfully"));
     }
 
     @PatchMapping("/password")
-    public ResponseEntity<OperationResponse> changePassword(@RequestBody UpdatePasswordRequest request) {
-        throw new NotImplementedException();
+    public ResponseEntity<OperationResponse> changePassword(@AuthenticationPrincipal Long id, @RequestBody UpdatePasswordRequest request) {
+        accountService.changeAccountPassword(id, request.currentPassword(), request.newPassword());
+        return ResponseEntity.ok(OperationResponse.success("Password changed successfully"));
     }
 
     @PostMapping("/logout-all")

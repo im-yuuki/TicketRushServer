@@ -147,7 +147,6 @@ public class AccountService {
     public Account accountLogin(String email, String password) {
         Validator.create()
                 .validateEmail(email)
-                .validatePassword(password)
                 .throwExceptionIfInvalid();
 
         Account account = accountRepository.findByEmail(email).orElseThrow(
@@ -299,6 +298,22 @@ public class AccountService {
                 () -> new ResourceNotFoundException("Account not found")
         );
         account.setEmail(newEmail);
+        accountRepository.save(account);
+    }
+
+    @NullMarked
+    @Transactional
+    public void changeAccountPassword(Long accountId, String currentPassword, String newPassword) {
+        Validator.create()
+                .validatePassword(newPassword)
+                .throwExceptionIfInvalid();
+        Account account = accountRepository.findById(accountId).orElseThrow(
+                () -> new ResourceNotFoundException("Account not found")
+        );
+        if (!passwordEncoder.matches(currentPassword, account.getPasswordHash())) {
+            throw new AuthenticationFailedException("Invalid current password");
+        }
+        account.setPasswordHash(passwordEncoder.encode(newPassword));
         accountRepository.save(account);
     }
     

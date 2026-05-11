@@ -1,7 +1,6 @@
 package me.june8th.ticketrushserver.services;
 
 import lombok.RequiredArgsConstructor;
-import me.june8th.ticketrushserver.data.OrganizationAccount;
 import me.june8th.ticketrushserver.repositories.AccountRepository;
 import me.june8th.ticketrushserver.repositories.EventRepository;
 import org.springframework.stereotype.Service;
