@@ -1,43 +1,30 @@
 package me.june8th.ticketrushserver.data;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-import java.time.LocalDateTime;
-
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
 @Entity
-@Table(name = "sales_rounds")
-public class SalesRound {
+@Table(name = "seat_zone")
+public class SeatZone {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String name;
-
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @OneToOne(optional = false, fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(nullable = false)
     private Event event;
 
     @Column(nullable = false)
-    private LocalDateTime startTime;
+    private String name;
 
     @Column(nullable = false)
-    private LocalDateTime endTime;
-
-    @Column(nullable = false)
-    @Builder.Default
-    private Integer maxTicketsPerUser = 0; // <= 0 means no limit
+    private Integer capacity;
 
 }
