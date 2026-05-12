@@ -1,6 +1,6 @@
 package me.june8th.ticketrushserver.repositories;
 
-import me.june8th.ticketrushserver.data.RegisterRequest;
+import me.june8th.ticketrushserver.cache.RegisterRequest;
 import org.springframework.data.keyvalue.repository.KeyValueRepository;
 import org.springframework.stereotype.Repository;
 

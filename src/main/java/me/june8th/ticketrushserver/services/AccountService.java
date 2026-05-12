@@ -1,6 +1,8 @@
 package me.june8th.ticketrushserver.services;
 
 import lombok.RequiredArgsConstructor;
+import me.june8th.ticketrushserver.cache.RegisterRequest;
+import me.june8th.ticketrushserver.cache.ResetPasswordRequest;
 import me.june8th.ticketrushserver.data.*;
 import me.june8th.ticketrushserver.repositories.AccountRepository;
 import me.june8th.ticketrushserver.repositories.RegisterRequestRepository;

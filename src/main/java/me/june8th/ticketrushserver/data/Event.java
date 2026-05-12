@@ -39,18 +39,20 @@ public class Event {
     private String description = "";
 
     @Column(nullable = false)
-    @Builder.Default
-    private String locationName = "";
+    private String venue;
 
     @Column(nullable = false)
-    @Builder.Default
-    private String locationAddress = "";
+    private String address;
 
     @Column(nullable = false)
-    private Instant time;
+    private Instant dateTime;
 
     @Column(nullable = false)
     @Builder.Default
     private String bannerKey = "";
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Instant createdAt = Instant.now();
 
 }

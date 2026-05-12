@@ -1,17 +1,17 @@
-package me.june8th.ticketrushserver.data;
+package me.june8th.ticketrushserver.cache;
 
 import lombok.*;
 import me.june8th.ticketrushserver.utils.RandomGenerator;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.TimeToLive;
 import org.springframework.data.redis.core.index.Indexed;
 
 import java.time.Instant;
+import java.util.Date;
 
 @Data
 @Builder
-public class ResetPasswordRequest {
+public class RegisterRequest {
 
     @TimeToLive
     @Builder.Default
@@ -39,10 +39,12 @@ public class ResetPasswordRequest {
     @Indexed
     private String email;
 
-    private Long accountId;
+    private String name;
 
-    private String oldPasswordHash;
+    private String passwordHash;
 
-    private String newPasswordHash;
+    private Date birthDate;
+
+    private String genderString;
 
 }
