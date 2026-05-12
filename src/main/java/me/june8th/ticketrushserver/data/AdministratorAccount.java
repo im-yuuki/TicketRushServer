@@ -18,7 +18,7 @@ import me.june8th.ticketrushserver.types.Role;
 public class AdministratorAccount extends Account {
 
     @Override
-    public Role getType() {
+    public Role getRole() {
         return Role.ADMINISTRATOR;
     }
 

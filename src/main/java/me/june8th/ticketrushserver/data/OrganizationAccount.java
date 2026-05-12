@@ -18,7 +18,7 @@ import org.hibernate.annotations.OnDeleteAction;
 public class OrganizationAccount extends Account {
 
     @Override
-    public Role getType() {
+    public Role getRole() {
         return Role.ORGANIZATION;
     }
 

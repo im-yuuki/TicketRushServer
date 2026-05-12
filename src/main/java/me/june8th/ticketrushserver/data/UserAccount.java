@@ -19,7 +19,7 @@ import java.util.Date;
 public class UserAccount extends Account {
 
     @Override
-    public Role getType() {
+    public Role getRole() {
         return Role.USER;
     }
 

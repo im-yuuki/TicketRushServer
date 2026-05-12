@@ -43,7 +43,7 @@ public abstract class Account {
     private Boolean locked = false;
 
     @Transient
-    public abstract Role getType();
+    public abstract Role getRole();
 
     @Transient
     public String getDomain() {

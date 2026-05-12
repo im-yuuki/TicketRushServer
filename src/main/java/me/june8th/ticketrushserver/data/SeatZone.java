@@ -9,7 +9,7 @@ import org.hibernate.annotations.OnDeleteAction;
 @Data
 @NoArgsConstructor
 @Entity
-@Table(name = "seat_zone")
+@Table(name = "seat_zones")
 public class SeatZone {
 
     @Id
@@ -26,5 +26,11 @@ public class SeatZone {
 
     @Column(nullable = false)
     private Integer capacity;
+
+    @Column(nullable = false)
+    private Integer positionX;
+
+    @Column(nullable = false)
+    private Integer positionY;
 
 }

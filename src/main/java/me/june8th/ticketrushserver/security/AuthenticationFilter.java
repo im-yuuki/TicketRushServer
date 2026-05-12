@@ -46,8 +46,8 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                     logger.trace("Account {} token version mismatch: {} != {}", account.getId(), account.getTokenVersion(), accessTokenData.version());
                     throw new AuthenticationFailedException("Invalid token");
                 }
-                if (!Objects.equals(account.getType(), accessTokenData.type())) {
-                    logger.trace("Account {} type mismatch: {} != {}", account.getId(), account.getType(), accessTokenData.type());
+                if (!Objects.equals(account.getRole(), accessTokenData.type())) {
+                    logger.trace("Account {} type mismatch: {} != {}", account.getId(), account.getRole(), accessTokenData.type());
                     throw new AuthenticationFailedException("Invalid token");
                 }
                 if (!Objects.equals(account.getDomain(), accessTokenData.domain())) {

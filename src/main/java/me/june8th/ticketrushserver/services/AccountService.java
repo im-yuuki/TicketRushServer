@@ -172,7 +172,7 @@ public class AccountService {
     public String generateAccessToken(Account account) {
         return accessTokenProvider.generateAccessToken(AccessTokenData.builder()
                 .id(account.getId())
-                .type(account.getType())
+                .type(account.getRole())
                 .domain(account.getDomain())
                 .version(account.getTokenVersion())
                 .build());
@@ -322,24 +322,24 @@ public class AccountService {
         Account account = accountRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Account not found")
         );
-        if (account.getType() == Role.USER) {
+        if (account.getRole() == Role.USER) {
             UserAccount userAccount = (UserAccount) account;
             return UserProfileView.builder()
                     .name(userAccount.getName())
                     .email(userAccount.getEmail())
-                    .type(userAccount.getType())
+                    .type(userAccount.getRole())
                     .avatarUrl(userAccount.getAvatarKey())
                     .birthDate(userAccount.getBirthDate().toString())
                     .gender(userAccount.getGender().toString())
                     .phoneNumber(userAccount.getPhoneNumber())
                     .addressLine(userAccount.getAddressLine())
                     .build();
-        } else if (account.getType() == Role.ORGANIZATION) {
+        } else if (account.getRole() == Role.ORGANIZATION) {
             OrganizationAccount organizationAccount = (OrganizationAccount) account;
             return OrganizationProfileView.builder()
                     .name(organizationAccount.getName())
                     .email(organizationAccount.getEmail())
-                    .type(organizationAccount.getType())
+                    .type(organizationAccount.getRole())
                     .avatarUrl(organizationAccount.getAvatarKey())
                     .bannerUrl(organizationAccount.getBannerKey())
                     .aliasName(organizationAccount.getAliasName())
@@ -350,7 +350,7 @@ public class AccountService {
             return ProfileView.builder()
                     .name(account.getName())
                     .email(account.getEmail())
-                    .type(account.getType())
+                    .type(account.getRole())
                     .build();
         }
     }

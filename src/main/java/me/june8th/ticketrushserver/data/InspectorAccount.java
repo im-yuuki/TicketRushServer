@@ -17,7 +17,7 @@ import org.hibernate.annotations.OnDeleteAction;
 public class InspectorAccount extends Account {
 
     @Override
-    public Role getType() {
+    public Role getRole() {
         return Role.INSPECTOR;
     }
 
