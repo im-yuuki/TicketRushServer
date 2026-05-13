@@ -24,7 +24,4 @@ public class SeatRow {
     @Column(nullable = false)
     private String label;
 
-    @Column(nullable = false)
-    private Boolean leftToRight = false;
-
 }

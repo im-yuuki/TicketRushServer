@@ -8,8 +8,8 @@ import org.hibernate.annotations.OnDeleteAction;
 import java.time.Instant;
 
 @Entity
-@Table(name = "tickets")
-public class Ticket {
+@Table(name = "follows")
+public class Follow {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,25 +18,15 @@ public class Ticket {
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(nullable = false, updatable = false)
-    private TicketClass ticketClass;
-
-    @OneToOne(optional = false, fetch = FetchType.EAGER)
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(nullable = false, updatable = false)
-    private Seat seat;
-
-    @ManyToOne(optional = false, fetch = FetchType.EAGER)
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(nullable = false, updatable = false)
-    private UserAccount user;
+    private UserAccount follower;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(nullable = false, updatable = false)
-    private Purchase purchase;
+    private OrganizationAccount organization;
 
     @Column(nullable = false, updatable = false)
     @CreationTimestamp
-    private Instant createdAt;
+    private Instant at;
 
 }

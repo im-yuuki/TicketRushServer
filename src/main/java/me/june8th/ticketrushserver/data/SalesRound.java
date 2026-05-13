@@ -40,6 +40,6 @@ public class SalesRound {
 
     @Column(nullable = false)
     @Builder.Default
-    private Integer maxTicketsPerUser = 0; // <= 0 means no limit
+    private Integer maxTicketsPerPurchase = 0;
 
 }

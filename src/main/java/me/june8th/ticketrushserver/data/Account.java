@@ -51,7 +51,7 @@ public abstract class Account {
     @JsonView(View.Private.class)
     private Instant createdAt;
 
-    @Column(nullable = false)
+    @Column
     @UpdateTimestamp
     @JsonView(View.Private.class)
     private Instant updatedAt;

@@ -1,6 +1,8 @@
 package me.june8th.ticketrushserver.data;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.*;
+import me.june8th.ticketrushserver.utils.View;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -57,7 +59,7 @@ public class Event {
     @CreationTimestamp
     private Instant createdAt;
 
-    @Column(nullable = false)
+    @Column
     @UpdateTimestamp
     private Instant updatedAt;
 

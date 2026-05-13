@@ -1,28 +1,30 @@
 package me.june8th.ticketrushserver.data;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+import java.time.Instant;
+
 @Entity
-@Table(name = "seats")
-public class Seat {
+@Table(name = "purchases")
+public class Purchase {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(nullable = false, updatable = false)
-    private SeatRow seatRow;
+    private UserAccount user;
 
     @Column(nullable = false, updatable = false)
-    private Integer seatNumber;
+    private Long amount;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn
-    private Ticket ticket;
+    @Column(nullable = false, updatable = false)
+    @CreationTimestamp
+    private Instant at;
 
 }
