@@ -5,7 +5,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-public class CookieUtils {
+public abstract class CookieUtils {
 
     public static final String ACCESS_TOKEN_COOKIE_NAME = "access_token";
     public static final String OPERATION_ID_COOKIE_NAME = "operation_id";

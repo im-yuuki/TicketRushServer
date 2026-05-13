@@ -1,12 +1,15 @@
 package me.june8th.ticketrushserver.controllers;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.*;
+import me.june8th.ticketrushserver.data.Account;
 import me.june8th.ticketrushserver.services.AccountService;
 import me.june8th.ticketrushserver.types.NotImplementedException;
-import me.june8th.ticketrushserver.views.OperationResponse;
+import me.june8th.ticketrushserver.utils.OperationResponse;
 import me.june8th.ticketrushserver.utils.CookieUtils;
-import me.june8th.ticketrushserver.views.ProfileView;
+import me.june8th.ticketrushserver.utils.Patchable;
+import me.june8th.ticketrushserver.utils.View;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -17,17 +20,18 @@ import java.util.Objects;
 @RestController
 @RequestMapping("/account")
 @RequiredArgsConstructor
-public class AccountController {
+public class MyAccountController {
 
     private final AccountService accountService;
 
     @GetMapping
-    public ResponseEntity<ProfileView> getProfile(@AuthenticationPrincipal Long id) {
+    @JsonView(View.Private.class)
+    public ResponseEntity<Account> getProfile(@AuthenticationPrincipal Long id) {
         return ResponseEntity.ok(accountService.getAccountProfile(id));
     }
 
     @PatchMapping
-    public ResponseEntity<OperationResponse> updateProfile(@AuthenticationPrincipal Long id, @RequestBody ProfileView profile) {
+    public ResponseEntity<OperationResponse> updateProfile(@AuthenticationPrincipal Long id, @RequestBody @JsonView(Patchable.class) Account account) {
         throw new NotImplementedException();
     }
 

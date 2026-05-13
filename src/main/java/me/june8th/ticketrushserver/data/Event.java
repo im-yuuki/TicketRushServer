@@ -1,12 +1,14 @@
 package me.june8th.ticketrushserver.data;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
 
@@ -27,7 +29,7 @@ public class Event {
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(nullable = false)
+    @JoinColumn(nullable = false, updatable = false)
     private OrganizationAccount organization;
 
     @Column(nullable = false)
@@ -51,8 +53,12 @@ public class Event {
     @Builder.Default
     private String bannerKey = "";
 
+    @Column(nullable = false, updatable = false)
+    @CreationTimestamp
+    private Instant createdAt;
+
     @Column(nullable = false)
-    @Builder.Default
-    private Instant createdAt = Instant.now();
+    @UpdateTimestamp
+    private Instant updatedAt;
 
 }

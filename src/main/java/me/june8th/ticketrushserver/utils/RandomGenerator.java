@@ -1,6 +1,6 @@
 package me.june8th.ticketrushserver.utils;
 
-public class RandomGenerator {
+public abstract class RandomGenerator {
 
     static final String RANDOM_CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     static final String NUMERIC_CHARACTERS = "0123456789";

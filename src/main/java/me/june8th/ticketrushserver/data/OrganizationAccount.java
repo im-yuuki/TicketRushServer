@@ -1,12 +1,12 @@
 package me.june8th.ticketrushserver.data;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import me.june8th.ticketrushserver.types.Role;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
+import me.june8th.ticketrushserver.utils.View;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -22,37 +22,38 @@ public class OrganizationAccount extends Account {
         return Role.ORGANIZATION;
     }
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(nullable = false)
-    private AdministratorAccount manager;
-
     @Column(nullable = false)
     @Builder.Default
+    @JsonView(View.Public.class)
     private Boolean verified = false;
 
     @Column(nullable = false)
     @Builder.Default
+    @JsonView(View.Public.class)
     private String description = "";
 
     @Column(unique = true)
     @Builder.Default
     @Nullable
+    @JsonView(View.Public.class)
     private String aliasName = null;
 
     @Column
     @Builder.Default
     @Nullable
+    @JsonView(View.Public.class)
     private String avatarKey = null;
 
     @Column
     @Builder.Default
     @Nullable
+    @JsonView(View.Public.class)
     private String bannerKey = null;
 
     @Column
     @Builder.Default
     @Nullable
+    @JsonView(View.Public.class)
     private String websiteUrl = null;
 
 }

@@ -1,6 +1,6 @@
 package me.june8th.ticketrushserver.repositories;
 
-import me.june8th.ticketrushserver.cache.ResetPasswordRequest;
+import me.june8th.ticketrushserver.temp.ResetPasswordRequest;
 import org.springframework.data.keyvalue.repository.KeyValueRepository;
 import org.springframework.stereotype.Repository;
 

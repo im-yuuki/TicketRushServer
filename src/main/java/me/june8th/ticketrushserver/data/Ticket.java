@@ -1,6 +1,7 @@
 package me.june8th.ticketrushserver.data;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -16,20 +17,21 @@ public class Ticket {
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(nullable = false)
+    @JoinColumn(nullable = false, updatable = false)
     private TicketClass ticketClass;
 
     @OneToOne(optional = false, fetch = FetchType.EAGER)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(nullable = false)
+    @JoinColumn(nullable = false, updatable = false)
     private Seat seat;
 
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(nullable = false)
+    @JoinColumn(nullable = false, updatable = false)
     private UserAccount user;
 
-    @Column(nullable = false)
-    private Instant purchaseTime = Instant.now();
+    @Column(nullable = false, updatable = false)
+    @CreationTimestamp
+    private Instant createdAt;
 
 }

@@ -5,9 +5,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Data
@@ -27,7 +29,7 @@ public class SalesRound {
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(nullable = false)
+    @JoinColumn(nullable = false, updatable = false)
     private Event event;
 
     @Column(nullable = false)

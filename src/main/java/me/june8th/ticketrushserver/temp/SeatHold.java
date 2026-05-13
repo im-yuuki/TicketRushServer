@@ -1,4 +1,4 @@
-package me.june8th.ticketrushserver.cache;
+package me.june8th.ticketrushserver.temp;
 
 import org.springframework.data.redis.core.TimeToLive;
 

@@ -1,9 +1,10 @@
 package me.june8th.ticketrushserver.services;
 
 import lombok.RequiredArgsConstructor;
-import me.june8th.ticketrushserver.cache.RegisterRequest;
-import me.june8th.ticketrushserver.cache.ResetPasswordRequest;
-import me.june8th.ticketrushserver.data.*;
+import me.june8th.ticketrushserver.temp.RegisterRequest;
+import me.june8th.ticketrushserver.temp.ResetPasswordRequest;
+import me.june8th.ticketrushserver.data.Account;
+import me.june8th.ticketrushserver.data.UserAccount;
 import me.june8th.ticketrushserver.repositories.AccountRepository;
 import me.june8th.ticketrushserver.repositories.RegisterRequestRepository;
 import me.june8th.ticketrushserver.repositories.ResetPasswordRequestRepository;
@@ -12,9 +13,6 @@ import me.june8th.ticketrushserver.security.AccessTokenData;
 import me.june8th.ticketrushserver.security.AccessTokenProvider;
 import me.june8th.ticketrushserver.types.*;
 import me.june8th.ticketrushserver.utils.Validator;
-import me.june8th.ticketrushserver.views.OrganizationProfileView;
-import me.june8th.ticketrushserver.views.ProfileView;
-import me.june8th.ticketrushserver.views.UserProfileView;
 import org.jspecify.annotations.NullMarked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,9 +39,9 @@ public class AccountService {
     /**
      * Create a new user registration request. This will create a new entry in the RegisterRequest table.
      *
-     * @param name full name of the user
-     * @param email email address (must be unique)
-     * @param password plain text password (will be hashed before saving)
+     * @param name      full name of the user
+     * @param email     email address (must be unique)
+     * @param password  plain text password (will be hashed before saving)
      * @param birthDate birth date
      * @return key of the created RegisterRequest, which can be used to confirm the registration
      */
@@ -141,7 +139,7 @@ public class AccountService {
      * Authenticate a user by their email and password.
      * If the credentials are correct, return the corresponding UserAccount.
      *
-     * @param email the user's email address
+     * @param email    the user's email address
      * @param password the user's plain text password
      * @return the authenticated UserAccount
      */
@@ -162,7 +160,6 @@ public class AccountService {
         logger.debug("Account {} ({}) logged in successfully", account.getId(), account.getName());
         return account;
     }
-
 
     /**
      * Generate a new access token for the specified account.
@@ -196,7 +193,7 @@ public class AccountService {
     }
 
     /**
-     * @param email the email address of the user requesting a password reset
+     * @param email       the email address of the user requesting a password reset
      * @param newPassword the new plain text password for that user (will be hashed before saving)
      * @return the key of the created ResetPasswordRequest, which can be used to confirm the password reset
      */
@@ -235,7 +232,7 @@ public class AccountService {
      * Confirm a user password reset request by providing the OTP code sent to the user's email address.
      * If the OTP code is correct and the password reset request is still valid, the user's password will be updated.
      *
-     * @param token the key of the ResetPasswordRequest entry to confirm
+     * @param token   the key of the ResetPasswordRequest entry to confirm
      * @param otpCode the OTP code sent to the user's email address
      */
     @NullMarked
@@ -285,6 +282,13 @@ public class AccountService {
         }
     }
 
+    /**
+     * Change the email of an account.
+     *
+     * @param accountId       account ID
+     * @param newEmail        new email address
+     * @param currentPassword current password of the account
+     */
     @NullMarked
     @Transactional
     public void changeAccountEmail(Long accountId, String newEmail, String currentPassword) {
@@ -295,14 +299,23 @@ public class AccountService {
         if (accountRepository.existsByEmail(newEmail)) {
             throw new ResourceConflictException("This email is already registered");
         }
-
         Account account = accountRepository.findById(accountId).orElseThrow(
                 () -> new ResourceNotFoundException("Account not found")
         );
-        account.setEmail(newEmail);
-        accountRepository.save(account);
+        if (passwordEncoder.matches(currentPassword, account.getPasswordHash())) {
+            account.setEmail(newEmail);
+            accountRepository.save(account);
+        }
+        throw new AuthenticationFailedException("Incorrect password");
     }
 
+    /**
+     * Change the password of an account.
+     *
+     * @param accountId       account ID
+     * @param currentPassword current password
+     * @param newPassword     new password
+     */
     @NullMarked
     @Transactional
     public void changeAccountPassword(Long accountId, String currentPassword, String newPassword) {
@@ -312,49 +325,18 @@ public class AccountService {
         Account account = accountRepository.findById(accountId).orElseThrow(
                 () -> new ResourceNotFoundException("Account not found")
         );
-        if (!passwordEncoder.matches(currentPassword, account.getPasswordHash())) {
-            throw new AuthenticationFailedException("Invalid current password");
+        if (passwordEncoder.matches(currentPassword, account.getPasswordHash())) {
+            account.setPasswordHash(passwordEncoder.encode(newPassword));
+            accountRepository.save(account);
         }
-        account.setPasswordHash(passwordEncoder.encode(newPassword));
-        accountRepository.save(account);
+        throw new AuthenticationFailedException("Incorrect password");
     }
-    
+
     @NullMarked
-    public ProfileView getAccountProfile(Long id) {
-        Account account = accountRepository.findById(id).orElseThrow(
+    public Account getAccountProfile(Long id) {
+        return accountRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Account not found")
         );
-        if (account.getRole() == Role.USER) {
-            UserAccount userAccount = (UserAccount) account;
-            return UserProfileView.builder()
-                    .name(userAccount.getName())
-                    .email(userAccount.getEmail())
-                    .type(userAccount.getRole())
-                    .avatarUrl(userAccount.getAvatarKey())
-                    .birthDate(userAccount.getBirthDate().toString())
-                    .gender(userAccount.getGender().toString())
-                    .phoneNumber(userAccount.getPhoneNumber())
-                    .addressLine(userAccount.getAddressLine())
-                    .build();
-        } else if (account.getRole() == Role.ORGANIZATION) {
-            OrganizationAccount organizationAccount = (OrganizationAccount) account;
-            return OrganizationProfileView.builder()
-                    .name(organizationAccount.getName())
-                    .email(organizationAccount.getEmail())
-                    .type(organizationAccount.getRole())
-                    .avatarUrl(organizationAccount.getAvatarKey())
-                    .bannerUrl(organizationAccount.getBannerKey())
-                    .aliasName(organizationAccount.getAliasName())
-                    .description(organizationAccount.getDescription())
-                    .websiteUrl(organizationAccount.getWebsiteUrl())
-                    .build();
-        } else {
-            return ProfileView.builder()
-                    .name(account.getName())
-                    .email(account.getEmail())
-                    .type(account.getRole())
-                    .build();
-        }
     }
 
 }
