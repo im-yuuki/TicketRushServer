@@ -7,7 +7,7 @@ import me.june8th.ticketrushserver.services.AccountService;
 import me.june8th.ticketrushserver.services.EmailService;
 import me.june8th.ticketrushserver.types.*;
 import me.june8th.ticketrushserver.utils.CookieUtils;
-import me.june8th.ticketrushserver.views.OperationResponse;
+import me.june8th.ticketrushserver.views.OperationResult;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,59 +32,59 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<OperationResponse> register(@RequestBody RegisterRequest request, HttpServletResponse response) {
+    public ResponseEntity<OperationResult> register(@RequestBody RegisterRequest request, HttpServletResponse response) {
         String key = accountService.userRegisterRequest(request.name(), request.email(), request.password(), request.birthDate(), request.gender());
         CookieUtils.setHttpOnlyCookie(response, CookieUtils.OPERATION_ID_COOKIE_NAME, key, operationExpiration);
-        return ResponseEntity.status(HttpStatus.CREATED).body(OperationResponse.success("Waiting for confirmation"));
+        return ResponseEntity.status(HttpStatus.CREATED).body(OperationResult.success("Waiting for confirmation"));
     }
 
     @GetMapping("/register/confirmation")
-    public ResponseEntity<OperationResponse> sendRegistrationOtp(HttpServletRequest request) throws MessagingException {
+    public ResponseEntity<OperationResult> sendRegistrationOtp(HttpServletRequest request) throws MessagingException {
         String key = CookieUtils.getCookie(request, CookieUtils.OPERATION_ID_COOKIE_NAME);
         emailService.sendRegisterConfirmationEmail(Objects.requireNonNull(key));
-        return ResponseEntity.ok(OperationResponse.success("Please check your email for the OTP code to confirm your registration"));
+        return ResponseEntity.ok(OperationResult.success("Please check your email for the OTP code to confirm your registration"));
     }
 
     @PostMapping("/register/confirmation")
-    public ResponseEntity<OperationResponse> confirmRegistration(@RequestBody OtpConfirmationRequest requestBody, HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<OperationResult> confirmRegistration(@RequestBody OtpConfirmationRequest requestBody, HttpServletRequest request, HttpServletResponse response) {
         String key = CookieUtils.getCookie(request, CookieUtils.OPERATION_ID_COOKIE_NAME);
         String accessToken = accountService.generateAccessToken(accountService.userRegisterConfirm(Objects.requireNonNull(key), requestBody.otpCode()));
         CookieUtils.setHttpOnlyCookie(response, CookieUtils.ACCESS_TOKEN_COOKIE_NAME, accessToken, accessTokenExpiration);
-        return ResponseEntity.ok(OperationResponse.success("Registration successful."));
+        return ResponseEntity.ok(OperationResult.success("Registration successful."));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<OperationResponse> login(@RequestBody LoginRequest request, HttpServletResponse response) {
+    public ResponseEntity<OperationResult> login(@RequestBody LoginRequest request, HttpServletResponse response) {
         String accessToken = accountService.generateAccessToken(accountService.accountLogin(request.email(), request.password()));
         CookieUtils.setHttpOnlyCookie(response, CookieUtils.ACCESS_TOKEN_COOKIE_NAME, accessToken, accessTokenExpiration);
-        return ResponseEntity.ok(OperationResponse.success("Login successful"));
+        return ResponseEntity.ok(OperationResult.success("Login successful"));
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<OperationResponse> logout(HttpServletResponse response) {
+    public ResponseEntity<OperationResult> logout(HttpServletResponse response) {
         CookieUtils.deleteHttpOnlyCookie(response, CookieUtils.ACCESS_TOKEN_COOKIE_NAME);
-        return ResponseEntity.ok(OperationResponse.success("Logout successful"));
+        return ResponseEntity.ok(OperationResult.success("Logout successful"));
     }
 
     @PostMapping("/reset")
-    public ResponseEntity<OperationResponse> resetPassword(@RequestBody ResetPasswordRequest request, HttpServletResponse response) {
+    public ResponseEntity<OperationResult> resetPassword(@RequestBody ResetPasswordRequest request, HttpServletResponse response) {
         String key = accountService.accountResetPasswordRequest(request.email(), request.newPassword());
         CookieUtils.setHttpOnlyCookie(response, CookieUtils.OPERATION_ID_COOKIE_NAME, key, operationExpiration);
-        return ResponseEntity.status(HttpStatus.CREATED).body(OperationResponse.success("Reset password token created"));
+        return ResponseEntity.status(HttpStatus.CREATED).body(OperationResult.success("Reset password token created"));
     }
 
     @GetMapping("/reset/confirm")
-    public ResponseEntity<OperationResponse> sendResetPasswordOtp(HttpServletRequest request) throws MessagingException {
+    public ResponseEntity<OperationResult> sendResetPasswordOtp(HttpServletRequest request) throws MessagingException {
         String key = CookieUtils.getCookie(request, CookieUtils.OPERATION_ID_COOKIE_NAME);
         emailService.sendPasswordResetEmail(Objects.requireNonNull(key));
-        return ResponseEntity.ok(OperationResponse.success("Please check your email for the OTP code to confirm your password reset"));
+        return ResponseEntity.ok(OperationResult.success("Please check your email for the OTP code to confirm your password reset"));
     }
 
     @PostMapping("/reset/confirm")
-    public ResponseEntity<OperationResponse> confirmResetPassword(@RequestBody OtpConfirmationRequest requestBody, HttpServletRequest request) {
+    public ResponseEntity<OperationResult> confirmResetPassword(@RequestBody OtpConfirmationRequest requestBody, HttpServletRequest request) {
         String key = CookieUtils.getCookie(request, CookieUtils.OPERATION_ID_COOKIE_NAME);
         accountService.accountResetPasswordConfirm(Objects.requireNonNull(key), requestBody.otpCode());
-        return ResponseEntity.ok(OperationResponse.success("Password reset successful"));
+        return ResponseEntity.ok(OperationResult.success("Password reset successful"));
     }
 
     public record RegisterRequest(String name, String email, String password, Date birthDate, Gender gender) {}

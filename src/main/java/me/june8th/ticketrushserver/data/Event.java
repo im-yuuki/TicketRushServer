@@ -46,6 +46,9 @@ public class Event {
     private String description = "";
 
     @Column(nullable = false)
+    private boolean isOnlineEvent;
+
+    @Column(nullable = false)
     private String venue;
 
     @Column(nullable = false)

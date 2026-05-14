@@ -45,6 +45,7 @@ public class AccountService {
      * @param email     email address (must be unique)
      * @param password  plain text password (will be hashed before saving)
      * @param birthDate birth date
+     * @param gender    gender
      * @return key of the created RegisterRequest, which can be used to confirm the registration
      */
     @NullMarked
@@ -76,8 +77,8 @@ public class AccountService {
                 .genderString(gender.toString())
                 .build();
 
-        logger.debug("Creating registration request {} for email {}", registerRequest.getKey(), email);
         registerRequestRepository.save(registerRequest);
+        logger.debug("Successfully created registration request with key: {} for email: {}", registerRequest.getKey(), email);
         return registerRequest.getKey();
     }
 
@@ -97,7 +98,10 @@ public class AccountService {
                 .throwExceptionIfInvalid();
 
         RegisterRequest registerRequest = registerRequestRepository.findByKey(key).orElseThrow(
-                () -> new ResourceNotFoundException("Invalid request")
+                () -> {
+                    logger.warn("Registration request with key {} not found.", key);
+                    return new ResourceNotFoundException("Invalid request");
+                }
         );
 
         Gender gender = Gender.fromString(registerRequest.getGenderString());
@@ -128,13 +132,14 @@ public class AccountService {
                 .gender(gender)
                 .build();
 
-        logger.debug("Validation passed, creating userAccount account for {} ({})", registerRequest.getName(), registerRequest.getEmail());
         try {
             registerRequestRepository.delete(registerRequest);
         } catch (Exception e) {
             logger.warn("Failed to delete registration request with key {}: {}", key, e.getMessage());
         }
-        return userRepository.save(userAccount);
+        Account savedAccount = userRepository.save(userAccount);
+        logger.debug("Successfully confirmed registration and created user account with ID: {} for email: {}", savedAccount.getId(), savedAccount.getEmail());
+        return savedAccount;
     }
 
     /**
@@ -152,7 +157,10 @@ public class AccountService {
                 .throwExceptionIfInvalid();
 
         Account account = accountRepository.findByEmail(email).orElseThrow(
-                () -> new AuthenticationFailedException("Invalid credentials")
+                () -> {
+                    logger.warn("Login failed for email {}: Invalid credentials (account not found).", email);
+                    return new AuthenticationFailedException("Invalid credentials");
+                }
         );
 
         if (!passwordEncoder.matches(password, account.getPasswordHash())) {
@@ -188,10 +196,14 @@ public class AccountService {
     @Transactional
     public void accountLogoutAllSessions(Long accountId) {
         Account account = accountRepository.findById(accountId).orElseThrow(
-                () -> new ResourceNotFoundException("Account not found")
+                () -> {
+                    logger.warn("Account with ID {} not found for logout all sessions.", accountId);
+                    return new ResourceNotFoundException("Account not found");
+                }
         );
         account.setTokenVersion(account.getTokenVersion() + 1);
         accountRepository.save(account);
+        logger.debug("Successfully invalidated all sessions for account ID: {}", accountId);
     }
 
     /**
@@ -225,8 +237,8 @@ public class AccountService {
                 .newPasswordHash(newPasswordHash)
                 .build();
 
-        logger.debug("Creating password reset request {} for email {}", resetPasswordRequest.getKey(), email);
         resetPasswordRequestRepository.save(resetPasswordRequest);
+        logger.debug("Successfully created password reset request with key: {} for email: {}", resetPasswordRequest.getKey(), email);
         return resetPasswordRequest.getKey();
     }
 
@@ -246,7 +258,10 @@ public class AccountService {
                 .throwExceptionIfInvalid();
 
         ResetPasswordRequest resetPasswordRequest = resetPasswordRequestRepository.findByKey(token).orElseThrow(
-                () -> new ResourceNotFoundException("Invalid request")
+                () -> {
+                    logger.warn("Password reset request with token {} not found.", token);
+                    return new ResourceNotFoundException("Invalid request");
+                }
         );
 
         if (Instant.now().isAfter(resetPasswordRequest.getExpiresAt())) {
@@ -305,9 +320,13 @@ public class AccountService {
                 () -> new ResourceNotFoundException("Account not found")
         );
         if (passwordEncoder.matches(currentPassword, account.getPasswordHash())) {
+            String oldEmail = account.getEmail();
             account.setEmail(newEmail);
             accountRepository.save(account);
+            logger.debug("Successfully changed email for account ID: {} from {} to {}", accountId, oldEmail, newEmail);
+            return;
         }
+        logger.debug("Incorrect password provided for account ID: {} during email change.", accountId);
         throw new AuthenticationFailedException("Incorrect password");
     }
 
@@ -330,22 +349,29 @@ public class AccountService {
         if (passwordEncoder.matches(currentPassword, account.getPasswordHash())) {
             account.setPasswordHash(passwordEncoder.encode(newPassword));
             accountRepository.save(account);
+            logger.debug("Successfully changed password for account ID: {}", accountId);
+            return;
         }
+        logger.debug("Incorrect password provided for account ID: {} during password change.", accountId);
         throw new AuthenticationFailedException("Incorrect password");
     }
 
     @NullMarked
     public Account getAccountProfile(Long id) {
-        return accountRepository.findById(id).orElseThrow(
+        Account account = accountRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Account not found")
         );
+        logger.trace("Successfully retrieved account profile for ID: {}", id);
+        return account;
     }
 
     @NullMarked
     public Account updateAccountProfile(Long id, Account patch) {
         Account account = getAccountProfile(id);
         PatchUtils.applyPatch(account, patch, Patchable.class);
-        return accountRepository.save(account);
+        Account updatedAccount = accountRepository.save(account);
+        logger.trace("Successfully updated account profile for ID: {}", id);
+        return updatedAccount;
     }
 
 }

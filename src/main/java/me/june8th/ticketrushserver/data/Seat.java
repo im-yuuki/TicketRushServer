@@ -1,9 +1,14 @@
 package me.june8th.ticketrushserver.data;
 
 import jakarta.persistence.*;
+import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "seats")
 public class Seat {
@@ -26,6 +31,7 @@ public class Seat {
     @OneToOne(fetch = FetchType.EAGER)
     @OnDelete(action = OnDeleteAction.RESTRICT)
     @JoinColumn
-    private Ticket associatedTicket;
+    @Builder.Default
+    private Ticket associatedTicket = null;
 
 }

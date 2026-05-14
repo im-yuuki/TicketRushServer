@@ -6,7 +6,7 @@ import lombok.*;
 import me.june8th.ticketrushserver.data.Account;
 import me.june8th.ticketrushserver.services.AccountService;
 import me.june8th.ticketrushserver.types.NotImplementedException;
-import me.june8th.ticketrushserver.views.OperationResponse;
+import me.june8th.ticketrushserver.views.OperationResult;
 import me.june8th.ticketrushserver.utils.CookieUtils;
 import me.june8th.ticketrushserver.views.Patchable;
 import me.june8th.ticketrushserver.views.Private;
@@ -31,32 +31,32 @@ public class MyAccountController {
     }
 
     @PatchMapping
-    public ResponseEntity<OperationResponse> updateProfile(@AuthenticationPrincipal Long id, @RequestBody @JsonView(Patchable.class) Account account) {
+    public ResponseEntity<OperationResult> updateProfile(@AuthenticationPrincipal Long id, @RequestBody @JsonView(Patchable.class) Account account) {
         throw new NotImplementedException();
     }
 
     @PatchMapping("/avatar")
-    public ResponseEntity<OperationResponse> changeAvatar(@AuthenticationPrincipal Long id) {
+    public ResponseEntity<OperationResult> changeAvatar(@AuthenticationPrincipal Long id) {
         throw new NotImplementedException();
     }
 
     @PatchMapping("/email")
-    public ResponseEntity<OperationResponse> changeEmail(@AuthenticationPrincipal Long id, @RequestBody UpdateEmailRequest request) {
+    public ResponseEntity<OperationResult> changeEmail(@AuthenticationPrincipal Long id, @RequestBody UpdateEmailRequest request) {
         accountService.changeAccountEmail(id, request.newEmail(), request.currentPassword());
-        return ResponseEntity.ok(OperationResponse.success("Email changed successfully"));
+        return ResponseEntity.ok(OperationResult.success("Email changed successfully"));
     }
 
     @PatchMapping("/password")
-    public ResponseEntity<OperationResponse> changePassword(@AuthenticationPrincipal Long id, @RequestBody UpdatePasswordRequest request) {
+    public ResponseEntity<OperationResult> changePassword(@AuthenticationPrincipal Long id, @RequestBody UpdatePasswordRequest request) {
         accountService.changeAccountPassword(id, request.currentPassword(), request.newPassword());
-        return ResponseEntity.ok(OperationResponse.success("Password changed successfully"));
+        return ResponseEntity.ok(OperationResult.success("Password changed successfully"));
     }
 
     @PostMapping("/logout-all")
-    public ResponseEntity<OperationResponse> logoutAllDevices(Authentication authentication, HttpServletResponse response) {
+    public ResponseEntity<OperationResult> logoutAllDevices(Authentication authentication, HttpServletResponse response) {
         accountService.accountLogoutAllSessions((Long) Objects.requireNonNull(authentication.getPrincipal()));
         CookieUtils.deleteHttpOnlyCookie(response, CookieUtils.ACCESS_TOKEN_COOKIE_NAME);
-        return ResponseEntity.ok(OperationResponse.success("Logged out from all devices. Please log in again."));
+        return ResponseEntity.ok(OperationResult.success("Logged out from all devices. Please log in again."));
     }
 
     @Builder

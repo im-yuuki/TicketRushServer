@@ -28,9 +28,6 @@ public class SeatZone {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false, updatable = false)
-    private long capacity;
-
     @Column(nullable = false)
     private int positionX;
 
