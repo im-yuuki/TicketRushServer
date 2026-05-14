@@ -3,6 +3,7 @@ package me.june8th.ticketrushserver.temp;
 import lombok.*;
 import me.june8th.ticketrushserver.utils.RandomGenerator;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.TimeToLive;
 import org.springframework.data.redis.core.index.Indexed;
 
@@ -10,6 +11,7 @@ import java.time.Instant;
 
 @Data
 @Builder
+@RedisHash("reset_password_requests")
 public class ResetPasswordRequest {
 
     @TimeToLive

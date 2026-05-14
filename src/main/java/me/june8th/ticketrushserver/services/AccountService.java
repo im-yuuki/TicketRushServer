@@ -6,8 +6,8 @@ import me.june8th.ticketrushserver.temp.ResetPasswordRequest;
 import me.june8th.ticketrushserver.data.Account;
 import me.june8th.ticketrushserver.data.UserAccount;
 import me.june8th.ticketrushserver.repositories.AccountRepository;
-import me.june8th.ticketrushserver.repositories.RegisterRequestRepository;
-import me.june8th.ticketrushserver.repositories.ResetPasswordRequestRepository;
+import me.june8th.ticketrushserver.temp.RegisterRequestRepository;
+import me.june8th.ticketrushserver.temp.ResetPasswordRequestRepository;
 import me.june8th.ticketrushserver.repositories.UserRepository;
 import me.june8th.ticketrushserver.security.AccessTokenData;
 import me.june8th.ticketrushserver.security.AccessTokenProvider;
@@ -178,7 +178,7 @@ public class AccountService {
     public String generateAccessToken(Account account) {
         return accessTokenProvider.generateAccessToken(AccessTokenData.builder()
                 .id(account.getId())
-                .type(account.getRole())
+                .role(account.getRole())
                 .domain(account.getDomain())
                 .version(account.getTokenVersion())
                 .build());

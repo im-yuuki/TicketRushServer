@@ -13,13 +13,14 @@ import org.jspecify.annotations.NullMarked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.ott.OneTimeTokenAuthentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.FactorGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Objects;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor
@@ -46,21 +47,21 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                     logger.trace("Account {} token version mismatch: {} != {}", account.getId(), account.getTokenVersion(), accessTokenData.version());
                     throw new AuthenticationFailedException("Invalid token");
                 }
-                if (!Objects.equals(account.getRole(), accessTokenData.type())) {
-                    logger.trace("Account {} type mismatch: {} != {}", account.getId(), account.getRole(), accessTokenData.type());
+                if (!Objects.equals(account.getRole(), accessTokenData.role())) {
+                    logger.trace("Account {} role mismatch: {} != {}", account.getId(), account.getRole(), accessTokenData.role());
                     throw new AuthenticationFailedException("Invalid token");
                 }
                 if (!Objects.equals(account.getDomain(), accessTokenData.domain())) {
                     logger.trace("Account {} domain mismatch: {} != {}", account.getId(), account.getDomain(), accessTokenData.domain());
                     throw new AuthenticationFailedException("Invalid token");
                 }
-                OneTimeTokenAuthentication authentication = new OneTimeTokenAuthentication(
-                        accessTokenData.id(),
-                        Collections.singleton(accessTokenData.type().toSecurityAuthority())
-                );
+                Collection<GrantedAuthority> authorities = new ArrayList<>();
+                authorities.add(FactorGrantedAuthority.fromFactor(FactorGrantedAuthority.PASSWORD_AUTHORITY));
+                authorities.add(accessTokenData.role().toRoleAuthority());
+                OneTimeTokenAuthentication authentication = new OneTimeTokenAuthentication(accessTokenData.id(), authorities);
                 authentication.setDetails(accessTokenData);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-                logger.debug("Authenticated principal {} with authority {}", account.getId(), accessTokenData.type().toSecurityAuthority());
+                logger.debug("Authenticated principal {} with role {}", account.getId(), accessTokenData.role());
             }
         } catch (Exception e) {
             logger.error("Could not set user authentication in security context", e);

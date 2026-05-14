@@ -3,17 +3,20 @@ package me.june8th.ticketrushserver.temp;
 import lombok.*;
 import me.june8th.ticketrushserver.utils.RandomGenerator;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.TimeToLive;
 import org.springframework.data.redis.core.index.Indexed;
 
 import java.time.Instant;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 @Data
 @Builder
+@RedisHash("register_requests")
 public class RegisterRequest {
 
-    @TimeToLive
+    @TimeToLive(unit = TimeUnit.SECONDS)
     @Builder.Default
     private Long ttl = 600L;
 

@@ -47,7 +47,7 @@ public class AccessTokenProvider {
         return Jwts.builder()
                 .subject(data.toAccessTokenSubject())
                 .claim(ID_CLAIM, data.id())
-                .claim(TYPE_CLAIM, data.type().toString())
+                .claim(TYPE_CLAIM, data.role().toString())
                 .claim(DOMAIN_CLAIM, data.domain())
                 .claim(VERSION_CLAIM, data.version())
                 .issuer(ISSUER)

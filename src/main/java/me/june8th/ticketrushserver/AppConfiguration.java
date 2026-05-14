@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import me.june8th.ticketrushserver.security.AuthenticationFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import me.june8th.ticketrushserver.types.Role;
 import me.june8th.ticketrushserver.utils.ClientIPResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +16,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.RedisKeyValueAdapter;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
@@ -43,7 +45,10 @@ import java.net.URI;
 @EnableCaching
 @EnableWebSecurity
 @EnableMethodSecurity
-@EnableRedisRepositories
+@EnableRedisRepositories(
+        basePackages = "me.june8th.ticketrushserver.temp",
+        enableKeyspaceEvents = RedisKeyValueAdapter.EnableKeyspaceEvents.ON_STARTUP
+)
 @RequiredArgsConstructor
 public class AppConfiguration implements WebMvcConfigurer {
 
@@ -64,6 +69,7 @@ public class AppConfiguration implements WebMvcConfigurer {
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/feeds/**").permitAll()
                         .requestMatchers("/error/**").permitAll()
+                        .requestMatchers("/organization/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exceptions -> exceptions
@@ -104,6 +110,10 @@ public class AppConfiguration implements WebMvcConfigurer {
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(redisConnectionFactory);
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setValueSerializer(new StringRedisSerializer());
+        template.setHashKeySerializer(new StringRedisSerializer());
+        template.setHashValueSerializer(new StringRedisSerializer());
         return template;
     }
 

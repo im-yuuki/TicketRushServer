@@ -8,7 +8,6 @@ import me.june8th.ticketrushserver.services.AccountService;
 import me.june8th.ticketrushserver.types.NotImplementedException;
 import me.june8th.ticketrushserver.views.OperationResult;
 import me.june8th.ticketrushserver.utils.CookieUtils;
-import me.june8th.ticketrushserver.views.Patchable;
 import me.june8th.ticketrushserver.views.Private;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -31,7 +30,7 @@ public class MyAccountController {
     }
 
     @PatchMapping
-    public ResponseEntity<OperationResult> updateProfile(@AuthenticationPrincipal Long id, @RequestBody @JsonView(Patchable.class) Account account) {
+    public ResponseEntity<OperationResult> updateProfile(@AuthenticationPrincipal Long id, Account account) {
         throw new NotImplementedException();
     }
 

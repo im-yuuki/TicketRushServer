@@ -7,26 +7,19 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 @RequiredArgsConstructor
 public enum Role {
 
-    USER("user"), STAFF("staff"), ORGANIZATION("organization"), ADMINISTRATOR("administrator");
-
-    private final String value;
+    USER, STAFF, ORGANIZATION, ADMINISTRATOR;
 
     @JsonCreator
     public static Role fromString(String value) {
-        for (Role type : values()) {
-            if (type.value.equalsIgnoreCase(value) || type.name().equalsIgnoreCase(value)) {
-                return type;
+        for (Role role : Role.values()) {
+            if (role.name().equalsIgnoreCase(value)) {
+                return role;
             }
         }
-        throw new IllegalArgumentException("Invalid JWT token type: " + value);
+        throw new IllegalArgumentException("Invalid role: " + value);
     }
 
-    @Override
-    public String toString() {
-        return value;
-    }
-
-    public SimpleGrantedAuthority toSecurityAuthority() {
+    public SimpleGrantedAuthority toRoleAuthority() {
         return new SimpleGrantedAuthority("ROLE_" + name().toUpperCase());
     }
 
