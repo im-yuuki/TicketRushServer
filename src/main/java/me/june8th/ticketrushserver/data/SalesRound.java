@@ -33,10 +33,10 @@ public class SalesRound {
     private Event event;
 
     @Column(nullable = false)
-    private LocalDateTime startTime;
+    private Instant startTime;
 
     @Column(nullable = false)
-    private LocalDateTime endTime;
+    private Instant endTime;
 
     @Column(nullable = false)
     @Builder.Default
