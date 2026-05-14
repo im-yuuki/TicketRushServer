@@ -2,7 +2,8 @@ package me.june8th.ticketrushserver.data;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.*;
-import me.june8th.ticketrushserver.utils.View;
+import me.june8th.ticketrushserver.views.Patchable;
+import me.june8th.ticketrushserver.views.Public;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -27,11 +28,13 @@ public class Event {
     private Long id;
 
     @Column(nullable = false)
+    @JsonView({Public.class, Patchable.class})
     private String name;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(nullable = false, updatable = false)
+    @JsonView(Public.class)
     private OrganizationAccount organization;
 
     @Column(nullable = false)

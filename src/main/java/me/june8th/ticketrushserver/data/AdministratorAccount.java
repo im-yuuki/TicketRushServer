@@ -8,7 +8,7 @@ import jakarta.persistence.Table;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import me.june8th.ticketrushserver.types.Role;
-import me.june8th.ticketrushserver.utils.View;
+import me.june8th.ticketrushserver.views.Private;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -26,8 +26,7 @@ public class AdministratorAccount extends Account {
 
     @Column
     @Builder.Default
-    @Nullable
-    @JsonView(View.Private.class)
+    @JsonView(Private.class)
     private String avatarKey = null;
 
 }

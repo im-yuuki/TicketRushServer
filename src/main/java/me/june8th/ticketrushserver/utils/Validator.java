@@ -166,4 +166,18 @@ public class Validator {
         return new Validator();
     }
 
+    public interface Validatable {
+
+        Validator getValidator();
+
+        default boolean isValid() {
+            return getValidator().isValid();
+        }
+
+        default void throwExceptionIfInvalid() {
+            getValidator().throwExceptionIfInvalid();
+        }
+
+    }
+
 }

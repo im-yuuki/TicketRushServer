@@ -27,4 +27,7 @@ public class Purchase {
     @CreationTimestamp
     private Instant at;
 
+    @Column(nullable = false, updatable = false)
+    private String details;
+
 }

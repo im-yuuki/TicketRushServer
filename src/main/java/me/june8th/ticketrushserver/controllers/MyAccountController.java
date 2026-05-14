@@ -6,10 +6,10 @@ import lombok.*;
 import me.june8th.ticketrushserver.data.Account;
 import me.june8th.ticketrushserver.services.AccountService;
 import me.june8th.ticketrushserver.types.NotImplementedException;
-import me.june8th.ticketrushserver.utils.OperationResponse;
+import me.june8th.ticketrushserver.views.OperationResponse;
 import me.june8th.ticketrushserver.utils.CookieUtils;
-import me.june8th.ticketrushserver.utils.Patchable;
-import me.june8th.ticketrushserver.utils.View;
+import me.june8th.ticketrushserver.views.Patchable;
+import me.june8th.ticketrushserver.views.Private;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -25,7 +25,7 @@ public class MyAccountController {
     private final AccountService accountService;
 
     @GetMapping
-    @JsonView(View.Private.class)
+    @JsonView(Private.class)
     public ResponseEntity<Account> getProfile(@AuthenticationPrincipal Long id) {
         return ResponseEntity.ok(accountService.getAccountProfile(id));
     }

@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import me.june8th.ticketrushserver.types.Role;
-import me.june8th.ticketrushserver.utils.View;
+import me.june8th.ticketrushserver.views.Shared;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -32,7 +32,7 @@ public class InspectorAccount extends Account {
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(nullable = false, updatable = false)
-    @JsonView(View.Shared.class)
+    @JsonView(Shared.class)
     private Event event;
 
 }

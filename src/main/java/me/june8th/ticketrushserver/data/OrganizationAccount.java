@@ -6,7 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import me.june8th.ticketrushserver.types.Role;
-import me.june8th.ticketrushserver.utils.View;
+import me.june8th.ticketrushserver.views.View;
 
 @EqualsAndHashCode(callSuper = true)
 @Data

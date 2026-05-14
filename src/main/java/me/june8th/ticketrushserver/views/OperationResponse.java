@@ -1,4 +1,4 @@
-package me.june8th.ticketrushserver.utils;
+package me.june8th.ticketrushserver.views;
 
 import lombok.Builder;
 

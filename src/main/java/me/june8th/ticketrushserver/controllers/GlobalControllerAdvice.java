@@ -5,7 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import me.june8th.ticketrushserver.types.*;
 import me.june8th.ticketrushserver.utils.ClientIPResolver;
-import me.june8th.ticketrushserver.utils.OperationResponse;
+import me.june8th.ticketrushserver.views.OperationResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;

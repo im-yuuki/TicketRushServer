@@ -7,8 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import me.june8th.ticketrushserver.types.Role;
-import me.june8th.ticketrushserver.utils.Patchable;
-import me.june8th.ticketrushserver.utils.View;
+import me.june8th.ticketrushserver.views.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -24,15 +23,15 @@ public abstract class Account {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonView(View.Public.class)
+    @JsonView(Public.class)
     private Long id;
 
     @Column(nullable = false)
-    @JsonView({View.Public.class, Patchable.class})
+    @JsonView({Public.class, Patchable.class})
     private String name;
 
     @Column(nullable = false, unique = true)
-    @JsonView({View.Shared.class, Patchable.class})
+    @JsonView(Shared.class)
     private String email;
 
     @Column(nullable = false)
@@ -48,12 +47,12 @@ public abstract class Account {
 
     @Column(nullable = false, updatable = false)
     @CreationTimestamp
-    @JsonView(View.Private.class)
+    @JsonView(Private.class)
     private Instant createdAt;
 
     @Column
     @UpdateTimestamp
-    @JsonView(View.Private.class)
+    @JsonView(Private.class)
     private Instant updatedAt;
 
     @Transient

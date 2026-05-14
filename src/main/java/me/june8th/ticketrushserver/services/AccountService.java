@@ -12,7 +12,9 @@ import me.june8th.ticketrushserver.repositories.UserRepository;
 import me.june8th.ticketrushserver.security.AccessTokenData;
 import me.june8th.ticketrushserver.security.AccessTokenProvider;
 import me.june8th.ticketrushserver.types.*;
+import me.june8th.ticketrushserver.utils.PatchUtils;
 import me.june8th.ticketrushserver.utils.Validator;
+import me.june8th.ticketrushserver.views.Patchable;
 import org.jspecify.annotations.NullMarked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -337,6 +339,13 @@ public class AccountService {
         return accountRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Account not found")
         );
+    }
+
+    @NullMarked
+    public Account updateAccountProfile(Long id, Account patch) {
+        Account account = getAccountProfile(id);
+        PatchUtils.applyPatch(account, patch, Patchable.class);
+        return accountRepository.save(account);
     }
 
 }
