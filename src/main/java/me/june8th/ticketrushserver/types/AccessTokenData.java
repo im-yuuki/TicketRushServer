@@ -1,7 +1,6 @@
-package me.june8th.ticketrushserver.security;
+package me.june8th.ticketrushserver.types;
 
 import lombok.Builder;
-import me.june8th.ticketrushserver.types.Role;
 
 @Builder
 public record AccessTokenData(Long id, Role role, String domain, Integer version) {

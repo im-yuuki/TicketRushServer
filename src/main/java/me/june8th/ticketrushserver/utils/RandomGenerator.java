@@ -33,4 +33,8 @@ public abstract class RandomGenerator {
         return generateRandomNumericString(6);
     }
 
+    public static String generateTicketSecretCode() {
+        return generateRandomString(64);
+    }
+
 }

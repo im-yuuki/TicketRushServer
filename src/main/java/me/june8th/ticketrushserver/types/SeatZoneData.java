@@ -1,8 +1,8 @@
-package me.june8th.ticketrushserver.views;
+package me.june8th.ticketrushserver.types;
 
 import org.jspecify.annotations.Nullable;
 
-public record SeatZoneView(@Nullable Long id, String name, int positionX, int positionY, @Nullable Long capacity, SeatRowView[] rows) {
+public record SeatZoneData(@Nullable Long id, String name, int positionX, int positionY, @Nullable Long capacity, SeatRowView[] rows) {
 
     public record SeatRowView(@Nullable Long id, int index, String label, SeatView[] seats) {
 

@@ -41,7 +41,7 @@ public class EmailService {
     /**
      * Send an email containing an OTP code that the user can use to confirm their registration.
      *
-     * @param key the key of the RegisterRequest entry
+     * @param key the key of the RegisterPayload entry
      * @throws MessagingException if there is an error while sending the email
      */
     @NullMarked
@@ -87,7 +87,7 @@ public class EmailService {
     /**
      * Send an email containing an OTP code that the user can use to reset their password.
      *
-     * @param key the key of the ResetPasswordRequest entry
+     * @param key the key of the ResetPasswordPayload entry
      * @throws MessagingException if there is an error while sending the email
      */
     @NullMarked

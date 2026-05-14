@@ -3,6 +3,7 @@ package me.june8th.ticketrushserver.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import me.june8th.ticketrushserver.types.AccessTokenData;
 import me.june8th.ticketrushserver.types.Role;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;

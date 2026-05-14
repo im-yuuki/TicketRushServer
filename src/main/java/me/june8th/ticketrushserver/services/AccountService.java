@@ -1,20 +1,17 @@
 package me.june8th.ticketrushserver.services;
 
 import lombok.RequiredArgsConstructor;
+import me.june8th.ticketrushserver.data.*;
 import me.june8th.ticketrushserver.temp.RegisterRequest;
 import me.june8th.ticketrushserver.temp.ResetPasswordRequest;
-import me.june8th.ticketrushserver.data.Account;
-import me.june8th.ticketrushserver.data.UserAccount;
 import me.june8th.ticketrushserver.repositories.AccountRepository;
 import me.june8th.ticketrushserver.temp.RegisterRequestRepository;
 import me.june8th.ticketrushserver.temp.ResetPasswordRequestRepository;
 import me.june8th.ticketrushserver.repositories.UserRepository;
-import me.june8th.ticketrushserver.security.AccessTokenData;
+import me.june8th.ticketrushserver.types.AccessTokenData;
 import me.june8th.ticketrushserver.security.AccessTokenProvider;
 import me.june8th.ticketrushserver.types.*;
-import me.june8th.ticketrushserver.utils.PatchUtils;
 import me.june8th.ticketrushserver.utils.Validator;
-import me.june8th.ticketrushserver.views.Patchable;
 import org.jspecify.annotations.NullMarked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.Date;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -39,14 +37,14 @@ public class AccountService {
     private final ResetPasswordRequestRepository resetPasswordRequestRepository;
 
     /**
-     * Create a new user registration request. This will create a new entry in the RegisterRequest table.
+     * Create a new user registration request. This will create a new entry in the RegisterPayload table.
      *
      * @param name      full name of the user
      * @param email     email address (must be unique)
      * @param password  plain text password (will be hashed before saving)
      * @param birthDate birth date
      * @param gender    gender
-     * @return key of the created RegisterRequest, which can be used to confirm the registration
+     * @return key of the created RegisterPayload, which can be used to confirm the registration
      */
     @NullMarked
     @Transactional
@@ -86,7 +84,7 @@ public class AccountService {
      * Confirm a user registration request by providing the OTP code sent to the user's email address.
      * If the OTP code is correct and the registration request is still valid, a new UserAccount will be created.
      *
-     * @param key     the key of the RegisterRequest entry to confirm
+     * @param key     the key of the RegisterPayload entry to confirm
      * @param otpCode the OTP code sent to the user's email address
      */
     @NullMarked
@@ -203,7 +201,7 @@ public class AccountService {
     /**
      * @param email       the email address of the user requesting a password reset
      * @param newPassword the new plain text password for that user (will be hashed before saving)
-     * @return the key of the created ResetPasswordRequest, which can be used to confirm the password reset
+     * @return the key of the created ResetPasswordPayload, which can be used to confirm the password reset
      */
     @NullMarked
     @Transactional
@@ -240,7 +238,7 @@ public class AccountService {
      * Confirm a user password reset request by providing the OTP code sent to the user's email address.
      * If the OTP code is correct and the password reset request is still valid, the user's password will be updated.
      *
-     * @param token   the key of the ResetPasswordRequest entry to confirm
+     * @param token   the key of the ResetPasswordPayload entry to confirm
      * @param otpCode the OTP code sent to the user's email address
      */
     @NullMarked
@@ -291,6 +289,33 @@ public class AccountService {
         } catch (Exception e) {
             logger.warn("Failed to delete password reset request with key {}: {}", token, e.getMessage());
         }
+    }
+
+    @NullMarked
+    public Account getAccountData(Long id) {
+        return accountRepository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException("Account not found")
+        );
+    }
+
+    /**
+     * Change the name of an account.
+     *
+     * @param accountId account ID
+     * @param newName   new full name
+     */
+    @NullMarked
+    @Transactional
+    public void changeAccountName(Long accountId, String newName) {
+        Validator.create()
+                .validateName(newName)
+                .throwExceptionIfInvalid();
+        Account account = accountRepository.findById(accountId).orElseThrow(
+                () -> new ResourceNotFoundException("Account not found")
+        );
+        account.setName(newName);
+        accountRepository.save(account);
+        logger.debug("Successfully changed name for account ID: {} to {}", accountId, newName);
     }
 
     /**
@@ -348,24 +373,6 @@ public class AccountService {
         }
         logger.debug("Incorrect password provided for account ID: {} during password change.", accountId);
         throw new AuthenticationFailedException("Incorrect password");
-    }
-
-    @NullMarked
-    public Account getAccountProfile(Long id) {
-        Account account = accountRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Account not found")
-        );
-        logger.trace("Successfully retrieved account profile for ID: {}", id);
-        return account;
-    }
-
-    @NullMarked
-    public Account updateAccountProfile(Long id, Account patch) {
-        Account account = getAccountProfile(id);
-        PatchUtils.applyPatch(account, patch, Patchable.class);
-        Account updatedAccount = accountRepository.save(account);
-        logger.trace("Successfully updated account profile for ID: {}", id);
-        return updatedAccount;
     }
 
 }

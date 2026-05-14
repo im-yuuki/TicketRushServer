@@ -69,7 +69,9 @@ public class AppConfiguration implements WebMvcConfigurer {
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/feeds/**").permitAll()
                         .requestMatchers("/error/**").permitAll()
-                        .requestMatchers("/organization/**").authenticated()
+                        .requestMatchers("/user/**").hasRole(Role.USER.toString())
+                        .requestMatchers("/organization/**").hasRole(Role.ORGANIZATION.toString())
+                        .requestMatchers("/checkin/**").hasRole(Role.ORGANIZATION.toString())
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exceptions -> exceptions

@@ -1,11 +1,9 @@
 package me.june8th.ticketrushserver.data;
 
-import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import me.june8th.ticketrushserver.types.Role;
-import me.june8th.ticketrushserver.views.Shared;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -32,7 +30,6 @@ public class EventStaffAccount extends Account {
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(nullable = false, updatable = false)
-    @JsonView(Shared.class)
     private Event event;
 
 }

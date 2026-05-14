@@ -1,14 +1,13 @@
 package me.june8th.ticketrushserver.controllers;
 
-import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.*;
 import me.june8th.ticketrushserver.data.Account;
+import me.june8th.ticketrushserver.data.OrganizationAccount;
+import me.june8th.ticketrushserver.data.UserAccount;
 import me.june8th.ticketrushserver.services.AccountService;
-import me.june8th.ticketrushserver.types.NotImplementedException;
-import me.june8th.ticketrushserver.views.OperationResult;
+import me.june8th.ticketrushserver.types.OperationResult;
 import me.june8th.ticketrushserver.utils.CookieUtils;
-import me.june8th.ticketrushserver.views.Private;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -24,29 +23,24 @@ public class MyAccountController {
     private final AccountService accountService;
 
     @GetMapping
-    @JsonView(Private.class)
-    public ResponseEntity<Account> getProfile(@AuthenticationPrincipal Long id) {
-        return ResponseEntity.ok(accountService.getAccountProfile(id));
+    public ResponseEntity<BasicUserInfo> getBasicInfo(@AuthenticationPrincipal Long id) {
+        return ResponseEntity.ok(new BasicUserInfo(accountService.getAccountData(id)));
     }
 
-    @PatchMapping
-    public ResponseEntity<OperationResult> updateProfile(@AuthenticationPrincipal Long id, Account account) {
-        throw new NotImplementedException();
+    @PutMapping("/name")
+    public ResponseEntity<OperationResult> changeName(@AuthenticationPrincipal Long id, @RequestBody UpdateNamePayload request) {
+        accountService.changeAccountName(id, request.newName());
+        return ResponseEntity.ok(OperationResult.success("Name changed successfully"));
     }
 
-    @PatchMapping("/avatar")
-    public ResponseEntity<OperationResult> changeAvatar(@AuthenticationPrincipal Long id) {
-        throw new NotImplementedException();
-    }
-
-    @PatchMapping("/email")
-    public ResponseEntity<OperationResult> changeEmail(@AuthenticationPrincipal Long id, @RequestBody UpdateEmailRequest request) {
+    @PutMapping("/email")
+    public ResponseEntity<OperationResult> changeEmail(@AuthenticationPrincipal Long id, @RequestBody UpdateEmailPayload request) {
         accountService.changeAccountEmail(id, request.newEmail(), request.currentPassword());
         return ResponseEntity.ok(OperationResult.success("Email changed successfully"));
     }
 
-    @PatchMapping("/password")
-    public ResponseEntity<OperationResult> changePassword(@AuthenticationPrincipal Long id, @RequestBody UpdatePasswordRequest request) {
+    @PutMapping("/password")
+    public ResponseEntity<OperationResult> changePassword(@AuthenticationPrincipal Long id, @RequestBody UpdatePasswordPayload request) {
         accountService.changeAccountPassword(id, request.currentPassword(), request.newPassword());
         return ResponseEntity.ok(OperationResult.success("Password changed successfully"));
     }
@@ -58,10 +52,24 @@ public class MyAccountController {
         return ResponseEntity.ok(OperationResult.success("Logged out from all devices. Please log in again."));
     }
 
-    @Builder
-    public record UpdateEmailRequest(String newEmail, String currentPassword) {}
+    public record BasicUserInfo(long id, String name, String email, String avatarUrl) {
 
-    @Builder
-    public record UpdatePasswordRequest(String currentPassword, String newPassword) {}
+        public BasicUserInfo(Account account) {
+            // TODO: avatar url generation logic
+            String avatarUrl = switch (account) {
+                case UserAccount userAccount -> userAccount.getAvatarKey();
+                case OrganizationAccount organizationAccount -> organizationAccount.getAvatarKey();
+                default -> null;
+            };
+            this(account.getId(), account.getName(), account.getEmail(), avatarUrl);
+        }
+
+    }
+
+    public record UpdateNamePayload(String newName) {}
+
+    public record UpdateEmailPayload(String newEmail, String currentPassword) {}
+
+    public record UpdatePasswordPayload(String currentPassword, String newPassword) {}
 
 }

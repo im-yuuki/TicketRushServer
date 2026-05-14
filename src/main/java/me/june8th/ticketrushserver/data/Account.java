@@ -1,13 +1,11 @@
 package me.june8th.ticketrushserver.data;
 
-import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import me.june8th.ticketrushserver.types.Role;
-import me.june8th.ticketrushserver.views.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -23,15 +21,12 @@ public abstract class Account {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonView(Public.class)
     private long id;
 
     @Column(nullable = false)
-    @JsonView({Public.class, Patchable.class})
     private String name;
 
     @Column(nullable = false, unique = true)
-    @JsonView(Shared.class)
     private String email;
 
     @Column(nullable = false)
@@ -47,12 +42,10 @@ public abstract class Account {
 
     @Column(nullable = false, updatable = false)
     @CreationTimestamp
-    @JsonView(Private.class)
     private Instant createdAt;
 
     @Column
     @UpdateTimestamp
-    @JsonView(Private.class)
     private Instant updatedAt;
 
     @Transient

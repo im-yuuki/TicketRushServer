@@ -4,10 +4,8 @@ import lombok.RequiredArgsConstructor;
 import me.june8th.ticketrushserver.data.*;
 import me.june8th.ticketrushserver.repositories.*;
 import me.june8th.ticketrushserver.types.*;
-import me.june8th.ticketrushserver.utils.PatchUtils;
 import me.june8th.ticketrushserver.utils.Validator;
-import me.june8th.ticketrushserver.views.Patchable;
-import me.june8th.ticketrushserver.views.SeatZoneView;
+import me.june8th.ticketrushserver.types.SeatZoneData;
 import org.jspecify.annotations.NullMarked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,10 +95,11 @@ public class EventService {
         OrganizationAccount org = getOrganizationAccount(orgId);
         Event event = getOrganizationEvent(org, eventId);
         if (event.getPublished()) throw new ForbiddenException("Published event can't be updated");
-        PatchUtils.applyPatch(event, patch, Patchable.class);
-        Event updatedEvent = eventRepository.save(event);
-        logger.debug("Successfully updated basic information for event ID: {}", eventId);
-        return updatedEvent;
+        throw new NotImplementedException(); // TODO:
+        // PatchUtils.applyPatch(event, patch, Patchable.class);
+        // Event updatedEvent = eventRepository.save(event);
+        // logger.debug("Successfully updated basic information for event ID: {}", eventId);
+        // return updatedEvent;
     }
 
     /**
@@ -161,10 +160,11 @@ public class EventService {
                 () -> new ResourceNotFoundException("Sales round not found")
         );
         if (!salesRound.getEvent().equals(event)) throw new InvalidStateException("Sales round does not belong to this event");
-        PatchUtils.applyPatch(salesRound, patch, Patchable.class);
-        SalesRound updatedSalesRound = salesRoundRepository.save(salesRound);
-        logger.debug("Successfully updated sales round with ID: {} for event ID: {}", updatedSalesRound.getId(), eventId);
-        return updatedSalesRound;
+        throw new NotImplementedException(); // TODO:
+        // PatchUtils.applyPatch(salesRound, patch, Patchable.class);
+        // SalesRound updatedSalesRound = salesRoundRepository.save(salesRound);
+        // logger.debug("Successfully updated sales round with ID: {} for event ID: {}", updatedSalesRound.getId(), eventId);
+        // return updatedSalesRound;
     }
 
     /**
@@ -197,7 +197,7 @@ public class EventService {
      */
     @NullMarked
     @Transactional
-    public SeatZone createSeatZone(long orgId, long eventId, SeatZoneView data) {
+    public SeatZone createSeatZone(long orgId, long eventId, SeatZoneData data) {
         Validator.create()
                 .validateName(data.name())
                 .validateNaturalNumber(data.positionX())
@@ -214,7 +214,7 @@ public class EventService {
                 .event(event) // Added event to seatZone builder
                 .build();
         seatZone = seatZoneRepository.save(seatZone);
-        for (SeatZoneView.SeatRowView row : data.rows()) {
+        for (SeatZoneData.SeatRowView row : data.rows()) {
             Validator.create()
                     .validateNotBlank(row.label())
                     .validateNaturalNumber(row.index())
@@ -225,7 +225,7 @@ public class EventService {
                     .label(row.label())
                     .build();
             seatRow = seatRowRepository.save(seatRow);
-            for (SeatZoneView.SeatRowView.SeatView seat : row.seats()) {
+            for (SeatZoneData.SeatRowView.SeatView seat : row.seats()) {
                 Validator.create()
                         .validateNaturalNumber(seat.index())
                         .validateNaturalNumber(seat.number())
@@ -392,8 +392,8 @@ public class EventService {
         Account staffAccount = accountRepository.findById(staffId).orElseThrow(
                 () -> new ResourceNotFoundException("Account not found")
         );
-        if (staffAccount instanceof EventStaffAccount) {
-            if (!event.equals(((EventStaffAccount) staffAccount).getEvent()))
+        if (staffAccount instanceof EventStaffAccount eventStaffAccount) {
+            if (!event.equals(eventStaffAccount.getEvent()))
                 throw new InvalidStateException("Account is not associated with this event");
             accountRepository.delete(staffAccount);
             logger.debug("Successfully deleted event staff account with ID: {} from event ID: {}", staffId, eventId);

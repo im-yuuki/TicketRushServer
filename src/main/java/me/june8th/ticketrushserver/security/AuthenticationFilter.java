@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import me.june8th.ticketrushserver.data.Account;
 import me.june8th.ticketrushserver.repositories.AccountRepository;
+import me.june8th.ticketrushserver.types.AccessTokenData;
 import me.june8th.ticketrushserver.types.AuthenticationFailedException;
 import me.june8th.ticketrushserver.utils.CookieUtils;
 import org.jspecify.annotations.NullMarked;
@@ -56,7 +57,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                     throw new AuthenticationFailedException("Invalid token");
                 }
                 Collection<GrantedAuthority> authorities = new ArrayList<>();
-                authorities.add(FactorGrantedAuthority.fromFactor(FactorGrantedAuthority.PASSWORD_AUTHORITY));
+                authorities.add(FactorGrantedAuthority.fromAuthority(FactorGrantedAuthority.PASSWORD_AUTHORITY));
                 authorities.add(accessTokenData.role().toRoleAuthority());
                 OneTimeTokenAuthentication authentication = new OneTimeTokenAuthentication(accessTokenData.id(), authorities);
                 authentication.setDetails(accessTokenData);
