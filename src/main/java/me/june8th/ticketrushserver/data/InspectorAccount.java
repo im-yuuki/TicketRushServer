@@ -26,10 +26,10 @@ public class InspectorAccount extends Account {
     @Override
     public String getDomain() {
         // domain = event id
-        return event.getId().toString();
+        return String.valueOf(event.getId());
     }
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(nullable = false, updatable = false)
     @JsonView(Shared.class)

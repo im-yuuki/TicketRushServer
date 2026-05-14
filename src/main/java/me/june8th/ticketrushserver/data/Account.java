@@ -24,7 +24,7 @@ public abstract class Account {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @JsonView(Public.class)
-    private Long id;
+    private long id;
 
     @Column(nullable = false)
     @JsonView({Public.class, Patchable.class})
@@ -39,11 +39,11 @@ public abstract class Account {
 
     @Column(nullable = false)
     @Builder.Default
-    private Integer tokenVersion = 0;
+    private int tokenVersion = 0;
 
     @Column(nullable = false)
     @Builder.Default
-    private Boolean locked = false;
+    private boolean locked = false;
 
     @Column(nullable = false, updatable = false)
     @CreationTimestamp
@@ -60,7 +60,7 @@ public abstract class Account {
 
     @Transient
     public String getDomain() {
-        return getId().toString();
+        return String.valueOf(getId());
     }
 
 }

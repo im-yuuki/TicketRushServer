@@ -10,19 +10,22 @@ public class Seat {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private long id;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(nullable = false, updatable = false)
     private SeatRow seatRow;
 
     @Column(nullable = false, updatable = false)
-    private Integer seatNumber;
+    private int index;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @OnDelete(action = OnDeleteAction.CASCADE)
+    @Column(nullable = false, updatable = false)
+    private int number;
+
+    @OneToOne(fetch = FetchType.EAGER)
+    @OnDelete(action = OnDeleteAction.RESTRICT)
     @JoinColumn
-    private Ticket ticket;
+    private Ticket associatedTicket;
 
 }

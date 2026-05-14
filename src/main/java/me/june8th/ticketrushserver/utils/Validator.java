@@ -14,20 +14,23 @@ public class Validator {
     @Getter
     private ValidateError error = ValidateError.NONE;
 
-    public Validator validateNotBlank(String value) {
-        if (error != ValidateError.NONE) return this;
-        if (value == null || value.trim().isEmpty()) {
+    private boolean internalCommonBreakMethod(Object object) {
+        if (error != ValidateError.NONE) return true;
+        if (object == null) {
             error = ValidateError.MISSING_REQUIRED_FIELD;
+            return true;
         }
+        return false;
+    }
+
+    public Validator validateNotBlank(String value) {
+        if (internalCommonBreakMethod(value)) return this;
+        if (value.trim().isEmpty()) error = ValidateError.MISSING_REQUIRED_FIELD;
         return this;
     }
 
     public Validator validateName(String name) {
-        if (error != ValidateError.NONE) return this;
-        if (name == null) {
-            error = ValidateError.MISSING_REQUIRED_FIELD;
-            return this;
-        }
+        if (internalCommonBreakMethod(name)) return this;
         String trimmedName = name.trim();
         if (trimmedName.length() < 3) error = ValidateError.NAME_TOO_SHORT;
         else if (trimmedName.length() > 50) error = ValidateError.NAME_TOO_LONG;
@@ -35,11 +38,7 @@ public class Validator {
     }
 
     public Validator validateEmail(String email) {
-        if (error != ValidateError.NONE) return this;
-        if (email == null) {
-            error = ValidateError.MISSING_REQUIRED_FIELD;
-            return this;
-        }
+        if (internalCommonBreakMethod(email)) return this;
         String trimmedEmail = email.trim();
         if (trimmedEmail.length() > 100) {
             error = ValidateError.EMAIL_INVALID;
@@ -50,11 +49,8 @@ public class Validator {
     }
 
     public Validator validatePassword(String password) {
-        if (error != ValidateError.NONE) return this;
-        if (password == null) {
-            error = ValidateError.MISSING_REQUIRED_FIELD;
-            return this;
-        } else if (password.length() < 8) {
+        if (internalCommonBreakMethod(password)) return this;
+        if (password.length() < 8) {
             error = ValidateError.PASSWORD_TOO_SHORT;
             return this;
         }
@@ -75,64 +71,36 @@ public class Validator {
     }
 
     public Validator validateBirthDate(Date birthDate) {
-        if (error != ValidateError.NONE) return this;
-        if (birthDate == null) {
-            error = ValidateError.MISSING_REQUIRED_FIELD;
-            return this;
-        }
+        if (internalCommonBreakMethod(birthDate)) return this;
         // not after now - 15 years and not before now - 100 years :)
         long now = System.currentTimeMillis();
         Date minDate = new Date(now - ONE_YEAR_IN_MILLIS * 100);
         Date maxDate = new Date(now - ONE_YEAR_IN_MILLIS * 15);
-        if (birthDate.before(minDate) || birthDate.after(maxDate)) {
-            error = ValidateError.BIRTHDATE_INVALID;
-        }
+        if (birthDate.before(minDate) || birthDate.after(maxDate)) error = ValidateError.BIRTHDATE_INVALID;
         return this;
     }
 
     public Validator validatePastDate(Date date) {
-        if (error != ValidateError.NONE) return this;
-        if (date == null) {
-            error = ValidateError.MISSING_REQUIRED_FIELD;
-            return this;
-        }
-        if (date.after(new Date())) {
-            error = ValidateError.DATE_NOT_IN_PAST;
-        }
+        if (internalCommonBreakMethod(date)) return this;
+        if (date.after(new Date())) error = ValidateError.DATE_NOT_IN_PAST;
         return this;
     }
 
     public Validator validateFutureDate(Date date) {
-        if (error != ValidateError.NONE) return this;
-        if (date == null) {
-            error = ValidateError.MISSING_REQUIRED_FIELD;
-            return this;
-        }
-        if (date.before(new Date())) {
-            error = ValidateError.DATE_NOT_IN_FUTURE;
-        }
+        if (internalCommonBreakMethod(date)) return this;
+        if (date.before(new Date())) error = ValidateError.DATE_NOT_IN_FUTURE;
         return this;
     }
 
     public Validator validateRequestKey(String key) {
-        if (error != ValidateError.NONE) return this;
-        if (key == null) {
-            error = ValidateError.MISSING_REQUIRED_FIELD;
-            return this;
-        }
+        if (internalCommonBreakMethod(key)) return this;
         String trimmedKey = key.trim();
-        if (trimmedKey.length() != RandomGenerator.REQUEST_KEY_LENGTH) {
-            error = ValidateError.REQUESTKEY_INVALID;
-        }
+        if (trimmedKey.length() != RandomGenerator.REQUEST_KEY_LENGTH) error = ValidateError.REQUESTKEY_INVALID;
         return this;
     }
 
     public Validator validateOtpCode(String otpCode) {
-        if (error != ValidateError.NONE) return this;
-        if (otpCode == null) {
-            error = ValidateError.MISSING_REQUIRED_FIELD;
-            return this;
-        }
+        if (internalCommonBreakMethod(otpCode)) return this;
         String trimmedOtpCode = otpCode.trim();
         if (trimmedOtpCode.length() != RandomGenerator.OTP_CODE_LENGTH || !trimmedOtpCode.matches("\\d+")) {
             error = ValidateError.OTPCODE_INVALID;
@@ -141,14 +109,22 @@ public class Validator {
     }
 
     public Validator validateOptionalPhoneNumber(String phoneNumber) {
-        if (error != ValidateError.NONE) return this;
-        if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
-            return this;
-        }
+        if (internalCommonBreakMethod(phoneNumber)) return this;
+        if (phoneNumber.trim().isEmpty()) return this;
         String trimmedPhone = phoneNumber.trim();
-        if (!trimmedPhone.matches(PHONE_REGEX)) {
-            error = ValidateError.PHONENUMBER_INVALID;
-        }
+        if (!trimmedPhone.matches(PHONE_REGEX)) error = ValidateError.PHONENUMBER_INVALID;
+        return this;
+    }
+
+    public Validator validateNaturalNumber(Integer number) {
+        if (internalCommonBreakMethod(number)) return this;
+        if (number < 0) error = ValidateError.NUMBER_NEGATIVE;
+        return this;
+    }
+
+    public Validator validateNaturalNumber(Long number) {
+        if (internalCommonBreakMethod(number)) return this;
+        if (number < 0L) error = ValidateError.NUMBER_NEGATIVE;
         return this;
     }
 

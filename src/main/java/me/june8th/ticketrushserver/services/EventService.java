@@ -5,10 +5,12 @@ import me.june8th.ticketrushserver.data.*;
 import me.june8th.ticketrushserver.repositories.AccountRepository;
 import me.june8th.ticketrushserver.repositories.EventRepository;
 import me.june8th.ticketrushserver.repositories.SalesRoundRepository;
+import me.june8th.ticketrushserver.repositories.SeatZoneRepository;
 import me.june8th.ticketrushserver.types.*;
 import me.june8th.ticketrushserver.utils.PatchUtils;
 import me.june8th.ticketrushserver.utils.Validator;
 import me.june8th.ticketrushserver.views.Patchable;
+import me.june8th.ticketrushserver.views.SeatZoneView;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -21,11 +23,10 @@ public class EventService {
     private final AccountRepository accountRepository;
     private final EventRepository eventRepository;
     private final SalesRoundRepository salesRoundRepository;
+    private final SeatZoneRepository seatZoneRepository;
 
     public Event getEvent(long id) {
-        return eventRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Event not found")
-        );
+        return eventRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Event not found"));
     }
 
     public Event createEvent(long orgId, String eventName, String venue, String address, Instant dateTime) {
@@ -54,7 +55,7 @@ public class EventService {
                 .validateFutureDate(Date.from(patch.getDateTime()))
                 .throwExceptionIfInvalid();
         OrganizationAccount org = getOrganizationAccount(orgId);
-        Event event = getEvent(org, eventId);
+        Event event = getOrganizationEvent(org, eventId);
         if (event.getPublished()) throw new ForbiddenException("Published event can't be updated");
         PatchUtils.applyPatch(event, patch, Patchable.class);
         return eventRepository.save(event);
@@ -67,7 +68,7 @@ public class EventService {
                 .validateFutureDate(Date.from(endTime))
                 .throwExceptionIfInvalid();
         OrganizationAccount org = getOrganizationAccount(orgId);
-        Event event = getEvent(org, eventId);
+        Event event = getOrganizationEvent(org, eventId);
         if (event.getPublished()) throw new ForbiddenException("Published event can't be updated");
         SalesRound salesRound = SalesRound.builder()
                 .name(roundName)
@@ -86,7 +87,7 @@ public class EventService {
                 .validateFutureDate(Date.from(patch.getEndTime()))
                 .throwExceptionIfInvalid();
         OrganizationAccount org = getOrganizationAccount(orgId);
-        Event event = getEvent(org, eventId);
+        Event event = getOrganizationEvent(org, eventId);
         if (event.getPublished()) throw new ForbiddenException("Published event can't be updated");
         SalesRound salesRound = salesRoundRepository.findById(roundId).orElseThrow(
                 () -> new ResourceNotFoundException("Sales round not found")
@@ -97,7 +98,7 @@ public class EventService {
     }
 
     public void deleteSalesRound(long orgId, long eventId, long roundId) {
-        Event event = getEvent(getOrganizationAccount(orgId), eventId);
+        Event event = getOrganizationEvent(getOrganizationAccount(orgId), eventId);
         if (event.getPublished()) throw new ForbiddenException("Published event can't be updated");
         SalesRound salesRound = salesRoundRepository.findById(roundId).orElseThrow(
                 () -> new ResourceNotFoundException("Sales round not found")
@@ -106,11 +107,30 @@ public class EventService {
         salesRoundRepository.delete(salesRound);
     }
 
+    public SeatZone createSeatZone(long orgId, long eventId, SeatZoneView data) {
+        Validator.create()
+                .validateName(data.name())
+                .throwExceptionIfInvalid();
+        OrganizationAccount org = getOrganizationAccount(orgId);
+        Event event = getOrganizationEvent(org, eventId);
+        if (event.getPublished()) throw new ForbiddenException("Published event can't be updated");
+        throw new NotImplementedException(); // TODO:
+        // return seatZoneRepository.save(seatZone);
+    }
 
+    public void deleteSeatZone(long orgId, long eventId, long zoneId) {
+        Event event = getOrganizationEvent(getOrganizationAccount(orgId), eventId);
+        if (event.getPublished()) throw new ForbiddenException("Published event can't be updated");
+        SeatZone seatZone = seatZoneRepository.findById(zoneId).orElseThrow(
+                () -> new ResourceNotFoundException("Seat zone not found")
+        );
+        if (!seatZone.getEvent().equals(event)) throw new InvalidStateException("Seat zone does not belong to this event");
+        seatZoneRepository.delete(seatZone);
+    }
 
     public void publishEvent(long orgId, long eventId) {
         OrganizationAccount org = getOrganizationAccount(orgId);
-        Event event = getEvent(org, eventId);
+        Event event = getOrganizationEvent(org, eventId);
         if (event.getPublished()) throw new InvalidStateException("Event is already published");
         event.setPublished(true);
         eventRepository.save(event);
@@ -118,7 +138,7 @@ public class EventService {
 
     public void deleteEvent(long orgId, long eventId) {
         OrganizationAccount org = getOrganizationAccount(orgId);
-        Event event = getEvent(org, eventId);
+        Event event = getOrganizationEvent(org, eventId);
         if (event.getPublished()) throw new ForbiddenException("Published event can't be deleted");
         eventRepository.delete(event);
     }
@@ -131,7 +151,7 @@ public class EventService {
         throw new InvalidStateException("Account is not an organization");
     }
 
-    private Event getEvent(OrganizationAccount org, long eventId) {
+    private Event getOrganizationEvent(OrganizationAccount org, long eventId) {
         Event event = eventRepository.findById(eventId).orElseThrow(
                 () -> new ResourceNotFoundException("Event not found")
         );

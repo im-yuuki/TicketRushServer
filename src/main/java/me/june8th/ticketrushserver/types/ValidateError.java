@@ -17,6 +17,7 @@ public enum ValidateError {
     REQUESTKEY_INVALID("requestkey_invalid", "Invalid request key"),
     OTPCODE_INVALID("otpcode_invalid", "Invalid OTP code"),
     PHONENUMBER_INVALID("phonenumber_invalid", "Invalid phone number format"),
+    NUMBER_NEGATIVE("number_negative", "Number must be non-negative"),
 
     MISSING_REQUIRED_FIELD("missing_required_field", "Missing required field"),
     NONE("none", "");
