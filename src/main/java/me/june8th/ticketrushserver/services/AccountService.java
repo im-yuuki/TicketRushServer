@@ -157,10 +157,7 @@ public class AccountService {
                 .throwExceptionIfInvalid();
 
         Account account = accountRepository.findByEmail(email).orElseThrow(
-                () -> {
-                    logger.warn("Login failed for email {}: Invalid credentials (account not found).", email);
-                    return new AuthenticationFailedException("Invalid credentials");
-                }
+                () -> new AuthenticationFailedException("Invalid credentials")
         );
 
         if (!passwordEncoder.matches(password, account.getPasswordHash())) {
@@ -196,10 +193,7 @@ public class AccountService {
     @Transactional
     public void accountLogoutAllSessions(Long accountId) {
         Account account = accountRepository.findById(accountId).orElseThrow(
-                () -> {
-                    logger.warn("Account with ID {} not found for logout all sessions.", accountId);
-                    return new ResourceNotFoundException("Account not found");
-                }
+                () -> new ResourceNotFoundException("Account not found")
         );
         account.setTokenVersion(account.getTokenVersion() + 1);
         accountRepository.save(account);

@@ -15,17 +15,17 @@ import org.hibernate.annotations.OnDeleteAction;
 @AllArgsConstructor
 @SuperBuilder
 @Entity
-@Table(name = "inspectors")
-public class InspectorAccount extends Account {
+@Table(name = "event_staffs")
+public class EventStaffAccount extends Account {
 
     @Override
     public Role getRole() {
-        return Role.INSPECTOR;
+        return Role.STAFF;
     }
 
+    // domain = event id
     @Override
     public String getDomain() {
-        // domain = event id
         return String.valueOf(event.getId());
     }
 

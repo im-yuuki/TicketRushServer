@@ -11,6 +11,7 @@ import me.june8th.ticketrushserver.views.SeatZoneView;
 import org.jspecify.annotations.NullMarked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,11 +31,29 @@ public class EventService {
     private final SeatRowRepository seatRowRepository;
     private final SeatRepository seatRepository;
     private final TicketClassRepository ticketClassRepository;
+    private final PasswordEncoder passwordEncoder;
 
+    /**
+     * Get an event by id.
+     *
+     * @param id event id
+     * @return event
+     */
     public Event getEvent(long id) {
         return eventRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Event not found"));
     }
 
+    /**
+     * Create a new event for an organization.
+     *
+     * @param orgId organization id
+     * @param eventName event name
+     * @param venue venue name
+     * @param address venue address
+     * @param isOnlineEvent online flag
+     * @param dateTime event time
+     * @return created event
+     */
     @NullMarked
     @Transactional
     public Event createEvent(long orgId, String eventName, String venue, String address, boolean isOnlineEvent, Instant dateTime) {
@@ -58,6 +77,14 @@ public class EventService {
         return savedEvent;
     }
 
+    /**
+     * Update basic event information before publish.
+     *
+     * @param orgId organization id
+     * @param eventId event id
+     * @param patch patch data
+     * @return updated event
+     */
     @NullMarked
     @Transactional
     public Event updateEventBasicInformation(long orgId, long eventId, Event patch) {
@@ -76,6 +103,17 @@ public class EventService {
         return updatedEvent;
     }
 
+    /**
+     * Add a sales round to an event.
+     *
+     * @param orgId organization id
+     * @param eventId event id
+     * @param roundName round name
+     * @param startTime start time
+     * @param endTime end time
+     * @param maxTicketsPerPurchase max tickets per purchase
+     * @return created sales round
+     */
     @NullMarked
     @Transactional
     public SalesRound addSalesRound(long orgId, long eventId, String roundName, Instant startTime, Instant endTime, int maxTicketsPerPurchase) {
@@ -99,6 +137,15 @@ public class EventService {
         return savedSalesRound;
     }
 
+    /**
+     * Update a sales round for an event.
+     *
+     * @param orgId organization id
+     * @param eventId event id
+     * @param roundId sales round id
+     * @param patch patch data
+     * @return updated sales round
+     */
     @NullMarked
     @Transactional
     public SalesRound updateSalsesRound(long orgId, long eventId, long roundId, SalesRound patch) {
@@ -120,6 +167,13 @@ public class EventService {
         return updatedSalesRound;
     }
 
+    /**
+     * Delete a sales round from an event.
+     *
+     * @param orgId organization id
+     * @param eventId event id
+     * @param roundId sales round id
+     */
     @NullMarked
     @Transactional
     public void deleteSalesRound(long orgId, long eventId, long roundId) {
@@ -133,6 +187,14 @@ public class EventService {
         logger.debug("Successfully deleted sales round with ID: {} from event ID: {}", roundId, eventId);
     }
 
+    /**
+     * Create seat zones, rows, and seats for an event.
+     *
+     * @param orgId organization id
+     * @param eventId event id
+     * @param data seat layout data
+     * @return created seat zone
+     */
     @NullMarked
     @Transactional
     public SeatZone createSeatZone(long orgId, long eventId, SeatZoneView data) {
@@ -184,6 +246,13 @@ public class EventService {
         return seatZone;
     }
 
+    /**
+     * Delete a seat zone from an event.
+     *
+     * @param orgId organization id
+     * @param eventId event id
+     * @param zoneId seat zone id
+     */
     @NullMarked
     @Transactional
     public void deleteSeatZone(long orgId, long eventId, long zoneId) {
@@ -197,6 +266,18 @@ public class EventService {
         logger.debug("Successfully deleted seat zone with ID: {} from event ID: {}", zoneId, eventId);
     }
 
+    /**
+     * Create a ticket class for an event.
+     *
+     * @param orgId organization id
+     * @param eventId event id
+     * @param name ticket class name
+     * @param description ticket class description
+     * @param price ticket class price
+     * @param salesRoundId sales round id
+     * @param seatZoneId seat zone id
+     * @return created ticket class
+     */
     @NullMarked
     @Transactional
     public TicketClass createTicketClass(long orgId, long eventId, String name, String description, long price, long salesRoundId, long seatZoneId) {
@@ -227,6 +308,13 @@ public class EventService {
         return savedTicketClass;
     }
 
+    /**
+     * Delete a ticket class from an event.
+     *
+     * @param orgId organization id
+     * @param eventId event id
+     * @param ticketClassId ticket class id
+     */
     @NullMarked
     @Transactional
     public void deleteTicketClass(long orgId, long eventId, long ticketClassId) {
@@ -240,6 +328,12 @@ public class EventService {
         logger.debug("Successfully deleted ticket class with ID: {} from event ID: {}", ticketClassId, eventId);
     }
 
+    /**
+     * Publish an event.
+     *
+     * @param orgId organization id
+     * @param eventId event id
+     */
     @NullMarked
     @Transactional
     public void publishEvent(long orgId, long eventId) {
@@ -251,6 +345,68 @@ public class EventService {
         logger.debug("Successfully published event with ID: {}", eventId);
     }
 
+    /**
+     * Add a staff account for a published event.
+     *
+     * @param orgId organization id
+     * @param eventId event id
+     * @param name staff name
+     * @param email staff email
+     * @param password staff password
+     * @return created staff account
+     */
+    @NullMarked
+    @Transactional
+    public EventStaffAccount addEventStaffAccount(long orgId, long eventId, String name, String email, String password) {
+        Validator.create()
+                .validateName(name)
+                .validateEmail(email)
+                .validatePassword(password)
+                .throwExceptionIfInvalid();
+        Event event = getOrganizationEvent(getOrganizationAccount(orgId), eventId);
+        if (!event.getPublished()) throw new ForbiddenException("Staff accounts is only available for published events");
+        if (accountRepository.existsByEmail(email)) {
+            throw new ResourceConflictException("This email is already registered");
+        }
+        EventStaffAccount eventStaffAccount = EventStaffAccount.builder()
+                .name(name)
+                .email(email)
+                .passwordHash(passwordEncoder.encode(password))
+                .event(event)
+                .build();
+        eventStaffAccount = accountRepository.save(eventStaffAccount);
+        logger.debug("Successfully added event staff account with ID: {} to event ID: {}", eventStaffAccount.getId(), eventId);
+        return eventStaffAccount;
+    }
+
+    /**
+     * Delete an event staff account.
+     *
+     * @param orgId organization id
+     * @param eventId event id
+     * @param staffId staff account id
+     */
+    public void deleteEventStaffAccount(long orgId, long eventId, long staffId) {
+        Event event = getOrganizationEvent(getOrganizationAccount(orgId), eventId);
+        if (event.getPublished()) throw new ForbiddenException("Staff accounts is only available for published events");
+        Account staffAccount = accountRepository.findById(staffId).orElseThrow(
+                () -> new ResourceNotFoundException("Account not found")
+        );
+        if (staffAccount instanceof EventStaffAccount) {
+            if (!event.equals(((EventStaffAccount) staffAccount).getEvent()))
+                throw new InvalidStateException("Account is not associated with this event");
+            accountRepository.delete(staffAccount);
+            logger.debug("Successfully deleted event staff account with ID: {} from event ID: {}", staffId, eventId);
+        }
+        throw new InvalidStateException("Account is not an event staff account");
+    }
+
+    /**
+     * Delete an event before publish.
+     *
+     * @param orgId organization id
+     * @param eventId event id
+     */
     @NullMarked
     @Transactional
     public void deleteEvent(long orgId, long eventId) {

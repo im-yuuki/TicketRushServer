@@ -7,7 +7,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 @RequiredArgsConstructor
 public enum Role {
 
-    USER("user"), INSPECTOR("inspector"), ORGANIZATION("organization"), ADMINISTRATOR("administrator");
+    USER("user"), STAFF("staff"), ORGANIZATION("organization"), ADMINISTRATOR("administrator");
 
     private final String value;
 

@@ -39,4 +39,12 @@ public class Ticket {
     @CreationTimestamp
     private Instant createdAt;
 
+    @Column
+    private Instant checkedInAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @OnDelete(action = OnDeleteAction.RESTRICT)
+    @JoinColumn
+    private EventStaffAccount checkInStaff;
+
 }
