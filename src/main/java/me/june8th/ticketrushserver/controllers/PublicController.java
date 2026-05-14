@@ -22,6 +22,16 @@ public class PublicController {
         throw new NotImplementedException();
     }
 
+    @PutMapping("/org/{id}/follow")
+    public ResponseEntity<?> followOrganization(@PathVariable String id) {
+        throw new NotImplementedException();
+    }
+
+    @DeleteMapping("/org/{id}/follow")
+    public ResponseEntity<?> unfollowOrganization(@PathVariable String id) {
+        throw new NotImplementedException();
+    }
+
     public record PublicEventInfo() {}
 
     public record PublicOrganizationInfo() {}
