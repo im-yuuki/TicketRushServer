@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Date;
 
 @Service
@@ -417,7 +418,7 @@ public class EventService {
         logger.debug("Successfully deleted event with ID: {}", eventId);
     }
 
-    private OrganizationAccount getOrganizationAccount(long id) {
+    public OrganizationAccount getOrganizationAccount(long id) {
         Account account = accountRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Account not found")
         );
@@ -428,7 +429,13 @@ public class EventService {
         throw new InvalidStateException("Account is not an organization");
     }
 
-    private Event getOrganizationEvent(OrganizationAccount org, long eventId) {
+    public ArrayList<Event> getAllOrganizationEvents(OrganizationAccount org) {
+        ArrayList<Event> events = eventRepository.findAllByOrganization(org);
+        logger.trace("Successfully retrieved {} events for organization ID: {}", events.size(), org.getId());
+        return events;
+    }
+
+    public Event getOrganizationEvent(OrganizationAccount org, long eventId) {
         Event event = eventRepository.findById(eventId).orElseThrow(
                 () -> new ResourceNotFoundException("Event not found")
         );

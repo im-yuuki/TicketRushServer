@@ -1,5 +1,6 @@
 package me.june8th.ticketrushserver.controllers;
 
+import jakarta.annotation.security.RolesAllowed;
 import me.june8th.ticketrushserver.types.NotImplementedException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,11 +24,13 @@ public class PublicController {
     }
 
     @PutMapping("/org/{id}/follow")
+    @RolesAllowed("ROLE_USER")
     public ResponseEntity<?> followOrganization(@PathVariable String id) {
         throw new NotImplementedException();
     }
 
     @DeleteMapping("/org/{id}/follow")
+    @RolesAllowed("ROLE_USER")
     public ResponseEntity<?> unfollowOrganization(@PathVariable String id) {
         throw new NotImplementedException();
     }

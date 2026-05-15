@@ -34,11 +34,11 @@ public class Event {
 
     @Column(nullable = false)
     @Builder.Default
-    private Boolean published = false;
+    private String description = "";
 
     @Column(nullable = false)
     @Builder.Default
-    private String description = "";
+    private Boolean published = false;
 
     @Column(nullable = false)
     private boolean isOnlineEvent;

@@ -1,5 +1,6 @@
 package me.june8th.ticketrushserver.controllers;
 
+import jakarta.annotation.security.RolesAllowed;
 import lombok.RequiredArgsConstructor;
 import me.june8th.ticketrushserver.data.Ticket;
 import me.june8th.ticketrushserver.services.CheckInService;
@@ -14,6 +15,7 @@ import java.time.Instant;
 
 @RestController
 @RequestMapping("/checkin")
+@RolesAllowed("ROLE_STAFF")
 @RequiredArgsConstructor
 public class CheckInController {
 

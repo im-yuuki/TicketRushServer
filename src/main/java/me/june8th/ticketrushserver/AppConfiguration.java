@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import me.june8th.ticketrushserver.security.AuthenticationFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import me.june8th.ticketrushserver.types.Role;
 import me.june8th.ticketrushserver.utils.ClientIPResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +43,10 @@ import java.net.URI;
 @EnableScheduling
 @EnableCaching
 @EnableWebSecurity
-@EnableMethodSecurity
+@EnableMethodSecurity(
+        securedEnabled = true,
+        jsr250Enabled = true
+)
 @EnableRedisRepositories(
         basePackages = "me.june8th.ticketrushserver.temp",
         enableKeyspaceEvents = RedisKeyValueAdapter.EnableKeyspaceEvents.ON_STARTUP
@@ -69,18 +71,15 @@ public class AppConfiguration implements WebMvcConfigurer {
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/feeds/**").permitAll()
                         .requestMatchers("/error/**").permitAll()
-                        .requestMatchers("/user/**").hasRole(Role.USER.toString())
-                        .requestMatchers("/organization/**").hasRole(Role.ORGANIZATION.toString())
-                        .requestMatchers("/checkin/**").hasRole(Role.ORGANIZATION.toString())
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint((request, response, authException) -> {
-                            logSecurityTrace("Authentication required", request, authException);
+                            logger.trace("{} - Authentication failed: {}", clientIPResolver.resolve(request), authException.getMessage(), authException);
                             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
                         })
                         .accessDeniedHandler((request, response, accessDeniedException) -> {
-                            logSecurityTrace("Access denied", request, accessDeniedException);
+                            logger.trace("{} - Access denied: {}", clientIPResolver.resolve(request), accessDeniedException.getMessage(), accessDeniedException);
                             response.sendError(HttpServletResponse.SC_FORBIDDEN);
                         })
                 )
@@ -93,7 +92,7 @@ public class AppConfiguration implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedOriginPatterns("*")
-                .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true);
     }
@@ -128,13 +127,6 @@ public class AppConfiguration implements WebMvcConfigurer {
                         AwsBasicCredentials.create(accessId, secretKey)
                 ))
                 .build();
-    }
-
-    private void logSecurityTrace(String message, HttpServletRequest request, Exception exception) {
-        String origin = request.getHeader("Origin");
-        String path = request.getRequestURI();
-        String clientIp = clientIPResolver.resolve(request);
-        logger.trace("{} [ip={}, origin={}, path={}]", message, clientIp, origin, path, exception);
     }
 
 }

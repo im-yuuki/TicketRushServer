@@ -3,6 +3,7 @@ package me.june8th.ticketrushserver.controllers;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import me.june8th.ticketrushserver.data.Account;
 import me.june8th.ticketrushserver.services.AccountService;
 import me.june8th.ticketrushserver.services.EmailService;
 import me.june8th.ticketrushserver.types.*;
@@ -48,16 +49,18 @@ public class AuthController {
     @PostMapping("/register/confirmation")
     public ResponseEntity<OperationResult> confirmRegistration(@RequestBody OtpConfirmationPayload payload, HttpServletRequest request, HttpServletResponse response) {
         String key = CookieUtils.getCookie(request, CookieUtils.OPERATION_ID_COOKIE_NAME);
-        String accessToken = accountService.generateAccessToken(accountService.userRegisterConfirm(Objects.requireNonNull(key), payload.otpCode()));
+        Account account = accountService.userRegisterConfirm(Objects.requireNonNull(key), payload.otpCode());
+        String accessToken = accountService.generateAccessToken(account);
         CookieUtils.setHttpOnlyCookie(response, CookieUtils.ACCESS_TOKEN_COOKIE_NAME, accessToken, accessTokenExpiration);
-        return ResponseEntity.ok(OperationResult.success("Registration successful."));
+        return ResponseEntity.ok(OperationResult.success("Registration successful", account.getId()));
     }
 
     @PostMapping("/login")
     public ResponseEntity<OperationResult> login(@RequestBody LoginPayload payload, HttpServletResponse response) {
-        String accessToken = accountService.generateAccessToken(accountService.accountLogin(payload.email(), payload.password()));
+        Account account = accountService.accountLogin(payload.email(), payload.password());
+        String accessToken = accountService.generateAccessToken(account);
         CookieUtils.setHttpOnlyCookie(response, CookieUtils.ACCESS_TOKEN_COOKIE_NAME, accessToken, accessTokenExpiration);
-        return ResponseEntity.ok(OperationResult.success("Login successful"));
+        return ResponseEntity.ok(OperationResult.success("Login successful", account.getId()));
     }
 
     @PostMapping("/logout")
