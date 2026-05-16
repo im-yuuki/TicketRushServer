@@ -2,6 +2,7 @@ package me.june8th.ticketrushserver.controllers;
 
 import lombok.RequiredArgsConstructor;
 import me.june8th.ticketrushserver.services.AccountService;
+import me.june8th.ticketrushserver.services.PurchaseService;
 import me.june8th.ticketrushserver.types.NotImplementedException;
 import me.june8th.ticketrushserver.types.OperationResult;
 import org.springframework.http.MediaType;
@@ -18,6 +19,7 @@ import java.io.IOException;
 public class UserController {
 
     private final AccountService accountService;
+    private final PurchaseService purchaseService;
 
     @GetMapping
     public ResponseEntity<?> getInfo(@AuthenticationPrincipal long id) {
@@ -36,8 +38,8 @@ public class UserController {
     }
 
     @GetMapping("/tickets")
-    public ResponseEntity<?> getPurchasedTickets() {
-        throw new NotImplementedException();
+    public ResponseEntity<?> getPurchasedTickets(@AuthenticationPrincipal long id) {
+        return ResponseEntity.ok(purchaseService.getUserTickets(id));
     }
 
 }

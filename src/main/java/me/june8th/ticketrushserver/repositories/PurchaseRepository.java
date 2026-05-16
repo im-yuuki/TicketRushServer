@@ -1,0 +1,10 @@
+package me.june8th.ticketrushserver.repositories;
+
+import me.june8th.ticketrushserver.data.Purchase;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface PurchaseRepository extends JpaRepository<Purchase, Long> {
+
+}
