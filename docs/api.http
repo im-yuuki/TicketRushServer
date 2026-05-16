@@ -34,10 +34,6 @@ Content-Type: application/json
 POST https://TicketRushServer/v1/auth/register/confirmation
 Content-Type: application/json
 
-{
-  "otpCode": ""
-}
-
 ###
 POST https://TicketRushServer/v1/auth/reset
 Content-Type: application/json
@@ -69,19 +65,13 @@ GET https://TicketRushServer/v1/feeds/recommendeds
 GET https://TicketRushServer/v1/feeds/trending
 
 ###
-GET https://TicketRushServer/v1/event/{{id}}
+GET https://TicketRushServer/v1/public/event/{{id}}
 
 ###
-GET https://TicketRushServer/v1/org/@{{alias}}
+GET https://TicketRushServer/v1/public/org/@{{alias}}
 
 ###
-GET https://TicketRushServer/v1/org/{{id}}
-
-###
-PUT https://TicketRushServer/v1/org/{{id}}/follow
-
-###
-DELETE https://TicketRushServer/v1/org/{{id}}/follow
+GET https://TicketRushServer/v1/public/org/{{id}}
 
 ###
 GET https://TicketRushServer/v1/account
@@ -140,15 +130,6 @@ Content-Type: application/json
 POST https://TicketRushServer/v1/organization/events
 Content-Type: application/json
 
-{
-  "name": "",
-  "description": "",
-  "isOnlineEvent": false,
-  "venue": "",
-  "address": "",
-  "dateTime": {}
-}
-
 ###
 GET https://TicketRushServer/v1/organization/events/{{eventId}}
 Content-Type: application/json
@@ -163,7 +144,7 @@ Content-Type: application/json
 }
 
 ###
-PUT https://TicketRushServer/v1/organization/events/{{eventId}}
+PATCH https://TicketRushServer/v1/organization/events/{{eventId}}
 Content-Type: application/json
 
 ###
@@ -227,7 +208,6 @@ Content-Type: application/json
   "name": "",
   "positionX": 0,
   "positionY": 0,
-  "capacity": 0,
   "rows": []
 }
 
@@ -273,14 +253,8 @@ Content-Type: application/json
 }
 
 ###
-PUT https://TicketRushServer/v1/organization/info
+PATCH https://TicketRushServer/v1/organization/info
 Content-Type: application/json
-
-{
-  "description": "",
-  "aliasName": "",
-  "websiteUrl": ""
-}
 
 ###
 POST https://TicketRushServer/v1/checkin
@@ -294,14 +268,57 @@ Content-Type: application/json
 }
 
 ###
-GET https://TicketRushServer/v1/user
+GET https://TicketRushServer/v1/purchase/event/{{eventId}}
 
 ###
-PUT https://TicketRushServer/v1/user
+POST https://TicketRushServer/v1/purchase/hold
+Content-Type: application/json
+
+{
+  "eventId": 0,
+  "items": []
+}
+
+###
+GET https://TicketRushServer/v1/purchase/hold/{{holdId}}
+
+###
+DELETE https://TicketRushServer/v1/purchase/hold/{{holdId}}
+
+###
+POST https://TicketRushServer/v1/purchase/pay/{{holdId}}
+
+###
+GET https://TicketRushServer/v1/user
+Content-Type: application/json
+
+{
+  "birthDate": "",
+  "gender": "MALE",
+  "phoneNumber": "",
+  "addressLine": ""
+}
+
+###
+PATCH https://TicketRushServer/v1/user
+Content-Type: application/json
+
+{
+  "birthDate": "",
+  "gender": "MALE",
+  "phoneNumber": "",
+  "addressLine": ""
+}
 
 ###
 PUT https://TicketRushServer/v1/user/avatar?
     file={{$random.alphanumeric(8)}}
+
+###
+PUT https://TicketRushServer/v1/user/follow/{{id}}
+
+###
+DELETE https://TicketRushServer/v1/user/follow/{{id}}
 
 ###
 GET https://TicketRushServer/v1/user/tickets
