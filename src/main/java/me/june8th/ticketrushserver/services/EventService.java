@@ -46,6 +46,18 @@ public class EventService {
     }
 
     /**
+     * Get a published event by id.
+     *
+     * @param id event id
+     * @return published event
+     */
+    public Event getPublishedEvent(long id) {
+        Event event = getEvent(id);
+        if (!event.getPublished()) throw new ResourceNotFoundException("Event not found");
+        return event;
+    }
+
+    /**
      * Create a new event for an organization.
      *
      * @param orgId organization id

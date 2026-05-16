@@ -10,6 +10,7 @@ import me.june8th.ticketrushserver.temp.RegisterRequestRepository;
 import me.june8th.ticketrushserver.temp.ResetPasswordRequestRepository;
 import me.june8th.ticketrushserver.repositories.UserRepository;
 import me.june8th.ticketrushserver.repositories.OrganizationAccountRepository;
+import me.june8th.ticketrushserver.repositories.FollowRepository;
 import me.june8th.ticketrushserver.types.AccessTokenData;
 import me.june8th.ticketrushserver.security.AccessTokenProvider;
 import me.june8th.ticketrushserver.types.*;
@@ -38,6 +39,7 @@ public class AccountService {
     private final RegisterRequestRepository registerRequestRepository;
     private final ResetPasswordRequestRepository resetPasswordRequestRepository;
     private final OrganizationAccountRepository organizationAccountRepository;
+    private final FollowRepository followRepository;
     private final StorageService storageService;
 
     /**
@@ -488,6 +490,70 @@ public class AccountService {
         organization.setBannerKey(bannerKey);
         organizationAccountRepository.save(organization);
         log.debug("Successfully updated banner for organization account {} ({})", organization.getId(), organization.getEmail());
+    }
+
+    @NullMarked
+    public OrganizationAccount getPublicOrganizationById(long id) {
+        OrganizationAccount organization = organizationAccountRepository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException("Organization not found")
+        );
+        if (!organization.getVerified()) {
+            throw new ResourceNotFoundException("Organization not found");
+        }
+        return organization;
+    }
+
+    @NullMarked
+    public OrganizationAccount getPublicOrganizationByAlias(String alias) {
+        OrganizationAccount organization = organizationAccountRepository.findByAliasName(alias).orElseThrow(
+                () -> new ResourceNotFoundException("Organization not found")
+        );
+        if (!organization.getVerified()) {
+            throw new ResourceNotFoundException("Organization not found");
+        }
+        return organization;
+    }
+
+    @NullMarked
+    public long getOrganizationFollowerCount(long orgId) {
+        OrganizationAccount organization = getPublicOrganizationById(orgId);
+        return followRepository.countByOrganization(organization);
+    }
+
+    @NullMarked
+    public void followOrganization(long userId, long orgId) {
+        UserAccount user = getUserAccount(userId);
+        OrganizationAccount organization = getPublicOrganizationById(orgId);
+        if (followRepository.existsByFollowerAndOrganization(user, organization)) {
+            throw new InvalidStateException("Already following this organization");
+        }
+        Follow follow = Follow.builder()
+                .follower(user)
+                .organization(organization)
+                .build();
+        followRepository.save(follow);
+        log.debug("User {} followed organization {}", userId, orgId);
+    }
+
+    @NullMarked
+    public void unfollowOrganization(long userId, long orgId) {
+        UserAccount user = getUserAccount(userId);
+        OrganizationAccount organization = getPublicOrganizationById(orgId);
+        Follow follow = followRepository.findByFollowerAndOrganization(user, organization).orElseThrow(
+                () -> new InvalidStateException("You are not following this organization")
+        );
+        followRepository.delete(follow);
+        log.debug("User {} unfollowed organization {}", userId, orgId);
+    }
+
+    private UserAccount getUserAccount(long userId) {
+        Account account = accountRepository.findById(userId).orElseThrow(
+                () -> new ResourceNotFoundException("Account not found")
+        );
+        if (account instanceof UserAccount user) {
+            return user;
+        }
+        throw new ForbiddenException("Only user accounts can follow organizations");
     }
 
     private String generateImageContentKey(String prefix, long accountId, String contentType) {
