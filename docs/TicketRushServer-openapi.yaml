@@ -1,0 +1,887 @@
+openapi: "3.1.0"
+info:
+  title: "TicketRushServer API"
+  description: "TicketRushServer API"
+  version: "1.0.0"
+servers:
+  - url: "https://TicketRushServer"
+paths:
+  /api/v1/auth/register:
+    post:
+      summary: "POST api/v1/auth/register"
+      operationId: "register"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterPayload"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
+  /api/v1/auth/register/confirmation:
+    post:
+      summary: "POST api/v1/auth/register/confirmation"
+      operationId: "confirmRegistration"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OtpConfirmationPayload"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
+    get:
+      summary: "GET api/v1/auth/register/confirmation"
+      operationId: "sendRegistrationOtp"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
+  /api/v1/auth/login:
+    post:
+      summary: "POST api/v1/auth/login"
+      operationId: "login"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginPayload"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
+  /api/v1/auth/logout:
+    post:
+      summary: "POST api/v1/auth/logout"
+      operationId: "logout"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
+  /api/v1/auth/reset:
+    post:
+      summary: "POST api/v1/auth/reset"
+      operationId: "resetPassword"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordPayload"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
+  /api/v1/auth/reset/confirm:
+    post:
+      summary: "POST api/v1/auth/reset/confirm"
+      operationId: "confirmResetPassword"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OtpConfirmationPayload"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
+    get:
+      summary: "GET api/v1/auth/reset/confirm"
+      operationId: "sendResetPasswordOtp"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
+  /api/v1/feeds/promoted:
+    get:
+      summary: "GET api/v1/feeds/promoted"
+      operationId: "getPromotedEvents"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/BasicEventInfo"
+  /api/v1/feeds/trending:
+    get:
+      summary: "GET api/v1/feeds/trending"
+      operationId: "getTrendingEvents"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/BasicEventInfo"
+  /api/v1/feeds/recommendeds:
+    get:
+      summary: "GET api/v1/feeds/recommendeds"
+      operationId: "getRecommendedEvents"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/BasicEventInfo"
+  /api/v1/org/{id}/follow:
+    put:
+      summary: "PUT api/v1/org/{id}/follow"
+      operationId: "followOrganization"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
+    delete:
+      summary: "DELETE api/v1/org/{id}/follow"
+      operationId: "unfollowOrganization"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
+  /api/v1/event/{id}:
+    get:
+      summary: "GET api/v1/event/{id}"
+      operationId: "getEventInfo"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PublicEventInfo"
+  /api/v1/org/{id}:
+    get:
+      summary: "GET api/v1/org/{id}"
+      operationId: "getOrganizationInfo"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PublicOrganizationInfo"
+  /api/v1/org/@{alias}:
+    get:
+      summary: "GET api/v1/org/@{alias}"
+      operationId: "getOrganizationInfoByAlias"
+      parameters:
+        - name: "alias"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PublicOrganizationInfo"
+  /api/v1/account/name:
+    put:
+      summary: "PUT api/v1/account/name"
+      operationId: "changeName"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateNamePayload"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
+  /api/v1/account/email:
+    put:
+      summary: "PUT api/v1/account/email"
+      operationId: "changeEmail"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEmailPayload"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
+  /api/v1/account/password:
+    put:
+      summary: "PUT api/v1/account/password"
+      operationId: "changePassword"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePasswordPayload"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
+  /api/v1/account/logout-all:
+    post:
+      summary: "POST api/v1/account/logout-all"
+      operationId: "logoutAllDevices"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
+  /api/v1/account:
+    get:
+      summary: "GET api/v1/account"
+      operationId: "getBasicInfo"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/BasicUserInfo"
+  /api/v1/organization/info:
+    put:
+      summary: "PUT api/v1/organization/info"
+      operationId: "updateInfo"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateOrganizationInfoPayload"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
+    get:
+      summary: "GET api/v1/organization/info"
+      operationId: "getInfo"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/FullOrganizationInfo"
+  /api/v1/organization/events/{eventId}:
+    put:
+      summary: "PUT api/v1/organization/events/{eventId}"
+      operationId: "updateEvent"
+      parameters:
+        - name: "eventId"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+            format: "int64"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEventPayload"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
+    delete:
+      summary: "DELETE api/v1/organization/events/{eventId}"
+      operationId: "deleteEvent"
+      parameters:
+        - name: "eventId"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+            format: "int64"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
+    get:
+      summary: "GET api/v1/organization/events/{eventId}"
+      operationId: "getEventDetails"
+      parameters:
+        - name: "eventId"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+            format: "int64"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/FullEventInfo"
+  /api/v1/organization/events:
+    post:
+      summary: "POST api/v1/organization/events"
+      operationId: "createEvent"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateEventPayload"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
+    get:
+      summary: "GET api/v1/organization/events"
+      operationId: "getEvents"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/BasicEventInfo"
+  /api/v1/organization/events/{eventId}/publish:
+    post:
+      summary: "POST api/v1/organization/events/{eventId}/publish"
+      operationId: "publishEvent"
+      parameters:
+        - name: "eventId"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+            format: "int64"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
+  /api/v1/checkin:
+    post:
+      summary: "POST api/v1/checkin"
+      operationId: "checkIn"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CheckInPayload"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CheckInResult"
+  /api/v1/user:
+    get:
+      summary: "GET api/v1/user"
+      operationId: "getInfo"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "object"
+  /api/v1/user/tickets:
+    get:
+      summary: "GET api/v1/user/tickets"
+      operationId: "getPurchasedTickets"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "object"
+  /api/v1/admin/organizations:
+    put:
+      summary: "PUT api/v1/admin/organizations"
+      operationId: "createOrganization"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrganizationPayload"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
+  /api/v1/admin/organization/{id}/verify:
+    post:
+      summary: "POST api/v1/admin/organization/{id}/verify"
+      operationId: "verifyOrganization"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+            format: "int64"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
+  /api/v1/admin/account/{id}/lock:
+    post:
+      summary: "POST api/v1/admin/account/{id}/lock"
+      operationId: "lockAccount"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+            format: "int64"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
+  /api/v1/admin/account/{id}/unlock:
+    post:
+      summary: "POST api/v1/admin/account/{id}/unlock"
+      operationId: "unlockAccount"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+            format: "int64"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
+components:
+  schemas:
+    RegisterPayload:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+          nullable: true
+        email:
+          type: "string"
+          nullable: true
+        password:
+          type: "string"
+          nullable: true
+        birthDate:
+          type: "string"
+          format: "date-time"
+          nullable: true
+        gender:
+          type: "string"
+          nullable: true
+          enum:
+            - "MALE"
+            - "FEMALE"
+            - "OTHER"
+    OperationResult:
+      type: "object"
+      properties:
+        success:
+          type: "boolean"
+          nullable: true
+        message:
+          type: "string"
+          nullable: true
+        resourceId:
+          type: "integer"
+          format: "int64"
+          nullable: true
+    OtpConfirmationPayload:
+      type: "object"
+      properties:
+        otpCode:
+          type: "string"
+          nullable: true
+    LoginPayload:
+      type: "object"
+      properties:
+        email:
+          type: "string"
+          nullable: true
+        password:
+          type: "string"
+          nullable: true
+    ResetPasswordPayload:
+      type: "object"
+      properties:
+        email:
+          type: "string"
+          nullable: true
+        newPassword:
+          type: "string"
+          nullable: true
+    Instant:
+      type: "object"
+      properties: { }
+    BasicEventInfo:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          format: "int64"
+          nullable: true
+        name:
+          type: "string"
+          nullable: true
+        bannerUrl:
+          type: "string"
+          nullable: true
+        dateTime:
+          nullable: true
+          $ref: "#/components/schemas/Instant"
+        venue:
+          type: "string"
+          nullable: true
+    PublicEventInfo:
+      type: "object"
+      properties: { }
+    PublicOrganizationInfo:
+      type: "object"
+      properties: { }
+    UpdateNamePayload:
+      type: "object"
+      properties:
+        newName:
+          type: "string"
+          nullable: true
+    UpdateEmailPayload:
+      type: "object"
+      properties:
+        newEmail:
+          type: "string"
+          nullable: true
+        currentPassword:
+          type: "string"
+          nullable: true
+    UpdatePasswordPayload:
+      type: "object"
+      properties:
+        currentPassword:
+          type: "string"
+          nullable: true
+        newPassword:
+          type: "string"
+          nullable: true
+    BasicUserInfo:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          format: "int64"
+          nullable: true
+        name:
+          type: "string"
+          nullable: true
+        email:
+          type: "string"
+          nullable: true
+        avatarUrl:
+          type: "string"
+          nullable: true
+    UpdateOrganizationInfoPayload:
+      type: "object"
+      properties:
+        description:
+          type: "string"
+          nullable: true
+        aliasName:
+          type: "string"
+          nullable: true
+        websiteUrl:
+          type: "string"
+          nullable: true
+    UpdateEventPayload:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+          nullable: true
+        description:
+          type: "string"
+          nullable: true
+        isOnlineEvent:
+          type: "boolean"
+          nullable: true
+        venue:
+          type: "string"
+          nullable: true
+        address:
+          type: "string"
+          nullable: true
+        dateTime:
+          nullable: true
+          $ref: "#/components/schemas/Instant"
+    CreateEventPayload:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+          nullable: true
+        description:
+          type: "string"
+          nullable: true
+        isOnlineEvent:
+          type: "boolean"
+          nullable: true
+        venue:
+          type: "string"
+          nullable: true
+        address:
+          type: "string"
+          nullable: true
+        dateTime:
+          nullable: true
+          $ref: "#/components/schemas/Instant"
+    FullOrganizationInfo:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          format: "int64"
+          nullable: true
+        name:
+          type: "string"
+          nullable: true
+        email:
+          type: "string"
+          nullable: true
+        createdAt:
+          nullable: true
+          $ref: "#/components/schemas/Instant"
+        updatedAt:
+          nullable: true
+          $ref: "#/components/schemas/Instant"
+        verified:
+          type: "boolean"
+          nullable: true
+        description:
+          type: "string"
+          nullable: true
+        aliasName:
+          type: "string"
+          nullable: true
+        avatarUrl:
+          type: "string"
+          nullable: true
+        bannerUrl:
+          type: "string"
+          nullable: true
+        websiteUrl:
+          type: "string"
+          nullable: true
+    FullEventInfo:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          format: "int64"
+          nullable: true
+        name:
+          type: "string"
+          nullable: true
+        description:
+          type: "string"
+          nullable: true
+        published:
+          type: "boolean"
+          nullable: true
+        isOnlineEvent:
+          type: "boolean"
+          nullable: true
+        venue:
+          type: "string"
+          nullable: true
+        address:
+          type: "string"
+          nullable: true
+        dateTime:
+          nullable: true
+          $ref: "#/components/schemas/Instant"
+        bannerUrl:
+          type: "string"
+          nullable: true
+        createdAt:
+          nullable: true
+          $ref: "#/components/schemas/Instant"
+        updatedAt:
+          nullable: true
+          $ref: "#/components/schemas/Instant"
+    CheckInPayload:
+      type: "object"
+      properties:
+        eventId:
+          type: "integer"
+          format: "int64"
+          nullable: true
+        ticketId:
+          type: "integer"
+          format: "int64"
+          nullable: true
+        userId:
+          type: "integer"
+          format: "int64"
+          nullable: true
+        ticketSecretCode:
+          type: "string"
+          nullable: true
+    CheckInResult:
+      type: "object"
+      properties:
+        ticketValid:
+          type: "boolean"
+          nullable: true
+        checkInTime:
+          nullable: true
+          $ref: "#/components/schemas/Instant"
+        checkInStaffName:
+          type: "string"
+          nullable: true
+        ticketOwnerName:
+          type: "string"
+          nullable: true
+        ticketOwnerEmail:
+          type: "string"
+          nullable: true
+        ticketOwnerPhoneNumber:
+          type: "string"
+          nullable: true
+        salesRoundName:
+          type: "string"
+          nullable: true
+        ticketClassName:
+          type: "string"
+          nullable: true
+        seatZoneName:
+          type: "string"
+          nullable: true
+        seatRowLabel:
+          type: "string"
+          nullable: true
+        seatNumber:
+          type: "integer"
+          format: "int32"
+          nullable: true
+    CreateOrganizationPayload:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+          nullable: true
+        email:
+          type: "string"
+          nullable: true
+        password:
+          type: "string"
+          nullable: true

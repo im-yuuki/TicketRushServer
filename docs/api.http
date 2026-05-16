@@ -1,0 +1,221 @@
+###
+POST https://TicketRushServer/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "name": "",
+  "email": "",
+  "password": "",
+  "birthDate": "",
+  "gender": "MALE"
+}
+
+###
+POST https://TicketRushServer/api/v1/auth/register/confirmation
+Content-Type: application/json
+
+###
+GET https://TicketRushServer/api/v1/auth/register/confirmation
+Content-Type: application/json
+
+{
+  "otpCode": ""
+}
+
+###
+POST https://TicketRushServer/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "",
+  "password": ""
+}
+
+###
+POST https://TicketRushServer/api/v1/auth/logout
+
+###
+POST https://TicketRushServer/api/v1/auth/reset
+Content-Type: application/json
+
+{
+  "email": "",
+  "newPassword": ""
+}
+
+###
+POST https://TicketRushServer/api/v1/auth/reset/confirm
+Content-Type: application/json
+
+###
+GET https://TicketRushServer/api/v1/auth/reset/confirm
+Content-Type: application/json
+
+{
+  "otpCode": ""
+}
+
+###
+GET https://TicketRushServer/api/v1/feeds/promoted
+
+###
+GET https://TicketRushServer/api/v1/feeds/trending
+
+###
+GET https://TicketRushServer/api/v1/feeds/recommendeds
+
+###
+PUT https://TicketRushServer/api/v1/org/{{id}}/follow
+
+###
+DELETE https://TicketRushServer/api/v1/org/{{id}}/follow
+
+###
+GET https://TicketRushServer/api/v1/event/{{id}}
+
+###
+GET https://TicketRushServer/api/v1/org/{{id}}
+
+###
+GET https://TicketRushServer/api/v1/org/@{{alias}}
+
+###
+PUT https://TicketRushServer/api/v1/account/name
+Content-Type: application/json
+
+{
+  "newName": ""
+}
+
+###
+PUT https://TicketRushServer/api/v1/account/email
+Content-Type: application/json
+
+{
+  "newEmail": "",
+  "currentPassword": ""
+}
+
+###
+PUT https://TicketRushServer/api/v1/account/password
+Content-Type: application/json
+
+{
+  "currentPassword": "",
+  "newPassword": ""
+}
+
+###
+POST https://TicketRushServer/api/v1/account/logout-all
+
+###
+GET https://TicketRushServer/api/v1/account
+
+###
+PUT https://TicketRushServer/api/v1/organization/info
+Content-Type: application/json
+
+###
+GET https://TicketRushServer/api/v1/organization/info
+Content-Type: application/json
+
+{
+  "description": "",
+  "aliasName": "",
+  "websiteUrl": ""
+}
+
+###
+PUT https://TicketRushServer/api/v1/organization/events/{{eventId}}
+Content-Type: application/json
+
+{
+  "name": "",
+  "description": "",
+  "isOnlineEvent": false,
+  "venue": "",
+  "address": "",
+  "dateTime": {}
+}
+
+###
+DELETE https://TicketRushServer/api/v1/organization/events/{{eventId}}
+Content-Type: application/json
+
+{
+  "name": "",
+  "description": "",
+  "isOnlineEvent": false,
+  "venue": "",
+  "address": "",
+  "dateTime": {}
+}
+
+###
+GET https://TicketRushServer/api/v1/organization/events/{{eventId}}
+Content-Type: application/json
+
+{
+  "name": "",
+  "description": "",
+  "isOnlineEvent": false,
+  "venue": "",
+  "address": "",
+  "dateTime": {}
+}
+
+###
+POST https://TicketRushServer/api/v1/organization/events
+Content-Type: application/json
+
+###
+GET https://TicketRushServer/api/v1/organization/events
+Content-Type: application/json
+
+{
+  "name": "",
+  "description": "",
+  "isOnlineEvent": false,
+  "venue": "",
+  "address": "",
+  "dateTime": {}
+}
+
+###
+POST https://TicketRushServer/api/v1/organization/events/{{eventId}}/publish
+
+###
+POST https://TicketRushServer/api/v1/checkin
+Content-Type: application/json
+
+{
+  "eventId": 0,
+  "ticketId": 0,
+  "userId": 0,
+  "ticketSecretCode": ""
+}
+
+###
+GET https://TicketRushServer/api/v1/user
+
+###
+GET https://TicketRushServer/api/v1/user/tickets
+
+###
+PUT https://TicketRushServer/api/v1/admin/organizations
+Content-Type: application/json
+
+{
+  "name": "",
+  "email": "",
+  "password": ""
+}
+
+###
+POST https://TicketRushServer/api/v1/admin/organization/{{id}}/verify
+
+###
+POST https://TicketRushServer/api/v1/admin/account/{{id}}/lock
+
+###
+POST https://TicketRushServer/api/v1/admin/account/{{id}}/unlock
