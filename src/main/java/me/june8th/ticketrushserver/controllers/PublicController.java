@@ -33,7 +33,7 @@ public class PublicController {
         return ResponseEntity.ok(new PublicOrganizationInfo(storageService, organization, followerCount));
     }
 
-    @GetMapping("/org/@{alias}")
+    @GetMapping("/alias/{alias}")
     public ResponseEntity<PublicOrganizationInfo> getOrganizationInfoByAlias(@PathVariable String alias) {
         OrganizationAccount organization = accountService.getPublicOrganizationByAlias(alias);
         long followerCount = accountService.getOrganizationFollowerCount(organization.getId());

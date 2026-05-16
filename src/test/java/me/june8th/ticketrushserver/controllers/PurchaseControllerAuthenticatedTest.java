@@ -92,8 +92,8 @@ class PurchaseControllerAuthenticatedTest {
                                                 0,
                                                 "A",
                                                 List.of(
-                                                        new PurchaseData.SeatView(101L, 0, 1, "AVAILABLE"),
-                                                        new PurchaseData.SeatView(102L, 1, 2, "HELD")
+                                                        new PurchaseData.SeatView(101L, 0, 1, PurchaseData.SeatAvailability.AVAILABLE),
+                                                        new PurchaseData.SeatView(102L, 1, 2, PurchaseData.SeatAvailability.HELD)
                                                 )
                                         )
                                 )

@@ -37,6 +37,10 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 import java.net.URI;
+import java.time.Duration;
+import java.util.Map;
+
+import me.june8th.ticketrushserver.services.StorageService;
 
 @Slf4j
 @Configuration
@@ -60,6 +64,9 @@ public class AppConfiguration implements WebMvcConfigurer {
 
     @Value("${app.s3.secret-key}")
     private String s3SecretKey;
+
+    @Value("${app.s3.presigned-url-cache-duration}")
+    private Duration s3PresignedUrlCacheDuration;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -113,6 +120,10 @@ public class AppConfiguration implements WebMvcConfigurer {
 
         return RedisCacheManager.builder(redisConnectionFactory)
                 .cacheDefaults(cacheConfig)
+                .withInitialCacheConfigurations(Map.of(
+                        StorageService.PRESIGNED_URL_CACHE,
+                        cacheConfig.entryTtl(s3PresignedUrlCacheDuration).disableCachingNullValues()
+                ))
                 .build();
     }
 

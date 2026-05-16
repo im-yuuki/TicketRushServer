@@ -9,6 +9,7 @@ import me.june8th.ticketrushserver.utils.ClientIPResolver;
 import me.june8th.ticketrushserver.types.OperationResult;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -67,6 +68,12 @@ public class ErrorHandler {
     public ResponseEntity<OperationResult> handleIllegalArgument(IllegalArgumentException exception, HttpServletRequest request) {
         writeLog("Bad request", exception, request);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(OperationResult.failure(exception.getMessage()));
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<OperationResult> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException exception, HttpServletRequest request) {
+        writeLog("Upload too large", exception, request);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(OperationResult.failure("Uploaded file is too large"));
     }
 
     @ExceptionHandler(RuntimeException.class)

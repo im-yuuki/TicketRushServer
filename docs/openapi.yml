@@ -2,54 +2,10 @@ openapi: "3.1.0"
 info:
   title: "TicketRushServer API"
   description: "TicketRushServer API"
-  version: "1.0.1"
+  version: "1.0.2"
 servers:
   - url: "https://TicketRushServer"
 paths:
-  /v1/auth/register:
-    post:
-      summary: "POST v1/auth/register"
-      operationId: "register"
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/RegisterPayload"
-        required: true
-      responses:
-        "200":
-          description: "OK"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/OperationResult"
-  /v1/auth/register/confirmation:
-    post:
-      summary: "POST v1/auth/register/confirmation"
-      operationId: "confirmRegistration"
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/OtpConfirmationPayload"
-        required: true
-      responses:
-        "200":
-          description: "OK"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/OperationResult"
-    get:
-      summary: "GET v1/auth/register/confirmation"
-      operationId: "sendRegistrationOtp"
-      responses:
-        "200":
-          description: "OK"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/OperationResult"
   /v1/auth/login:
     post:
       summary: "POST v1/auth/login"
@@ -78,6 +34,50 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/OperationResult"
+  /v1/auth/register:
+    post:
+      summary: "POST v1/auth/register"
+      operationId: "register"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterPayload"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
+  /v1/auth/register/confirmation:
+    get:
+      summary: "GET v1/auth/register/confirmation"
+      operationId: "sendRegistrationOtp"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
+    post:
+      summary: "POST v1/auth/register/confirmation"
+      operationId: "confirmRegistration"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OtpConfirmationPayload"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
   /v1/auth/reset:
     post:
       summary: "POST v1/auth/reset"
@@ -96,6 +96,16 @@ paths:
               schema:
                 $ref: "#/components/schemas/OperationResult"
   /v1/auth/reset/confirm:
+    get:
+      summary: "GET v1/auth/reset/confirm"
+      operationId: "sendResetPasswordOtp"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
     post:
       summary: "POST v1/auth/reset/confirm"
       operationId: "confirmResetPassword"
@@ -112,33 +122,10 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/OperationResult"
-    get:
-      summary: "GET v1/auth/reset/confirm"
-      operationId: "sendResetPasswordOtp"
-      responses:
-        "200":
-          description: "OK"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/OperationResult"
   /v1/feeds/promoted:
     get:
       summary: "GET v1/feeds/promoted"
       operationId: "getPromotedEvents"
-      responses:
-        "200":
-          description: "OK"
-          content:
-            '*/*':
-              schema:
-                type: "array"
-                items:
-                  $ref: "#/components/schemas/BasicEventInfo"
-  /v1/feeds/trending:
-    get:
-      summary: "GET v1/feeds/trending"
-      operationId: "getTrendingEvents"
       responses:
         "200":
           description: "OK"
@@ -161,6 +148,36 @@ paths:
                 type: "array"
                 items:
                   $ref: "#/components/schemas/BasicEventInfo"
+  /v1/feeds/trending:
+    get:
+      summary: "GET v1/feeds/trending"
+      operationId: "getTrendingEvents"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/BasicEventInfo"
+  /v1/public/alias/{alias}:
+    get:
+      summary: "GET v1/public/alias/{alias}"
+      operationId: "getOrganizationInfoByAlias"
+      parameters:
+        - name: "alias"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PublicOrganizationInfo"
   /v1/public/event/{id}:
     get:
       summary: "GET v1/public/event/{id}"
@@ -197,40 +214,17 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/PublicOrganizationInfo"
-  /v1/public/org/@{alias}:
+  /v1/account:
     get:
-      summary: "GET v1/public/org/@{alias}"
-      operationId: "getOrganizationInfoByAlias"
-      parameters:
-        - name: "alias"
-          in: "path"
-          required: true
-          schema:
-            type: "string"
+      summary: "GET v1/account"
+      operationId: "getBasicInfo"
       responses:
         "200":
           description: "OK"
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/PublicOrganizationInfo"
-  /v1/account/name:
-    put:
-      summary: "PUT v1/account/name"
-      operationId: "changeName"
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateNamePayload"
-        required: true
-      responses:
-        "200":
-          description: "OK"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/OperationResult"
+                $ref: "#/components/schemas/BasicUserInfo"
   /v1/account/email:
     put:
       summary: "PUT v1/account/email"
@@ -240,6 +234,34 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/UpdateEmailPayload"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
+  /v1/account/logout-all:
+    post:
+      summary: "POST v1/account/logout-all"
+      operationId: "logoutAllDevices"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
+  /v1/account/name:
+    put:
+      summary: "PUT v1/account/name"
+      operationId: "changeName"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateNamePayload"
         required: true
       responses:
         "200":
@@ -265,91 +287,19 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/OperationResult"
-  /v1/account/logout-all:
-    post:
-      summary: "POST v1/account/logout-all"
-      operationId: "logoutAllDevices"
-      responses:
-        "200":
-          description: "OK"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/OperationResult"
-  /v1/account:
+  /v1/organization:
     get:
-      summary: "GET v1/account"
-      operationId: "getBasicInfo"
+      summary: "GET v1/organization"
+      operationId: "getInfo"
       responses:
         "200":
           description: "OK"
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/BasicUserInfo"
-  /v1/organization/avatar:
-    put:
-      summary: "PUT v1/organization/avatar"
-      operationId: "updateAvatar"
-      parameters:
-        - name: "file"
-          in: "query"
-          required: true
-          schema:
-            type: "string"
-            format: "binary"
-      responses:
-        "200":
-          description: "OK"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/OperationResult"
-  /v1/organization/banner:
-    put:
-      summary: "PUT v1/organization/banner"
-      operationId: "updateBanner"
-      parameters:
-        - name: "file"
-          in: "query"
-          required: true
-          schema:
-            type: "string"
-            format: "binary"
-      responses:
-        "200":
-          description: "OK"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/OperationResult"
-  /v1/organization/events/{eventId}/banner:
-    put:
-      summary: "PUT v1/organization/events/{eventId}/banner"
-      operationId: "updateEventBanner"
-      parameters:
-        - name: "eventId"
-          in: "path"
-          required: true
-          schema:
-            type: "integer"
-            format: "int64"
-        - name: "file"
-          in: "query"
-          required: true
-          schema:
-            type: "string"
-            format: "binary"
-      responses:
-        "200":
-          description: "OK"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/OperationResult"
-  /v1/organization/info:
+                $ref: "#/components/schemas/FullOrganizationInfo"
     patch:
-      summary: "PATCH v1/organization/info"
+      summary: "PATCH v1/organization"
       operationId: "updateInfo"
       requestBody:
         content:
@@ -364,17 +314,97 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/OperationResult"
-    get:
-      summary: "GET v1/organization/info"
-      operationId: "getInfo"
+  /v1/organization/avatar:
+    put:
+      summary: "PUT v1/organization/avatar"
+      operationId: "updateAvatar"
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: "object"
+              required:
+                - "file"
+              properties:
+                file:
+                  type: "string"
+                  format: "binary"
       responses:
         "200":
           description: "OK"
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/FullOrganizationInfo"
+                $ref: "#/components/schemas/OperationResult"
+  /v1/organization/banner:
+    put:
+      summary: "PUT v1/organization/banner"
+      operationId: "updateBanner"
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: "object"
+              required:
+                - "file"
+              properties:
+                file:
+                  type: "string"
+                  format: "binary"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
+  /v1/organization/events:
+    get:
+      summary: "GET v1/organization/events"
+      operationId: "getEvents"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/BasicEventInfo"
+    post:
+      summary: "POST v1/organization/events"
+      operationId: "createEvent"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateEventPayload"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
   /v1/organization/events/{eventId}:
+    get:
+      summary: "GET v1/organization/events/{eventId}"
+      operationId: "getEventDetails"
+      parameters:
+        - name: "eventId"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+            format: "int64"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/FullEventInfo"
     patch:
       summary: "PATCH v1/organization/events/{eventId}"
       operationId: "updateEvent"
@@ -415,9 +445,39 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/OperationResult"
-    get:
-      summary: "GET v1/organization/events/{eventId}"
-      operationId: "getEventDetails"
+  /v1/organization/events/{eventId}/banner:
+    put:
+      summary: "PUT v1/organization/events/{eventId}/banner"
+      operationId: "updateEventBanner"
+      parameters:
+        - name: "eventId"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+            format: "int64"
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: "object"
+              required:
+                - "file"
+              properties:
+                file:
+                  type: "string"
+                  format: "binary"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
+  /v1/organization/events/{eventId}/publish:
+    post:
+      summary: "POST v1/organization/events/{eventId}/publish"
+      operationId: "publishEvent"
       parameters:
         - name: "eventId"
           in: "path"
@@ -431,7 +491,31 @@ paths:
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/FullEventInfo"
+                $ref: "#/components/schemas/OperationResult"
+  /v1/organization/events/{eventId}/sales-rounds:
+    post:
+      summary: "POST v1/organization/events/{eventId}/sales-rounds"
+      operationId: "addSalesRound"
+      parameters:
+        - name: "eventId"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+            format: "int64"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddSalesRoundPayload"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
   /v1/organization/events/{eventId}/sales-rounds/{roundId}:
     patch:
       summary: "PATCH v1/organization/events/{eventId}/sales-rounds/{roundId}"
@@ -485,77 +569,6 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/OperationResult"
-  /v1/organization/events:
-    post:
-      summary: "POST v1/organization/events"
-      operationId: "createEvent"
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateEventPayload"
-        required: true
-      responses:
-        "200":
-          description: "OK"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/OperationResult"
-    get:
-      summary: "GET v1/organization/events"
-      operationId: "getEvents"
-      responses:
-        "200":
-          description: "OK"
-          content:
-            '*/*':
-              schema:
-                type: "array"
-                items:
-                  $ref: "#/components/schemas/BasicEventInfo"
-  /v1/organization/events/{eventId}/publish:
-    post:
-      summary: "POST v1/organization/events/{eventId}/publish"
-      operationId: "publishEvent"
-      parameters:
-        - name: "eventId"
-          in: "path"
-          required: true
-          schema:
-            type: "integer"
-            format: "int64"
-      responses:
-        "200":
-          description: "OK"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/OperationResult"
-  /v1/organization/events/{eventId}/sales-rounds:
-    post:
-      summary: "POST v1/organization/events/{eventId}/sales-rounds"
-      operationId: "addSalesRound"
-      parameters:
-        - name: "eventId"
-          in: "path"
-          required: true
-          schema:
-            type: "integer"
-            format: "int64"
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/AddSalesRoundPayload"
-        required: true
-      responses:
-        "200":
-          description: "OK"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/OperationResult"
   /v1/organization/events/{eventId}/seat-zones:
     post:
       summary: "POST v1/organization/events/{eventId}/seat-zones"
@@ -572,54 +585,6 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/CreateSeatZonePayload"
-        required: true
-      responses:
-        "200":
-          description: "OK"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/OperationResult"
-  /v1/organization/events/{eventId}/ticket-classes:
-    post:
-      summary: "POST v1/organization/events/{eventId}/ticket-classes"
-      operationId: "createTicketClass"
-      parameters:
-        - name: "eventId"
-          in: "path"
-          required: true
-          schema:
-            type: "integer"
-            format: "int64"
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateTicketClassPayload"
-        required: true
-      responses:
-        "200":
-          description: "OK"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/OperationResult"
-  /v1/organization/events/{eventId}/staff:
-    post:
-      summary: "POST v1/organization/events/{eventId}/staff"
-      operationId: "addEventStaffAccount"
-      parameters:
-        - name: "eventId"
-          in: "path"
-          required: true
-          schema:
-            type: "integer"
-            format: "int64"
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/AddEventStaffPayload"
         required: true
       responses:
         "200":
@@ -652,10 +617,10 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/OperationResult"
-  /v1/organization/events/{eventId}/ticket-classes/{ticketClassId}:
-    delete:
-      summary: "DELETE v1/organization/events/{eventId}/ticket-classes/{ticketClassId}"
-      operationId: "deleteTicketClass"
+  /v1/organization/events/{eventId}/staff:
+    post:
+      summary: "POST v1/organization/events/{eventId}/staff"
+      operationId: "addEventStaffAccount"
       parameters:
         - name: "eventId"
           in: "path"
@@ -663,12 +628,12 @@ paths:
           schema:
             type: "integer"
             format: "int64"
-        - name: "ticketClassId"
-          in: "path"
-          required: true
-          schema:
-            type: "integer"
-            format: "int64"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddEventStaffPayload"
+        required: true
       responses:
         "200":
           description: "OK"
@@ -700,6 +665,54 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/OperationResult"
+  /v1/organization/events/{eventId}/ticket-classes:
+    post:
+      summary: "POST v1/organization/events/{eventId}/ticket-classes"
+      operationId: "createTicketClass"
+      parameters:
+        - name: "eventId"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+            format: "int64"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTicketClassPayload"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
+  /v1/organization/events/{eventId}/ticket-classes/{ticketClassId}:
+    delete:
+      summary: "DELETE v1/organization/events/{eventId}/ticket-classes/{ticketClassId}"
+      operationId: "deleteTicketClass"
+      parameters:
+        - name: "eventId"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+            format: "int64"
+        - name: "ticketClassId"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+            format: "int64"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
   /v1/checkin:
     post:
       summary: "POST v1/checkin"
@@ -717,6 +730,42 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/CheckInResult"
+  /v1/purchase/event/{eventId}:
+    get:
+      summary: "GET v1/purchase/event/{eventId}"
+      operationId: "getPurchaseEvent"
+      parameters:
+        - name: "eventId"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+            format: "int64"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PurchaseEventView"
+  /v1/purchase/event/{eventId}/seats:
+    get:
+      summary: "GET v1/purchase/event/{eventId}/seats"
+      operationId: "getSeatStatuses"
+      parameters:
+        - name: "eventId"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+            format: "int64"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SeatStatusCollectionView"
   /v1/purchase/hold:
     post:
       summary: "POST v1/purchase/hold"
@@ -734,6 +783,39 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/HoldView"
+  /v1/purchase/hold/{holdId}:
+    get:
+      summary: "GET v1/purchase/hold/{holdId}"
+      operationId: "getHold"
+      parameters:
+        - name: "holdId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/HoldView"
+    delete:
+      summary: "DELETE v1/purchase/hold/{holdId}"
+      operationId: "releaseHold"
+      parameters:
+        - name: "holdId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
   /v1/purchase/hold/{holdId}/seat:
     post:
       summary: "POST v1/purchase/hold/{holdId}/seat"
@@ -774,16 +856,26 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/CompletedPurchaseView"
-  /v1/purchase/hold/{holdId}:
-    delete:
-      summary: "DELETE v1/purchase/hold/{holdId}"
-      operationId: "releaseHold"
-      parameters:
-        - name: "holdId"
-          in: "path"
-          required: true
-          schema:
-            type: "string"
+  /v1/user:
+    get:
+      summary: "GET v1/user"
+      operationId: "getInfo"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/FullUserInfo"
+    patch:
+      summary: "PATCH v1/user"
+      operationId: "updateInfo"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserInfoPayload"
+        required: true
       responses:
         "200":
           description: "OK"
@@ -791,69 +883,21 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/OperationResult"
-    get:
-      summary: "GET v1/purchase/hold/{holdId}"
-      operationId: "getHold"
-      parameters:
-        - name: "holdId"
-          in: "path"
-          required: true
-          schema:
-            type: "string"
-      responses:
-        "200":
-          description: "OK"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/HoldView"
-  /v1/purchase/event/{eventId}:
-    get:
-      summary: "GET v1/purchase/event/{eventId}"
-      operationId: "getPurchaseEvent"
-      parameters:
-        - name: "eventId"
-          in: "path"
-          required: true
-          schema:
-            type: "integer"
-            format: "int64"
-      responses:
-        "200":
-          description: "OK"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/PurchaseEventView"
-  /v1/purchase/event/{eventId}/seats/status:
-    get:
-      summary: "GET v1/purchase/event/{eventId}/seats/status"
-      operationId: "getSeatStatuses"
-      parameters:
-        - name: "eventId"
-          in: "path"
-          required: true
-          schema:
-            type: "integer"
-            format: "int64"
-      responses:
-        "200":
-          description: "OK"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/SeatStatusCollectionView"
   /v1/user/avatar:
     put:
       summary: "PUT v1/user/avatar"
       operationId: "updateAvatar"
-      parameters:
-        - name: "file"
-          in: "query"
-          required: true
-          schema:
-            type: "string"
-            format: "binary"
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: "object"
+              required:
+                - "file"
+              properties:
+                file:
+                  type: "string"
+                  format: "binary"
       responses:
         "200":
           description: "OK"
@@ -896,33 +940,6 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/OperationResult"
-  /v1/user:
-    patch:
-      summary: "PATCH v1/user"
-      operationId: "updateInfo"
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateUserInfoPayload"
-        required: true
-      responses:
-        "200":
-          description: "OK"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/OperationResult"
-    get:
-      summary: "GET v1/user"
-      operationId: "getInfo"
-      responses:
-        "200":
-          description: "OK"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/FullUserInfo"
   /v1/user/tickets:
     get:
       summary: "GET v1/user/tickets"
@@ -934,41 +951,6 @@ paths:
             '*/*':
               schema:
                 type: "object"
-  /v1/admin/organizations:
-    put:
-      summary: "PUT v1/admin/organizations"
-      operationId: "createOrganization"
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateOrganizationPayload"
-        required: true
-      responses:
-        "200":
-          description: "OK"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/OperationResult"
-  /v1/admin/organization/{id}/verify:
-    post:
-      summary: "POST v1/admin/organization/{id}/verify"
-      operationId: "verifyOrganization"
-      parameters:
-        - name: "id"
-          in: "path"
-          required: true
-          schema:
-            type: "integer"
-            format: "int64"
-      responses:
-        "200":
-          description: "OK"
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/OperationResult"
   /v1/admin/account/{id}/lock:
     post:
       summary: "POST v1/admin/account/{id}/lock"
@@ -1005,8 +987,65 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/OperationResult"
+  /v1/admin/organization/{id}/verify:
+    post:
+      summary: "POST v1/admin/organization/{id}/verify"
+      operationId: "verifyOrganization"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          schema:
+            type: "integer"
+            format: "int64"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
+  /v1/admin/organizations:
+    put:
+      summary: "PUT v1/admin/organizations"
+      operationId: "createOrganization"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrganizationPayload"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OperationResult"
 components:
   schemas:
+    LoginPayload:
+      type: "object"
+      properties:
+        email:
+          type: "string"
+          nullable: true
+        password:
+          type: "string"
+          nullable: true
+    OperationResult:
+      type: "object"
+      properties:
+        success:
+          type: "boolean"
+          nullable: true
+        message:
+          type: "string"
+          nullable: true
+        resourceId:
+          type: "integer"
+          format: "int64"
+          nullable: true
     RegisterPayload:
       type: "object"
       properties:
@@ -1030,32 +1069,10 @@ components:
             - "MALE"
             - "FEMALE"
             - "OTHER"
-    OperationResult:
-      type: "object"
-      properties:
-        success:
-          type: "boolean"
-          nullable: true
-        message:
-          type: "string"
-          nullable: true
-        resourceId:
-          type: "integer"
-          format: "int64"
-          nullable: true
     OtpConfirmationPayload:
       type: "object"
       properties:
         otpCode:
-          type: "string"
-          nullable: true
-    LoginPayload:
-      type: "object"
-      properties:
-        email:
-          type: "string"
-          nullable: true
-        password:
           type: "string"
           nullable: true
     ResetPasswordPayload:
@@ -1088,6 +1105,38 @@ components:
           $ref: "#/components/schemas/Instant"
         venue:
           type: "string"
+          nullable: true
+    PublicOrganizationInfo:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          format: "int64"
+          nullable: true
+        name:
+          type: "string"
+          nullable: true
+        description:
+          type: "string"
+          nullable: true
+        aliasName:
+          type: "string"
+          nullable: true
+        avatarUrl:
+          type: "string"
+          nullable: true
+        bannerUrl:
+          type: "string"
+          nullable: true
+        websiteUrl:
+          type: "string"
+          nullable: true
+        verified:
+          type: "boolean"
+          nullable: true
+        followerCount:
+          type: "integer"
+          format: "int64"
           nullable: true
     PublicEventInfo:
       type: "object"
@@ -1127,62 +1176,6 @@ components:
         organizationAlias:
           type: "string"
           nullable: true
-    PublicOrganizationInfo:
-      type: "object"
-      properties:
-        id:
-          type: "integer"
-          format: "int64"
-          nullable: true
-        name:
-          type: "string"
-          nullable: true
-        description:
-          type: "string"
-          nullable: true
-        aliasName:
-          type: "string"
-          nullable: true
-        avatarUrl:
-          type: "string"
-          nullable: true
-        bannerUrl:
-          type: "string"
-          nullable: true
-        websiteUrl:
-          type: "string"
-          nullable: true
-        verified:
-          type: "boolean"
-          nullable: true
-        followerCount:
-          type: "integer"
-          format: "int64"
-          nullable: true
-    UpdateNamePayload:
-      type: "object"
-      properties:
-        newName:
-          type: "string"
-          nullable: true
-    UpdateEmailPayload:
-      type: "object"
-      properties:
-        newEmail:
-          type: "string"
-          nullable: true
-        currentPassword:
-          type: "string"
-          nullable: true
-    UpdatePasswordPayload:
-      type: "object"
-      properties:
-        currentPassword:
-          type: "string"
-          nullable: true
-        newPassword:
-          type: "string"
-          nullable: true
     BasicUserInfo:
       type: "object"
       properties:
@@ -1202,179 +1195,28 @@ components:
         role:
           type: "string"
           nullable: true
-    UpdateOrganizationInfoPayload:
+    UpdateEmailPayload:
       type: "object"
       properties:
-        description:
+        newEmail:
           type: "string"
           nullable: true
-        aliasName:
+        currentPassword:
           type: "string"
           nullable: true
-        websiteUrl:
-          type: "string"
-          nullable: true
-    UpdateEventPayload:
+    UpdateNamePayload:
       type: "object"
       properties:
-        name:
+        newName:
           type: "string"
           nullable: true
-        description:
-          type: "string"
-          nullable: true
-        isOnlineEvent:
-          type: "boolean"
-          nullable: true
-        venue:
-          type: "string"
-          nullable: true
-        address:
-          type: "string"
-          nullable: true
-        dateTime:
-          nullable: true
-          $ref: "#/components/schemas/Instant"
-    UpdateSalesRoundData:
+    UpdatePasswordPayload:
       type: "object"
       properties:
-        name:
+        currentPassword:
           type: "string"
           nullable: true
-        startTime:
-          nullable: true
-          $ref: "#/components/schemas/Instant"
-        endTime:
-          nullable: true
-          $ref: "#/components/schemas/Instant"
-        maxTicketsPerPurchase:
-          type: "integer"
-          format: "int32"
-          nullable: true
-    CreateEventPayload:
-      type: "object"
-      properties:
-        name:
-          type: "string"
-          nullable: true
-        description:
-          type: "string"
-          nullable: true
-        isOnlineEvent:
-          type: "boolean"
-          nullable: true
-        venue:
-          type: "string"
-          nullable: true
-        address:
-          type: "string"
-          nullable: true
-        dateTime:
-          nullable: true
-          $ref: "#/components/schemas/Instant"
-    AddSalesRoundPayload:
-      type: "object"
-      properties:
-        name:
-          type: "string"
-          nullable: true
-        startTime:
-          nullable: true
-          $ref: "#/components/schemas/Instant"
-        endTime:
-          nullable: true
-          $ref: "#/components/schemas/Instant"
-        maxTicketsPerPurchase:
-          type: "integer"
-          format: "int32"
-          nullable: true
-    SeatView:
-      type: "object"
-      properties:
-        id:
-          type: "integer"
-          format: "int64"
-          nullable: true
-        index:
-          type: "integer"
-          format: "int32"
-          nullable: true
-        number:
-          type: "integer"
-          format: "int32"
-          nullable: true
-        availability:
-          type: "string"
-          nullable: true
-    SeatRowView:
-      type: "object"
-      properties:
-        id:
-          type: "integer"
-          format: "int64"
-          nullable: true
-        index:
-          type: "integer"
-          format: "int32"
-          nullable: true
-        label:
-          type: "string"
-          nullable: true
-        seats:
-          type: "array"
-          nullable: true
-          items:
-            $ref: "#/components/schemas/SeatView"
-    CreateSeatZonePayload:
-      type: "object"
-      properties:
-        name:
-          type: "string"
-          nullable: true
-        positionX:
-          type: "integer"
-          format: "int32"
-          nullable: true
-        positionY:
-          type: "integer"
-          format: "int32"
-          nullable: true
-        rows:
-          type: "array"
-          nullable: true
-          items:
-            $ref: "#/components/schemas/SeatRowView"
-    CreateTicketClassPayload:
-      type: "object"
-      properties:
-        name:
-          type: "string"
-          nullable: true
-        description:
-          type: "string"
-          nullable: true
-        price:
-          type: "integer"
-          format: "int64"
-          nullable: true
-        salesRoundId:
-          type: "integer"
-          format: "int64"
-          nullable: true
-        seatZoneId:
-          type: "integer"
-          format: "int64"
-          nullable: true
-    AddEventStaffPayload:
-      type: "object"
-      properties:
-        name:
-          type: "string"
-          nullable: true
-        email:
-          type: "string"
-          nullable: true
-        password:
+        newPassword:
           type: "string"
           nullable: true
     FullOrganizationInfo:
@@ -1414,6 +1256,39 @@ components:
         websiteUrl:
           type: "string"
           nullable: true
+    UpdateOrganizationInfoPayload:
+      type: "object"
+      properties:
+        description:
+          type: "string"
+          nullable: true
+        aliasName:
+          type: "string"
+          nullable: true
+        websiteUrl:
+          type: "string"
+          nullable: true
+    CreateEventPayload:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+          nullable: true
+        description:
+          type: "string"
+          nullable: true
+        isOnlineEvent:
+          type: "boolean"
+          nullable: true
+        venue:
+          type: "string"
+          nullable: true
+        address:
+          type: "string"
+          nullable: true
+        dateTime:
+          nullable: true
+          $ref: "#/components/schemas/Instant"
     FullEventInfo:
       type: "object"
       properties:
@@ -1451,6 +1326,153 @@ components:
         updatedAt:
           nullable: true
           $ref: "#/components/schemas/Instant"
+    UpdateEventPayload:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+          nullable: true
+        description:
+          type: "string"
+          nullable: true
+        isOnlineEvent:
+          type: "boolean"
+          nullable: true
+        venue:
+          type: "string"
+          nullable: true
+        address:
+          type: "string"
+          nullable: true
+        dateTime:
+          nullable: true
+          $ref: "#/components/schemas/Instant"
+    AddSalesRoundPayload:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+          nullable: true
+        startTime:
+          nullable: true
+          $ref: "#/components/schemas/Instant"
+        endTime:
+          nullable: true
+          $ref: "#/components/schemas/Instant"
+        maxTicketsPerPurchase:
+          type: "integer"
+          format: "int32"
+          nullable: true
+    UpdateSalesRoundData:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+          nullable: true
+        startTime:
+          nullable: true
+          $ref: "#/components/schemas/Instant"
+        endTime:
+          nullable: true
+          $ref: "#/components/schemas/Instant"
+        maxTicketsPerPurchase:
+          type: "integer"
+          format: "int32"
+          nullable: true
+    SeatView:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          format: "int64"
+          nullable: true
+        index:
+          type: "integer"
+          format: "int32"
+          nullable: true
+        number:
+          type: "integer"
+          format: "int32"
+          nullable: true
+        availability:
+          type: "string"
+          nullable: true
+          enum:
+            - "AVAILABLE"
+            - "SOLD"
+            - "HELD_BY_ME"
+            - "HELD"
+    SeatRowView:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          format: "int64"
+          nullable: true
+        index:
+          type: "integer"
+          format: "int32"
+          nullable: true
+        label:
+          type: "string"
+          nullable: true
+        seats:
+          type: "array"
+          nullable: true
+          items:
+            $ref: "#/components/schemas/SeatView"
+    CreateSeatZonePayload:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+          nullable: true
+        positionX:
+          type: "integer"
+          format: "int32"
+          nullable: true
+        positionY:
+          type: "integer"
+          format: "int32"
+          nullable: true
+        rows:
+          type: "array"
+          nullable: true
+          items:
+            $ref: "#/components/schemas/SeatRowView"
+    AddEventStaffPayload:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+          nullable: true
+        email:
+          type: "string"
+          nullable: true
+        password:
+          type: "string"
+          nullable: true
+    CreateTicketClassPayload:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+          nullable: true
+        description:
+          type: "string"
+          nullable: true
+        price:
+          type: "integer"
+          format: "int64"
+          nullable: true
+        salesRoundId:
+          type: "integer"
+          format: "int64"
+          nullable: true
+        seatZoneId:
+          type: "integer"
+          format: "int64"
+          nullable: true
     CheckInPayload:
       type: "object"
       properties:
@@ -1506,74 +1528,6 @@ components:
           type: "integer"
           format: "int32"
           nullable: true
-    CreateHoldPayload:
-      type: "object"
-      properties:
-        eventId:
-          type: "integer"
-          format: "int64"
-          nullable: true
-    HeldItemView:
-      type: "object"
-      properties:
-        seatId:
-          type: "integer"
-          format: "int64"
-          nullable: true
-        ticketClassId:
-          type: "integer"
-          format: "int64"
-          nullable: true
-        price:
-          type: "integer"
-          format: "int64"
-          nullable: true
-    HoldView:
-      type: "object"
-      properties:
-        holdId:
-          type: "string"
-          nullable: true
-        expiresAt:
-          nullable: true
-          $ref: "#/components/schemas/Instant"
-        totalAmount:
-          type: "integer"
-          format: "int64"
-          nullable: true
-        items:
-          type: "array"
-          nullable: true
-          items:
-            $ref: "#/components/schemas/HeldItemView"
-    HoldSeatPayload:
-      type: "object"
-      properties:
-        seatId:
-          type: "integer"
-          format: "int64"
-          nullable: true
-        ticketClassId:
-          type: "integer"
-          format: "int64"
-          nullable: true
-    CompletedPurchaseView:
-      type: "object"
-      properties:
-        purchaseId:
-          type: "integer"
-          format: "int64"
-          nullable: true
-        amount:
-          type: "integer"
-          format: "int64"
-          nullable: true
-        ticketIds:
-          type: "array"
-          nullable: true
-          items:
-            type: "integer"
-            format: "int64"
     SalesRoundView:
       type: "object"
       properties:
@@ -1701,26 +1655,74 @@ components:
         myActiveHold:
           nullable: true
           $ref: "#/components/schemas/ActiveHoldView"
-    UpdateUserInfoPayload:
+    CreateHoldPayload:
       type: "object"
       properties:
-        birthDate:
-          type: "string"
-          format: "date-time"
+        eventId:
+          type: "integer"
+          format: "int64"
           nullable: true
-        gender:
+    HeldItemView:
+      type: "object"
+      properties:
+        seatId:
+          type: "integer"
+          format: "int64"
+          nullable: true
+        ticketClassId:
+          type: "integer"
+          format: "int64"
+          nullable: true
+        price:
+          type: "integer"
+          format: "int64"
+          nullable: true
+    HoldView:
+      type: "object"
+      properties:
+        holdId:
           type: "string"
           nullable: true
-          enum:
-            - "MALE"
-            - "FEMALE"
-            - "OTHER"
-        phoneNumber:
-          type: "string"
+        expiresAt:
           nullable: true
-        addressLine:
-          type: "string"
+          $ref: "#/components/schemas/Instant"
+        totalAmount:
+          type: "integer"
+          format: "int64"
           nullable: true
+        items:
+          type: "array"
+          nullable: true
+          items:
+            $ref: "#/components/schemas/HeldItemView"
+    HoldSeatPayload:
+      type: "object"
+      properties:
+        seatId:
+          type: "integer"
+          format: "int64"
+          nullable: true
+        ticketClassId:
+          type: "integer"
+          format: "int64"
+          nullable: true
+    CompletedPurchaseView:
+      type: "object"
+      properties:
+        purchaseId:
+          type: "integer"
+          format: "int64"
+          nullable: true
+        amount:
+          type: "integer"
+          format: "int64"
+          nullable: true
+        ticketIds:
+          type: "array"
+          nullable: true
+          items:
+            type: "integer"
+            format: "int64"
     FullUserInfo:
       type: "object"
       properties:
@@ -1756,6 +1758,26 @@ components:
         updatedAt:
           nullable: true
           $ref: "#/components/schemas/Instant"
+    UpdateUserInfoPayload:
+      type: "object"
+      properties:
+        birthDate:
+          type: "string"
+          format: "date-time"
+          nullable: true
+        gender:
+          type: "string"
+          nullable: true
+          enum:
+            - "MALE"
+            - "FEMALE"
+            - "OTHER"
+        phoneNumber:
+          type: "string"
+          nullable: true
+        addressLine:
+          type: "string"
+          nullable: true
     CreateOrganizationPayload:
       type: "object"
       properties:

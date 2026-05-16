@@ -34,6 +34,7 @@ import me.june8th.ticketrushserver.types.PurchaseData.HoldView;
 import me.june8th.ticketrushserver.types.PurchaseData.MockPaymentDetails;
 import me.june8th.ticketrushserver.types.PurchaseData.PurchaseEventView;
 import me.june8th.ticketrushserver.types.PurchaseData.SalesRoundView;
+import me.june8th.ticketrushserver.types.PurchaseData.SeatAvailability;
 import me.june8th.ticketrushserver.types.PurchaseData.SeatRowView;
 import me.june8th.ticketrushserver.types.PurchaseData.SeatStatusCollectionView;
 import me.june8th.ticketrushserver.types.PurchaseData.SeatView;
@@ -652,19 +653,19 @@ public class PurchaseService {
         List<String> seatHoldValues = seats.isEmpty() ? List.of() : stringRedisTemplate.opsForValue().multiGet(seatKeys);
         String myHoldId = myHold == null ? null : myHold.holdId();
 
-        Map<Long, String> seatAvailability = new HashMap<>();
+        Map<Long, SeatAvailability> seatAvailability = new HashMap<>();
         for (int i = 0; i < seats.size(); i++) {
             Seat seat = seats.get(i);
             String holdValue = seatHoldValues != null && i < seatHoldValues.size() ? seatHoldValues.get(i) : null;
-            String availability = "AVAILABLE";
+            SeatAvailability availability = SeatAvailability.AVAILABLE;
             if (seat.getAssociatedTicket() != null) {
-                availability = "SOLD";
+                availability = SeatAvailability.SOLD;
             }
             else if (holdValue != null && holdValue.equals(myHoldId)) {
-                availability = "HELD_BY_ME";
+                availability = SeatAvailability.HELD_BY_ME;
             }
             else if (holdValue != null) {
-                availability = "HELD";
+                availability = SeatAvailability.HELD;
             }
             seatAvailability.put(seat.getId(), availability);
         }

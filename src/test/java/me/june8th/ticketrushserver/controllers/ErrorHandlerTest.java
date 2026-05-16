@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -81,6 +82,14 @@ class ErrorHandlerTest {
     }
 
     @Test
+    void maxUploadSizeExceeded_shouldReturn400() throws Exception {
+        mockMvc.perform(get("/test/errors/upload-too-large"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("Uploaded file is too large"));
+    }
+
+    @Test
     void unexpectedException_shouldReturn500() throws Exception {
         mockMvc.perform(get("/test/errors/unexpected"))
                 .andExpect(status().isInternalServerError())
@@ -119,6 +128,11 @@ class ErrorHandlerTest {
         @GetMapping("/test/errors/unexpected")
         void unexpected() throws Exception {
             throw new Exception("boom");
+        }
+
+        @GetMapping("/test/errors/upload-too-large")
+        void uploadTooLarge() {
+            throw new MaxUploadSizeExceededException(20L * 1024 * 1024);
         }
 
         @GetMapping("/test/errors/invalid-state")

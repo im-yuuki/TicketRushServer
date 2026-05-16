@@ -24,7 +24,7 @@ public class PurchaseController {
         return ResponseEntity.ok(purchaseService.getPurchaseEvent(userId, eventId));
     }
 
-    @GetMapping("/event/{eventId}/seats/status")
+    @GetMapping("/event/{eventId}/seats")
     public ResponseEntity<SeatStatusCollectionView> getSeatStatuses(@AuthenticationPrincipal long userId, @PathVariable long eventId) {
         return ResponseEntity.ok(purchaseService.getSeatStatuses(userId, eventId));
     }

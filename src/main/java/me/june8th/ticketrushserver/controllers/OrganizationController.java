@@ -31,7 +31,7 @@ public class OrganizationController {
     private final EventService eventService;
     private final StorageService storageService;
 
-    @GetMapping("/info")
+    @GetMapping
     public ResponseEntity<FullOrganizationInfo> getInfo(@AuthenticationPrincipal long id) {
         if (accountService.getAccountData(id) instanceof OrganizationAccount org) {
             return ResponseEntity.ok(new FullOrganizationInfo(storageService, org));
@@ -39,20 +39,20 @@ public class OrganizationController {
         throw new ForbiddenException("You do not have permission to access this resource");
     }
 
-    @PatchMapping("/info")
+    @PatchMapping
     public ResponseEntity<OperationResult> updateInfo(@AuthenticationPrincipal long id, @RequestBody UpdateOrganizationInfoPayload payload) {
         accountService.updateOrganizationInfo(id, payload);
         return ResponseEntity.ok(OperationResult.success("Organization information updated successfully"));
     }
 
     @PutMapping(path = "/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<OperationResult> updateAvatar(@AuthenticationPrincipal long id, @RequestParam("file") MultipartFile file) throws IOException {
+    public ResponseEntity<OperationResult> updateAvatar(@AuthenticationPrincipal long id, @RequestPart("file") MultipartFile file) throws IOException {
         accountService.updateAvatar(id, file);
         return ResponseEntity.ok(OperationResult.success("Avatar updated successfully"));
     }
 
     @PutMapping(path = "/banner", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<OperationResult> updateBanner(@AuthenticationPrincipal long id, @RequestParam("file") MultipartFile file) throws IOException {
+    public ResponseEntity<OperationResult> updateBanner(@AuthenticationPrincipal long id, @RequestPart("file") MultipartFile file) throws IOException {
         accountService.updateOrganizationBanner(id, file);
         return ResponseEntity.ok(OperationResult.success("Banner updated successfully"));
     }
@@ -96,7 +96,7 @@ public class OrganizationController {
     }
 
     @PutMapping(path = "/events/{eventId}/banner", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<OperationResult> updateEventBanner(@AuthenticationPrincipal long id, @PathVariable long eventId, @RequestParam("file") MultipartFile file) throws IOException {
+    public ResponseEntity<OperationResult> updateEventBanner(@AuthenticationPrincipal long id, @PathVariable long eventId, @RequestPart("file") MultipartFile file) throws IOException {
         eventService.updateEventBanner(id, eventId, file);
         return ResponseEntity.ok(OperationResult.success("Event banner updated successfully"));
     }

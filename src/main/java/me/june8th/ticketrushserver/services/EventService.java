@@ -347,6 +347,11 @@ public class EventService {
     public void publishEvent(long orgId, long eventId) {
         Event event = getOrganizationEvent(orgId, eventId);
         if (event.getPublished()) throw new InvalidStateException("Event is already published");
+        if (ticketClassRepository.findAllBySalesRound_Event_IdOrderBySalesRoundStartTimeAscIdAsc(eventId).isEmpty()) {
+            throw new InvalidStateException("Event must have at least one ticket class before publishing");
+        }
+        boolean hasAvailableSeat = seatRepository.findAllByEventId(eventId).stream().anyMatch(seat -> seat.getAssociatedTicket() == null);
+        if (!hasAvailableSeat) throw new InvalidStateException("Event must have at least one available seat before publishing");
         event.setPublished(true);
         eventRepository.save(event);
         log.debug("Successfully published event with ID: {}", eventId);

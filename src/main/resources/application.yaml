@@ -7,6 +7,8 @@ app:
     bucket: ${S3_BUCKET}
     access-id: ${S3_ID}
     secret-key: ${S3_SEC}
+    presigned-url-duration: 60m
+    presigned-url-cache-duration: 55m
   mail: ${MAIL_ADDR}
   proxied: ${APP_PROXIED:false}
 
@@ -20,6 +22,10 @@ server:
 spring:
   application:
     name: TicketRushServer
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 25MB
   datasource:
     driver-class-name: org.postgresql.Driver
     url: ${PGSQL_URL:jdbc:postgresql://localhost:5432/ticketrush}

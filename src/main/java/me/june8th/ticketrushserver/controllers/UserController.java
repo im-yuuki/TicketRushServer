@@ -38,7 +38,7 @@ public class UserController {
     }
 
     @PutMapping(path = "/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<OperationResult> updateAvatar(@AuthenticationPrincipal long id, @RequestParam("file") MultipartFile file) throws IOException {
+    public ResponseEntity<OperationResult> updateAvatar(@AuthenticationPrincipal long id, @RequestPart("file") MultipartFile file) throws IOException {
         accountService.updateAvatar(id, file);
         return ResponseEntity.ok(OperationResult.success("Avatar updated successfully"));
     }
