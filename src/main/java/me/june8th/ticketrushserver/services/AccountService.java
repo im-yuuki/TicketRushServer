@@ -507,24 +507,16 @@ public class AccountService {
 
     @NullMarked
     public OrganizationAccount getPublicOrganizationById(long id) {
-        OrganizationAccount organization = organizationAccountRepository.findById(id).orElseThrow(
+        return organizationAccountRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Organization not found")
         );
-        if (!organization.getVerified()) {
-            throw new ResourceNotFoundException("Organization not found");
-        }
-        return organization;
     }
 
     @NullMarked
     public OrganizationAccount getPublicOrganizationByAlias(String alias) {
-        OrganizationAccount organization = organizationAccountRepository.findByAliasName(alias).orElseThrow(
+        return organizationAccountRepository.findByAliasName(alias).orElseThrow(
                 () -> new ResourceNotFoundException("Organization not found")
         );
-        if (!organization.getVerified()) {
-            throw new ResourceNotFoundException("Organization not found");
-        }
-        return organization;
     }
 
     @NullMarked
