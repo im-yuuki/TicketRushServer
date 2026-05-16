@@ -41,6 +41,6 @@ public class FeedsController {
             this(event.getId(), event.getName(), imageUrl, event.getDateTime(), event.getVenue());
         }
 
-    };
+    }
 
 }

@@ -2,7 +2,6 @@ package me.june8th.ticketrushserver.utils;
 
 import lombok.Getter;
 import me.june8th.ticketrushserver.types.ValidateError;
-import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;

@@ -77,13 +77,13 @@ public class ErrorHandler {
 
     @ExceptionHandler(MessagingException.class)
     public ResponseEntity<OperationResult> handleMessagingException(MessagingException exception, HttpServletRequest request) {
-        log.error("Failed to send email to user", exception);
+        log.error("Failed to send email to user on {}", request.getRequestURI(), exception);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(OperationResult.failure("Failed to send email. Please try again later."));
     }
 
     @ExceptionHandler(IOException.class)
     public ResponseEntity<OperationResult> handleIOException(IOException exception, HttpServletRequest request) {
-        log.error("IO error occurred during request processing", exception);
+        log.error("IO error occurred during request processing {}", request.getRequestURI(), exception);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(OperationResult.failure("An internal error occurred while processing the request. Please try again later."));
     }
 

@@ -1,7 +1,6 @@
 package me.june8th.ticketrushserver.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import jakarta.annotation.Nullable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
