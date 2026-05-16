@@ -1,6 +1,7 @@
 package me.june8th.ticketrushserver.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import me.june8th.ticketrushserver.data.Account;
 import me.june8th.ticketrushserver.data.Event;
 import me.june8th.ticketrushserver.data.EventStaffAccount;
@@ -12,18 +13,15 @@ import me.june8th.ticketrushserver.types.ForbiddenException;
 import me.june8th.ticketrushserver.types.InvalidStateException;
 import me.june8th.ticketrushserver.types.ResourceNotFoundException;
 import org.jspecify.annotations.NullMarked;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CheckInService {
-
-    private static final Logger logger = LoggerFactory.getLogger(CheckInService.class);
 
     private final AccountRepository accountRepository;
     private final EventRepository eventRepository;
@@ -56,11 +54,11 @@ public class CheckInService {
                 ticket.setCheckedInAt(checkInTime);
                 ticket.setCheckInStaff(eventStaffAccount);
                 Ticket updatedTicket = ticketRepository.save(ticket);
-                logger.info("Ticket {} checked in at {} by staff {}", ticketId, checkInTime, staffId);
+                log.info("Ticket {} checked in at {} by staff {}", ticketId, checkInTime, staffId);
                 return updatedTicket;
             }
             else {
-                logger.debug("Ticket {} already checked in at {} by staff {}", ticketId, ticket.getCheckedInAt(), staffId);
+                log.debug("Ticket {} already checked in at {} by staff {}", ticketId, ticket.getCheckedInAt(), staffId);
                 return ticket;
             }
         }

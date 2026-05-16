@@ -6,6 +6,7 @@ import me.june8th.ticketrushserver.data.Account;
 import me.june8th.ticketrushserver.data.OrganizationAccount;
 import me.june8th.ticketrushserver.data.UserAccount;
 import me.june8th.ticketrushserver.services.AccountService;
+import me.june8th.ticketrushserver.services.StorageService;
 import me.june8th.ticketrushserver.types.OperationResult;
 import me.june8th.ticketrushserver.utils.CookieUtils;
 import org.springframework.http.ResponseEntity;
@@ -21,10 +22,11 @@ import java.util.Objects;
 public class MyAccountController {
 
     private final AccountService accountService;
+    private final StorageService storageService;
 
     @GetMapping
     public ResponseEntity<BasicUserInfo> getBasicInfo(@AuthenticationPrincipal Long id) {
-        return ResponseEntity.ok(new BasicUserInfo(accountService.getAccountData(id)));
+        return ResponseEntity.ok(new BasicUserInfo(storageService, accountService.getAccountData(id)));
     }
 
     @PutMapping("/name")
@@ -54,11 +56,10 @@ public class MyAccountController {
 
     public record BasicUserInfo(long id, String name, String email, String avatarUrl) {
 
-        public BasicUserInfo(Account account) {
-            // TODO: avatar url generation logic
+        public BasicUserInfo(StorageService storageService, Account account) {
             String avatarUrl = switch (account) {
-                case UserAccount userAccount -> userAccount.getAvatarKey();
-                case OrganizationAccount organizationAccount -> organizationAccount.getAvatarKey();
+                case UserAccount userAccount -> storageService.generatePresignedUrl(userAccount.getAvatarKey());
+                case OrganizationAccount organizationAccount -> storageService.generatePresignedUrl(organizationAccount.getAvatarKey());
                 default -> null;
             };
             this(account.getId(), account.getName(), account.getEmail(), avatarUrl);

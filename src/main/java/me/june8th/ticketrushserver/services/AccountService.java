@@ -1,6 +1,7 @@
 package me.june8th.ticketrushserver.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import me.june8th.ticketrushserver.data.*;
 import me.june8th.ticketrushserver.temp.RegisterRequest;
 import me.june8th.ticketrushserver.temp.ResetPasswordRequest;
@@ -8,26 +9,23 @@ import me.june8th.ticketrushserver.repositories.AccountRepository;
 import me.june8th.ticketrushserver.temp.RegisterRequestRepository;
 import me.june8th.ticketrushserver.temp.ResetPasswordRequestRepository;
 import me.june8th.ticketrushserver.repositories.UserRepository;
+import me.june8th.ticketrushserver.repositories.OrganizationAccountRepository;
 import me.june8th.ticketrushserver.types.AccessTokenData;
 import me.june8th.ticketrushserver.security.AccessTokenProvider;
 import me.june8th.ticketrushserver.types.*;
 import me.june8th.ticketrushserver.utils.Validator;
 import org.jspecify.annotations.NullMarked;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.Date;
-import java.util.Objects;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AccountService {
-
-    private static final Logger logger = LoggerFactory.getLogger(AccountService.class);
 
     private final UserRepository userRepository;
     private final AccountRepository accountRepository;
@@ -35,6 +33,7 @@ public class AccountService {
     private final AccessTokenProvider accessTokenProvider;
     private final RegisterRequestRepository registerRequestRepository;
     private final ResetPasswordRequestRepository resetPasswordRequestRepository;
+    private final OrganizationAccountRepository organizationAccountRepository;
 
     /**
      * Create a new user registration request. This will create a new entry in the RegisterPayload table.
@@ -76,7 +75,7 @@ public class AccountService {
                 .build();
 
         registerRequestRepository.save(registerRequest);
-        logger.debug("Successfully created registration request with key: {} for email: {}", registerRequest.getKey(), email);
+        log.debug("Successfully created registration request with key: {} for email: {}", registerRequest.getKey(), email);
         return registerRequest.getKey();
     }
 
@@ -97,7 +96,7 @@ public class AccountService {
 
         RegisterRequest registerRequest = registerRequestRepository.findByKey(key).orElseThrow(
                 () -> {
-                    logger.warn("Registration request with key {} not found.", key);
+                    log.warn("Registration request with key {} not found.", key);
                     return new ResourceNotFoundException("Invalid request");
                 }
         );
@@ -133,10 +132,10 @@ public class AccountService {
         try {
             registerRequestRepository.delete(registerRequest);
         } catch (Exception e) {
-            logger.warn("Failed to delete registration request with key {}: {}", key, e.getMessage());
+            log.warn("Failed to delete registration request with key {}: {}", key, e.getMessage());
         }
         Account savedAccount = userRepository.save(userAccount);
-        logger.debug("Successfully confirmed registration and created user account with ID: {} for email: {}", savedAccount.getId(), savedAccount.getEmail());
+        log.debug("Successfully confirmed registration and created user account with ID: {} for email: {}", savedAccount.getId(), savedAccount.getEmail());
         return savedAccount;
     }
 
@@ -162,7 +161,7 @@ public class AccountService {
             throw new AuthenticationFailedException("Invalid credentials");
         }
 
-        logger.debug("Account {} ({}) logged in successfully", account.getId(), account.getName());
+        log.debug("Account {} ({}) logged in successfully", account.getId(), account.getName());
         return account;
     }
 
@@ -195,7 +194,7 @@ public class AccountService {
         );
         account.setTokenVersion(account.getTokenVersion() + 1);
         accountRepository.save(account);
-        logger.debug("Successfully invalidated all sessions for account ID: {}", accountId);
+        log.debug("Successfully invalidated all sessions for account ID: {}", accountId);
     }
 
     /**
@@ -230,7 +229,7 @@ public class AccountService {
                 .build();
 
         resetPasswordRequestRepository.save(resetPasswordRequest);
-        logger.debug("Successfully created password reset request with key: {} for email: {}", resetPasswordRequest.getKey(), email);
+        log.debug("Successfully created password reset request with key: {} for email: {}", resetPasswordRequest.getKey(), email);
         return resetPasswordRequest.getKey();
     }
 
@@ -251,7 +250,7 @@ public class AccountService {
 
         ResetPasswordRequest resetPasswordRequest = resetPasswordRequestRepository.findByKey(token).orElseThrow(
                 () -> {
-                    logger.warn("Password reset request with token {} not found.", token);
+                    log.warn("Password reset request with token {} not found.", token);
                     return new ResourceNotFoundException("Invalid request");
                 }
         );
@@ -283,11 +282,11 @@ public class AccountService {
         account.setPasswordHash(resetPasswordRequest.getNewPasswordHash());
         accountRepository.save(account);
 
-        logger.debug("Password reset successful for account {} ({})", account.getId(), account.getEmail());
+        log.debug("Password reset successful for account {} ({})", account.getId(), account.getEmail());
         try {
             resetPasswordRequestRepository.delete(resetPasswordRequest);
         } catch (Exception e) {
-            logger.warn("Failed to delete password reset request with key {}: {}", token, e.getMessage());
+            log.warn("Failed to delete password reset request with key {}: {}", token, e.getMessage());
         }
     }
 
@@ -315,7 +314,7 @@ public class AccountService {
         );
         account.setName(newName);
         accountRepository.save(account);
-        logger.debug("Successfully changed name for account ID: {} to {}", accountId, newName);
+        log.debug("Successfully changed name for account ID: {} to {}", accountId, newName);
     }
 
     /**
@@ -342,10 +341,10 @@ public class AccountService {
             String oldEmail = account.getEmail();
             account.setEmail(newEmail);
             accountRepository.save(account);
-            logger.debug("Successfully changed email for account ID: {} from {} to {}", accountId, oldEmail, newEmail);
+            log.debug("Successfully changed email for account ID: {} from {} to {}", accountId, oldEmail, newEmail);
             return;
         }
-        logger.debug("Incorrect password provided for account ID: {} during email change.", accountId);
+        log.debug("Incorrect password provided for account ID: {} during email change.", accountId);
         throw new AuthenticationFailedException("Incorrect password");
     }
 
@@ -368,11 +367,94 @@ public class AccountService {
         if (passwordEncoder.matches(currentPassword, account.getPasswordHash())) {
             account.setPasswordHash(passwordEncoder.encode(newPassword));
             accountRepository.save(account);
-            logger.debug("Successfully changed password for account ID: {}", accountId);
+            log.debug("Successfully changed password for account ID: {}", accountId);
             return;
         }
-        logger.debug("Incorrect password provided for account ID: {} during password change.", accountId);
+        log.debug("Incorrect password provided for account ID: {} during password change.", accountId);
         throw new AuthenticationFailedException("Incorrect password");
+    }
+
+    @NullMarked
+    @Transactional
+    public void lockAccount(Long accountId) {
+        Account account = accountRepository.findById(accountId).orElseThrow(
+                () -> new ResourceNotFoundException("Account not found")
+        );
+        if (account.isLocked()) {
+            log.debug("Account {} ({}) is already locked", accountId, account.getName());
+            throw new InvalidStateException("Account is already locked");
+        }
+        account.setLocked(true);
+        accountRepository.save(account);
+        log.debug("Successfully locked account {} ({})", accountId, account.getName());
+    }
+
+    @NullMarked
+    @Transactional
+    public void unlockAccount(Long accountId) {
+        Account account = accountRepository.findById(accountId).orElseThrow(
+                () -> new ResourceNotFoundException("Account not found")
+        );
+        if (!account.isLocked()) {
+            log.debug("Account {} ({}) is already unlocked", accountId, account.getName());
+            throw new InvalidStateException("Account is already unlocked");
+        }
+        account.setLocked(false);
+        accountRepository.save(account);
+        log.debug("Successfully unlocked account {} ({})", accountId, account.getName());
+    }
+
+    @NullMarked
+    @Transactional
+    public OrganizationAccount createOrganizationAccount(String name, String email, String password) {
+        Validator.create()
+                .validateName(name)
+                .validateEmail(email)
+                .validatePassword(password)
+                .throwExceptionIfInvalid();
+        if (accountRepository.existsByEmail(email)) {
+            throw new ResourceConflictException("This email is already registered");
+        }
+        OrganizationAccount organization = OrganizationAccount.builder()
+                .name(name)
+                .email(email)
+                .passwordHash(passwordEncoder.encode(password))
+                .verified(false)
+                .build();
+        OrganizationAccount savedOrganization = organizationAccountRepository.save(organization);
+        log.debug("Successfully created organization account {} ({})", savedOrganization.getId(), savedOrganization.getEmail());
+        return savedOrganization;
+    }
+
+    @NullMarked
+    @Transactional
+    public void verifyOrganizationAccount(Long organizationId) {
+        OrganizationAccount organization = organizationAccountRepository.findById(organizationId).orElseThrow(
+                () -> new ResourceNotFoundException("Organization account not found")
+        );
+        if (organization.getVerified()) {
+            throw new InvalidStateException("Organization is already verified");
+        }
+        organization.setVerified(true);
+        organizationAccountRepository.save(organization);
+        log.debug("Successfully verified organization account {} ({})", organization.getId(), organization.getEmail());
+    }
+
+    @NullMarked
+    public OrganizationAccount updateOrganizationInfo(long id, UpdateOrganizationInfoPayload payload) {
+        OrganizationAccount organization = organizationAccountRepository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException("Organization account not found")
+        );
+        String originalAliasName = organization.getAliasName();
+        payload.patchOrganization(organization);
+        if (organization.getAliasName() != null && !organization.getAliasName().isEmpty()) {
+            if (!organization.getAliasName().equals(originalAliasName) && organizationAccountRepository.existsByAliasName(organization.getAliasName())) {
+                throw new ResourceConflictException("This alias name is already taken");
+            }
+        }
+        OrganizationAccount updatedOrganization = organizationAccountRepository.save(organization);
+        log.debug("Successfully updated information for organization account {} ({})", updatedOrganization.getId(), updatedOrganization.getEmail());
+        return updatedOrganization;
     }
 
 }

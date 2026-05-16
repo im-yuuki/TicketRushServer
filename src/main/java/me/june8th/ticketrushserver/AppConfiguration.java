@@ -1,12 +1,11 @@
 package me.june8th.ticketrushserver;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import me.june8th.ticketrushserver.security.AuthenticationFilter;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import me.june8th.ticketrushserver.types.Role;
 import me.june8th.ticketrushserver.utils.ClientIPResolver;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
@@ -21,7 +20,6 @@ import org.springframework.data.redis.repository.configuration.EnableRedisReposi
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -36,17 +34,15 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 import java.net.URI;
 
+@Slf4j
 @Configuration
 @EnableScheduling
 @EnableCaching
 @EnableWebSecurity
-@EnableMethodSecurity(
-        securedEnabled = true,
-        jsr250Enabled = true
-)
 @EnableRedisRepositories(
         basePackages = "me.june8th.ticketrushserver.temp",
         enableKeyspaceEvents = RedisKeyValueAdapter.EnableKeyspaceEvents.ON_STARTUP
@@ -54,9 +50,16 @@ import java.net.URI;
 @RequiredArgsConstructor
 public class AppConfiguration implements WebMvcConfigurer {
 
-    private static final Logger logger = LoggerFactory.getLogger(AppConfiguration.class);
-
     private final ClientIPResolver clientIPResolver;
+
+    @Value("${app.s3.api}")
+    private String s3api;
+
+    @Value("${app.s3.access-id}")
+    private String s3AccessId;
+
+    @Value("${app.s3.secret-key}")
+    private String s3SecretKey;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -71,15 +74,19 @@ public class AppConfiguration implements WebMvcConfigurer {
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/feeds/**").permitAll()
                         .requestMatchers("/error/**").permitAll()
+                        .requestMatchers("/admin/**").hasRole(Role.ADMINISTRATOR.name())
+                        .requestMatchers("/organization/**").hasRole(Role.ORGANIZATION.name())
+                        .requestMatchers("/checkin/**").hasRole(Role.STAFF.name())
+                        .requestMatchers("/user/**", "/purchase/**").hasRole(Role.USER.name())
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint((request, response, authException) -> {
-                            logger.trace("{} - Authentication failed: {}", clientIPResolver.resolve(request), authException.getMessage(), authException);
+                            log.trace("{} - Authentication failed: {}", clientIPResolver.resolve(request), authException.getMessage(), authException);
                             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
                         })
                         .accessDeniedHandler((request, response, accessDeniedException) -> {
-                            logger.trace("{} - Access denied: {}", clientIPResolver.resolve(request), accessDeniedException.getMessage(), accessDeniedException);
+                            log.trace("{} - Access denied: {}", clientIPResolver.resolve(request), accessDeniedException.getMessage(), accessDeniedException);
                             response.sendError(HttpServletResponse.SC_FORBIDDEN);
                         })
                 )
@@ -119,13 +126,20 @@ public class AppConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public S3Client s3Client(@Value("${app.s3.url}") String url, @Value("${app.s3.access-id}") String accessId, @Value("${app.s3.secret-key}") String secretKey) {
+    public S3Client s3Client() {
         return S3Client.builder()
                 .region(Region.AWS_GLOBAL)
-                .endpointOverride(URI.create(url))
-                .credentialsProvider(StaticCredentialsProvider.create(
-                        AwsBasicCredentials.create(accessId, secretKey)
-                ))
+                .endpointOverride(URI.create(s3api))
+                .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(s3AccessId, s3SecretKey)))
+                .build();
+    }
+
+    @Bean
+    public S3Presigner s3Presigner() {
+        return S3Presigner.builder()
+                .region(Region.AWS_GLOBAL)
+                .endpointOverride(URI.create(s3api))
+                .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(s3AccessId, s3SecretKey)))
                 .build();
     }
 

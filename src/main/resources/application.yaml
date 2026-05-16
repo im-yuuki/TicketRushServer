@@ -3,9 +3,10 @@ app:
     secret: ${JWT_SEC:}
     access-token-expiration: 86400
   s3:
-    url: ${S3_URL}
-    access-id: ${S3_KEY_ID}
-    secret-key: ${S3_KEY_SEC}
+    api: ${S3_API}
+    bucket: ${S3_BUCKET}
+    access-id: ${S3_ID}
+    secret-key: ${S3_SEC}
   mail: ${MAIL_ADDR}
   proxied: ${APP_PROXIED:false}
 

@@ -18,6 +18,8 @@ public enum ValidateError {
     OTPCODE_INVALID("otpcode_invalid", "Invalid OTP code"),
     PHONENUMBER_INVALID("phonenumber_invalid", "Invalid phone number format"),
     NUMBER_NEGATIVE("number_negative", "Number must be non-negative"),
+    IMAGE_INVALID("image_invalid", "Invalid image file"),
+    URI_INVALID("uri_invalid", "Invalid URI format"),
 
     MISSING_REQUIRED_FIELD("missing_required_field", "Missing required field"),
     NONE("none", "");

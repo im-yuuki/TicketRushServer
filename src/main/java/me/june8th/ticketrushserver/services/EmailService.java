@@ -3,14 +3,13 @@ package me.june8th.ticketrushserver.services;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import me.june8th.ticketrushserver.temp.RegisterRequest;
 import me.june8th.ticketrushserver.temp.ResetPasswordRequest;
 import me.june8th.ticketrushserver.temp.RegisterRequestRepository;
 import me.june8th.ticketrushserver.temp.ResetPasswordRequestRepository;
 import me.june8th.ticketrushserver.utils.Validator;
 import org.jspecify.annotations.NullMarked;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -20,11 +19,10 @@ import org.thymeleaf.context.Context;
 
 import java.time.Instant;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EmailService {
-
-    private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
 
     private static final long RESEND_COOLDOWN = 90L;
     private static final String REGISTER_CONFIRMATION_SUBJECT = "Confirm your TicketRush registration";
@@ -80,7 +78,7 @@ public class EmailService {
         ctx.setVariable("otpCode", otpCode);
         String emailContent = templateEngine.process("register_confirmation_email", ctx);
 
-        logger.debug("Sending registration confirmation email to {} with OTP code {}", toAddress, otpCode);
+        log.debug("Sending registration confirmation email to {} with OTP code {}", toAddress, otpCode);
         sendHtmlEmail(toAddress, REGISTER_CONFIRMATION_SUBJECT, emailContent);
     }
 
@@ -123,7 +121,7 @@ public class EmailService {
         ctx.setVariable("otpCode", otpCode);
         String emailContent = templateEngine.process("password_reset_email", ctx);
 
-        logger.debug("Sending password reset email to {} with OTP code {}", toAddress, otpCode);
+        log.debug("Sending password reset email to {} with OTP code {}", toAddress, otpCode);
         sendHtmlEmail(toAddress, PASSWORD_RESET_SUBJECT, emailContent);
     }
 

@@ -1,6 +1,8 @@
 package me.june8th.ticketrushserver.controllers;
 
+import lombok.RequiredArgsConstructor;
 import me.june8th.ticketrushserver.data.Event;
+import me.june8th.ticketrushserver.services.StorageService;
 import me.june8th.ticketrushserver.types.NotImplementedException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,7 +14,10 @@ import java.util.Collection;
 
 @RestController
 @RequestMapping("/feeds")
+@RequiredArgsConstructor
 public class FeedsController {
+
+    private final StorageService storageService;
 
     @GetMapping("/promoted")
     public ResponseEntity<Collection<BasicEventInfo>> getPromotedEvents() {
@@ -31,9 +36,9 @@ public class FeedsController {
 
     public record BasicEventInfo(long id, String name, String imageUrl, Instant dateTime, String venue) {
 
-        public BasicEventInfo(Event event) {
-            // TODO: image url generation logic
-            this(event.getId(), event.getName(), event.getBannerKey(), event.getDateTime(), event.getVenue());
+        public BasicEventInfo(StorageService storageService, Event event) {
+            String imageUrl = storageService.generatePresignedUrl(event.getBannerKey());
+            this(event.getId(), event.getName(), imageUrl, event.getDateTime(), event.getVenue());
         }
 
     };

@@ -1,14 +1,13 @@
 package me.june8th.ticketrushserver.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import me.june8th.ticketrushserver.data.*;
 import me.june8th.ticketrushserver.repositories.*;
 import me.june8th.ticketrushserver.types.*;
 import me.june8th.ticketrushserver.utils.Validator;
 import me.june8th.ticketrushserver.types.SeatZoneData;
 import org.jspecify.annotations.NullMarked;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,13 +16,13 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EventService {
     
-    private static final Logger logger = LoggerFactory.getLogger(EventService.class);
-
     private final AccountRepository accountRepository;
+    private final OrganizationAccountRepository organizationAccountRepository;
     private final EventRepository eventRepository;
     private final SalesRoundRepository salesRoundRepository;
     private final SeatZoneRepository seatZoneRepository;
@@ -31,6 +30,7 @@ public class EventService {
     private final SeatRepository seatRepository;
     private final TicketClassRepository ticketClassRepository;
     private final PasswordEncoder passwordEncoder;
+    private final StorageService storageService;
 
     /**
      * Get an event by id.
@@ -62,7 +62,9 @@ public class EventService {
                 .validateNotBlank(address)
                 .validateFutureDate(Date.from(dateTime))
                 .throwExceptionIfInvalid();
-        OrganizationAccount org = getOrganizationAccount(orgId);
+        OrganizationAccount org = organizationAccountRepository.findById(orgId).orElseThrow(
+                () -> new ResourceNotFoundException("Organization account not found")
+        );
         Event event = Event.builder()
                 .name(eventName)
                 .organization(org)
@@ -72,7 +74,7 @@ public class EventService {
                 .dateTime(dateTime)
                 .build();
         Event savedEvent = eventRepository.save(event);
-        logger.debug("Successfully created event with ID: {} for organization ID: {}", savedEvent.getId(), orgId);
+        log.debug("Successfully created event with ID: {} for organization ID: {}", savedEvent.getId(), orgId);
         return savedEvent;
     }
 
@@ -81,26 +83,18 @@ public class EventService {
      *
      * @param orgId organization id
      * @param eventId event id
-     * @param patch patch data
+     * @param updateEventPayload update data
      * @return updated event
      */
     @NullMarked
     @Transactional
-    public Event updateEventBasicInformation(long orgId, long eventId, Event patch) {
-        Validator.create()
-                .validateName(patch.getName())
-                .validateNotBlank(patch.getVenue())
-                .validateNotBlank(patch.getAddress())
-                .validateFutureDate(Date.from(patch.getDateTime()))
-                .throwExceptionIfInvalid();
-        OrganizationAccount org = getOrganizationAccount(orgId);
-        Event event = getOrganizationEvent(org, eventId);
+    public Event updateEventBasicInformation(long orgId, long eventId, UpdateEventPayload updateEventPayload) {
+        Event event = getOrganizationEvent(orgId, eventId);
         if (event.getPublished()) throw new ForbiddenException("Published event can't be updated");
-        throw new NotImplementedException(); // TODO:
-        // PatchUtils.applyPatch(event, patch, Patchable.class);
-        // Event updatedEvent = eventRepository.save(event);
-        // logger.debug("Successfully updated basic information for event ID: {}", eventId);
-        // return updatedEvent;
+        updateEventPayload.patchEvent(event);
+        Event updatedEvent = eventRepository.save(event);
+        log.debug("Successfully updated event with ID: {} for organization ID: {}", updatedEvent.getId(), orgId);
+        return updatedEvent;
     }
 
     /**
@@ -122,8 +116,7 @@ public class EventService {
                 .validateFutureDate(Date.from(startTime))
                 .validateFutureDate(Date.from(endTime))
                 .throwExceptionIfInvalid();
-        OrganizationAccount org = getOrganizationAccount(orgId);
-        Event event = getOrganizationEvent(org, eventId);
+        Event event = getOrganizationEvent(orgId, eventId);
         if (event.getPublished()) throw new ForbiddenException("Published event can't be updated");
         SalesRound salesRound = SalesRound.builder()
                 .name(roundName)
@@ -133,7 +126,7 @@ public class EventService {
                 .maxTicketsPerPurchase(maxTicketsPerPurchase)
                 .build();
         SalesRound savedSalesRound = salesRoundRepository.save(salesRound);
-        logger.debug("Successfully added sales round with ID: {} to event ID: {}", savedSalesRound.getId(), eventId);
+        log.debug("Successfully added sales round with ID: {} to event ID: {}", savedSalesRound.getId(), eventId);
         return savedSalesRound;
     }
 
@@ -154,17 +147,16 @@ public class EventService {
                 .validateFutureDate(Date.from(patch.getStartTime()))
                 .validateFutureDate(Date.from(patch.getEndTime()))
                 .throwExceptionIfInvalid();
-        OrganizationAccount org = getOrganizationAccount(orgId);
-        Event event = getOrganizationEvent(org, eventId);
+        Event event = getOrganizationEvent(orgId, eventId);
         if (event.getPublished()) throw new ForbiddenException("Published event can't be updated");
         SalesRound salesRound = salesRoundRepository.findById(roundId).orElseThrow(
                 () -> new ResourceNotFoundException("Sales round not found")
         );
         if (!salesRound.getEvent().equals(event)) throw new InvalidStateException("Sales round does not belong to this event");
         throw new NotImplementedException(); // TODO:
-        // PatchUtils.applyPatch(salesRound, patch, Patchable.class);
+        // TODO: PatchUtils.applyPatch(salesRound, patch, Patchable.class);
         // SalesRound updatedSalesRound = salesRoundRepository.save(salesRound);
-        // logger.debug("Successfully updated sales round with ID: {} for event ID: {}", updatedSalesRound.getId(), eventId);
+        // log.debug("Successfully updated sales round with ID: {} for event ID: {}", updatedSalesRound.getId(), eventId);
         // return updatedSalesRound;
     }
 
@@ -178,14 +170,14 @@ public class EventService {
     @NullMarked
     @Transactional
     public void deleteSalesRound(long orgId, long eventId, long roundId) {
-        Event event = getOrganizationEvent(getOrganizationAccount(orgId), eventId);
+        Event event = getOrganizationEvent(orgId, eventId);
         if (event.getPublished()) throw new ForbiddenException("Published event can't be updated");
         SalesRound salesRound = salesRoundRepository.findById(roundId).orElseThrow(
                 () -> new ResourceNotFoundException("Sales round not found")
         );
         if (!salesRound.getEvent().equals(event)) throw new InvalidStateException("Sales round does not belong to this event");
         salesRoundRepository.delete(salesRound);
-        logger.debug("Successfully deleted sales round with ID: {} from event ID: {}", roundId, eventId);
+        log.debug("Successfully deleted sales round with ID: {} from event ID: {}", roundId, eventId);
     }
 
     /**
@@ -204,8 +196,7 @@ public class EventService {
                 .validateNaturalNumber(data.positionX())
                 .validateNaturalNumber(data.positionY())
                 .throwExceptionIfInvalid();
-        OrganizationAccount org = getOrganizationAccount(orgId);
-        Event event = getOrganizationEvent(org, eventId);
+        Event event = getOrganizationEvent(orgId, eventId);
         if (event.getPublished()) throw new ForbiddenException("Published event can't be updated");
         long totalSeats = 0L;
         SeatZone seatZone = SeatZone.builder()
@@ -240,7 +231,7 @@ public class EventService {
                 totalSeats++;
             }
         }
-        logger.debug(
+        log.debug(
                 "Created {} seats for seat zone {} (ID: {}), event {} (ID: {})",
                 totalSeats, seatZone.getName(), seatZone.getId(), seatZone.getEvent().getName(), seatZone.getEvent().getId()
         );
@@ -257,14 +248,14 @@ public class EventService {
     @NullMarked
     @Transactional
     public void deleteSeatZone(long orgId, long eventId, long zoneId) {
-        Event event = getOrganizationEvent(getOrganizationAccount(orgId), eventId);
+        Event event = getOrganizationEvent(orgId, eventId);
         if (event.getPublished()) throw new ForbiddenException("Published event can't be updated");
         SeatZone seatZone = seatZoneRepository.findById(zoneId).orElseThrow(
                 () -> new ResourceNotFoundException("Seat zone not found")
         );
         if (!seatZone.getEvent().equals(event)) throw new InvalidStateException("Seat zone does not belong to this event");
         seatZoneRepository.delete(seatZone);
-        logger.debug("Successfully deleted seat zone with ID: {} from event ID: {}", zoneId, eventId);
+        log.debug("Successfully deleted seat zone with ID: {} from event ID: {}", zoneId, eventId);
     }
 
     /**
@@ -287,7 +278,7 @@ public class EventService {
                 .validateNotBlank(description)
                 .validateNaturalNumber(price)
                 .throwExceptionIfInvalid();
-        Event event = getOrganizationEvent(getOrganizationAccount(orgId), eventId);
+        Event event = getOrganizationEvent(orgId, eventId);
         if (event.getPublished()) throw new ForbiddenException("Published event can't be updated");
         SalesRound salesRound = salesRoundRepository.findById(salesRoundId).orElseThrow(
                 () -> new ResourceNotFoundException("Sales round not found")
@@ -305,7 +296,7 @@ public class EventService {
                 .seatZone(seatZone)
                 .build();
         TicketClass savedTicketClass = ticketClassRepository.save(ticketClass);
-        logger.debug("Successfully created ticket class with ID: {} for event ID: {}", savedTicketClass.getId(), eventId);
+        log.debug("Successfully created ticket class with ID: {} for event ID: {}", savedTicketClass.getId(), eventId);
         return savedTicketClass;
     }
 
@@ -319,14 +310,14 @@ public class EventService {
     @NullMarked
     @Transactional
     public void deleteTicketClass(long orgId, long eventId, long ticketClassId) {
-        Event event = getOrganizationEvent(getOrganizationAccount(orgId), eventId);
+        Event event = getOrganizationEvent(orgId, eventId);
         if (event.getPublished()) throw new ForbiddenException("Published event can't be updated");
         TicketClass ticketClass = ticketClassRepository.findById(ticketClassId).orElseThrow(
                 () -> new ResourceNotFoundException("Ticket class not found")
         );
         if (!ticketClass.getSalesRound().getEvent().equals(event)) throw new InvalidStateException("Ticket class does not belong to this event");
         ticketClassRepository.delete(ticketClass);
-        logger.debug("Successfully deleted ticket class with ID: {} from event ID: {}", ticketClassId, eventId);
+        log.debug("Successfully deleted ticket class with ID: {} from event ID: {}", ticketClassId, eventId);
     }
 
     /**
@@ -338,12 +329,11 @@ public class EventService {
     @NullMarked
     @Transactional
     public void publishEvent(long orgId, long eventId) {
-        OrganizationAccount org = getOrganizationAccount(orgId);
-        Event event = getOrganizationEvent(org, eventId);
+        Event event = getOrganizationEvent(orgId, eventId);
         if (event.getPublished()) throw new InvalidStateException("Event is already published");
         event.setPublished(true);
         eventRepository.save(event);
-        logger.debug("Successfully published event with ID: {}", eventId);
+        log.debug("Successfully published event with ID: {}", eventId);
     }
 
     /**
@@ -364,7 +354,7 @@ public class EventService {
                 .validateEmail(email)
                 .validatePassword(password)
                 .throwExceptionIfInvalid();
-        Event event = getOrganizationEvent(getOrganizationAccount(orgId), eventId);
+        Event event = getOrganizationEvent(orgId, eventId);
         if (!event.getPublished()) throw new ForbiddenException("Staff accounts is only available for published events");
         if (accountRepository.existsByEmail(email)) {
             throw new ResourceConflictException("This email is already registered");
@@ -376,7 +366,7 @@ public class EventService {
                 .event(event)
                 .build();
         eventStaffAccount = accountRepository.save(eventStaffAccount);
-        logger.debug("Successfully added event staff account with ID: {} to event ID: {}", eventStaffAccount.getId(), eventId);
+        log.debug("Successfully added event staff account with ID: {} to event ID: {}", eventStaffAccount.getId(), eventId);
         return eventStaffAccount;
     }
 
@@ -388,7 +378,7 @@ public class EventService {
      * @param staffId staff account id
      */
     public void deleteEventStaffAccount(long orgId, long eventId, long staffId) {
-        Event event = getOrganizationEvent(getOrganizationAccount(orgId), eventId);
+        Event event = getOrganizationEvent(orgId, eventId);
         if (event.getPublished()) throw new ForbiddenException("Staff accounts is only available for published events");
         Account staffAccount = accountRepository.findById(staffId).orElseThrow(
                 () -> new ResourceNotFoundException("Account not found")
@@ -397,7 +387,7 @@ public class EventService {
             if (!event.equals(eventStaffAccount.getEvent()))
                 throw new InvalidStateException("Account is not associated with this event");
             accountRepository.delete(staffAccount);
-            logger.debug("Successfully deleted event staff account with ID: {} from event ID: {}", staffId, eventId);
+            log.debug("Successfully deleted event staff account with ID: {} from event ID: {}", staffId, eventId);
         }
         throw new InvalidStateException("Account is not an event staff account");
     }
@@ -411,28 +401,30 @@ public class EventService {
     @NullMarked
     @Transactional
     public void deleteEvent(long orgId, long eventId) {
-        OrganizationAccount org = getOrganizationAccount(orgId);
-        Event event = getOrganizationEvent(org, eventId);
+        Event event = getOrganizationEvent(orgId, eventId);
         if (event.getPublished()) throw new ForbiddenException("Published event can't be deleted");
         eventRepository.delete(event);
-        logger.debug("Successfully deleted event with ID: {}", eventId);
+        log.debug("Successfully deleted event with ID: {}", eventId);
     }
 
-    public OrganizationAccount getOrganizationAccount(long id) {
-        Account account = accountRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Account not found")
+    public ArrayList<Event> getAllOrganizationEvents(long orgId) {
+        OrganizationAccount org = organizationAccountRepository.findById(orgId).orElseThrow(
+                () -> new ResourceNotFoundException("Organization account not found")
         );
-        if (Role.ORGANIZATION.equals(account.getRole())) {
-            logger.trace("Successfully retrieved organization account with ID: {}", id);
-            return (OrganizationAccount) account;
-        }
-        throw new InvalidStateException("Account is not an organization");
+        return getAllOrganizationEvents(org);
     }
 
     public ArrayList<Event> getAllOrganizationEvents(OrganizationAccount org) {
         ArrayList<Event> events = eventRepository.findAllByOrganization(org);
-        logger.trace("Successfully retrieved {} events for organization ID: {}", events.size(), org.getId());
+        log.trace("Successfully retrieved {} events for organization ID: {}", events.size(), org.getId());
         return events;
+    }
+
+    public Event getOrganizationEvent(long orgId, long eventId) {
+        OrganizationAccount org = organizationAccountRepository.findById(orgId).orElseThrow(
+                () -> new ResourceNotFoundException("Organization account not found")
+        );
+        return getOrganizationEvent(org, eventId);
     }
 
     public Event getOrganizationEvent(OrganizationAccount org, long eventId) {
@@ -440,7 +432,7 @@ public class EventService {
                 () -> new ResourceNotFoundException("Event not found")
         );
         if (org.equals(event.getOrganization())) {
-            logger.trace("Successfully retrieved event ID: {} for organization ID: {}", eventId, org.getId());
+            log.trace("Successfully retrieved event ID: {} for organization ID: {}", eventId, org.getId());
             return event;
         }
         throw new InvalidStateException("The event does not belong to this organization");

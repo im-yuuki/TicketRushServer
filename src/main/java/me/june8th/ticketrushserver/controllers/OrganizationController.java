@@ -1,14 +1,16 @@
 package me.june8th.ticketrushserver.controllers;
 
-import jakarta.annotation.security.RolesAllowed;
 import lombok.RequiredArgsConstructor;
 import me.june8th.ticketrushserver.data.Event;
 import me.june8th.ticketrushserver.data.OrganizationAccount;
 import me.june8th.ticketrushserver.services.AccountService;
 import me.june8th.ticketrushserver.services.EventService;
+import me.june8th.ticketrushserver.services.StorageService;
 import me.june8th.ticketrushserver.types.ForbiddenException;
 import me.june8th.ticketrushserver.types.NotImplementedException;
 import me.june8th.ticketrushserver.types.OperationResult;
+import me.june8th.ticketrushserver.types.UpdateOrganizationInfoPayload;
+import me.june8th.ticketrushserver.types.UpdateEventPayload;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -18,30 +20,34 @@ import java.util.Collection;
 
 @RestController
 @RequestMapping("/organization")
-@RolesAllowed("ROLE_ORGANIZATION")
 @RequiredArgsConstructor
 public class OrganizationController {
 
     private final AccountService accountService;
     private final EventService eventService;
+    private final StorageService storageService;
 
     @GetMapping("/info")
     public ResponseEntity<FullOrganizationInfo> getInfo(@AuthenticationPrincipal long id) {
         if (accountService.getAccountData(id) instanceof OrganizationAccount org) {
-            return ResponseEntity.ok(new FullOrganizationInfo(org));
+            return ResponseEntity.ok(new FullOrganizationInfo(storageService, org));
         }
         throw new ForbiddenException("You do not have permission to access this resource");
     }
 
     @PutMapping("/info")
     public ResponseEntity<OperationResult> updateInfo(@AuthenticationPrincipal long id, @RequestBody UpdateOrganizationInfoPayload payload) {
-        throw new NotImplementedException();
+        accountService.updateOrganizationInfo(id, payload);
+        return ResponseEntity.ok(OperationResult.success("Organization information updated successfully"));
     }
 
     @GetMapping("/events")
     public ResponseEntity<Collection<BasicEventInfo>> getEvents(@AuthenticationPrincipal long id) {
-        OrganizationAccount org = eventService.getOrganizationAccount(id);
-        return ResponseEntity.ok(eventService.getAllOrganizationEvents(org).stream().map(BasicEventInfo::new).toList());
+        return ResponseEntity.ok(
+                eventService.getAllOrganizationEvents(id).stream()
+                .map(event -> new BasicEventInfo(storageService, event))
+                .toList()
+        );
     }
 
     @PostMapping("/events")
@@ -52,13 +58,13 @@ public class OrganizationController {
 
     @GetMapping("/events/{eventId}")
     public ResponseEntity<FullEventInfo> getEventDetails(@AuthenticationPrincipal long id, @PathVariable long eventId) {
-        OrganizationAccount org = eventService.getOrganizationAccount(id);
-        return ResponseEntity.ok(new FullEventInfo(eventService.getOrganizationEvent(org, eventId)));
+        return ResponseEntity.ok(new FullEventInfo(storageService, eventService.getOrganizationEvent(id, eventId)));
     }
 
     @PutMapping("/events/{eventId}")
-    public ResponseEntity<OperationResult> updateEvent(@AuthenticationPrincipal long id, @PathVariable long eventId) {
-        throw new NotImplementedException();
+    public ResponseEntity<OperationResult> updateEvent(@AuthenticationPrincipal long id, @PathVariable long eventId, @RequestBody UpdateEventPayload payload) {
+        eventService.updateEventBasicInformation(id, eventId, payload);
+        return ResponseEntity.ok(OperationResult.success("Event updated successfully"));
     }
 
     @DeleteMapping("/events/{eventId}")
@@ -87,7 +93,7 @@ public class OrganizationController {
             String websiteUrl
     ) {
 
-        public FullOrganizationInfo(OrganizationAccount org) {
+        public FullOrganizationInfo(StorageService storageService, OrganizationAccount org) {
             this(
                     org.getId(),
                     org.getName(),
@@ -97,19 +103,13 @@ public class OrganizationController {
                     org.getVerified(),
                     org.getDescription(),
                     org.getAliasName(),
-                    org.getAvatarKey(), // TODO: avatar url generation logic
-                    org.getBannerKey(), // TODO: banner url generation logic
+                    storageService.generatePresignedUrl(org.getAvatarKey()),
+                    storageService.generatePresignedUrl(org.getBannerKey()),
                     org.getWebsiteUrl()
             );
         }
 
     }
-
-    public record UpdateOrganizationInfoPayload(
-            String description,
-            String aliasName,
-            String websiteUrl
-    ) {}
 
     public record BasicEventInfo(
             long id,
@@ -118,11 +118,11 @@ public class OrganizationController {
             Instant dateTime,
             String venue
     ) {
-        public BasicEventInfo(Event event) {
+        public BasicEventInfo(StorageService storageService, Event event) {
             this(
                     event.getId(),
                     event.getName(),
-                    event.getBannerKey(), // TODO: banner url generation logic
+                    storageService.generatePresignedUrl(event.getBannerKey()),
                     event.getDateTime(),
                     event.getVenue()
             );
@@ -142,7 +142,7 @@ public class OrganizationController {
             Instant createdAt,
             Instant updatedAt
     ) {
-        public FullEventInfo(Event event) {
+        public FullEventInfo(StorageService storageService, Event event) {
             this(
                     event.getId(),
                     event.getName(),
@@ -152,7 +152,7 @@ public class OrganizationController {
                     event.getVenue(),
                     event.getAddress(),
                     event.getDateTime(),
-                    event.getBannerKey(), // TODO: banner url generation logic
+                    storageService.generatePresignedUrl(event.getBannerKey()),
                     event.getCreatedAt(),
                     event.getUpdatedAt()
             );

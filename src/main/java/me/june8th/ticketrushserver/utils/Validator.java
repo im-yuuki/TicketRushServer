@@ -2,14 +2,22 @@ package me.june8th.ticketrushserver.utils;
 
 import lombok.Getter;
 import me.june8th.ticketrushserver.types.ValidateError;
+import org.apache.tomcat.util.http.fileupload.FileUploadException;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.Collection;
 import java.util.Date;
+import java.util.Set;
 
 public class Validator {
 
     private static final String EMAIL_REGEX = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
     private static final String PHONE_REGEX = "^\\+?[0-9]{7,15}$";
     private static final long ONE_YEAR_IN_MILLIS = 365L * 24 * 60 * 60 * 1000;
+    private static final Collection<String> allowedImageTypes = Set.of("image/jpeg", "image/png", "image/webp");
 
     @Getter
     private ValidateError error = ValidateError.NONE;
@@ -128,6 +136,56 @@ public class Validator {
         return this;
     }
 
+    public Validator validateUri(String uri) {
+        if (internalCommonBreakMethod(uri)) return this;
+        try {
+            new URI(uri);
+        } catch (Exception e) {
+            error = ValidateError.URI_INVALID;
+        }
+        return this;
+    }
+
+    public Validator validateImageFile(MultipartFile file, long maxSizeBytes) {
+        if (internalCommonBreakMethod(file)) return this;
+        try {
+            if (file.getSize() > maxSizeBytes || file.getSize() < 1024) {
+                throw new FileUploadException("Invalid file size: " + file.getSize() + " bytes");
+            }
+            String contentType = file.getContentType();
+            if (contentType == null || !allowedImageTypes.contains(contentType)) {
+                throw new FileUploadException("Unsupported file type: " + contentType);
+            }
+            // Magic-bytes check (don't trust Content-Type header alone)
+            InputStream is = file.getInputStream();
+            byte[] header = is.readNBytes(12);
+            if (!isValidImageHeader(header)) {
+                throw new FileUploadException("File content does not match a valid image");
+            }
+        } catch (IOException e) {
+            error = ValidateError.IMAGE_INVALID;
+        }
+        return this;
+    }
+
+    private boolean isValidImageHeader(byte[] h) {
+        // JPEG: FF D8 FF
+        if (h.length >= 3 && h[0] == (byte)0xFF && h[1] == (byte)0xD8 && h[2] == (byte)0xFF) return true;
+        // PNG: 89 50 4E 47 0D 0A 1A 0A
+        if (h.length >= 8 &&
+                h[0]==(byte)0x89 && h[1]==0x50 && h[2]==0x4E && h[3]==0x47 &&
+                h[4]==0x0D && h[5]==0x0A && h[6]==(byte)0x1A && h[7]==0x0A) return true;
+        // WebP: 52 49 46 46 ?? ?? ?? ?? 57 45 42 50
+        if (h.length >= 12 &&
+                h[0]==0x52 && h[1]==0x49 && h[2]==0x46 && h[3]==0x46 &&
+                h[8]==0x57 && h[9]==0x45 && h[10]==0x42 && h[11]==0x50) return true;
+        return false;
+    }
+
+    public static Validator create() {
+        return new Validator();
+    }
+
     public boolean isValid() {
         return error == ValidateError.NONE;
     }
@@ -136,24 +194,6 @@ public class Validator {
         if (error != ValidateError.NONE) {
             throw new IllegalArgumentException(error.getMessage());
         }
-    }
-
-    public static Validator create() {
-        return new Validator();
-    }
-
-    public interface Validatable {
-
-        Validator getValidator();
-
-        default boolean isValid() {
-            return getValidator().isValid();
-        }
-
-        default void throwExceptionIfInvalid() {
-            getValidator().throwExceptionIfInvalid();
-        }
-
     }
 
 }
