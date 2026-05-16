@@ -54,7 +54,7 @@ public class MyAccountController {
         return ResponseEntity.ok(OperationResult.success("Logged out from all devices. Please log in again."));
     }
 
-    public record BasicUserInfo(long id, String name, String email, String avatarUrl) {
+    public record BasicUserInfo(long id, String name, String email, String avatarUrl, String role) {
 
         public BasicUserInfo(StorageService storageService, Account account) {
             String avatarUrl = switch (account) {
@@ -62,7 +62,7 @@ public class MyAccountController {
                 case OrganizationAccount organizationAccount -> storageService.generatePresignedUrl(organizationAccount.getAvatarKey());
                 default -> null;
             };
-            this(account.getId(), account.getName(), account.getEmail(), avatarUrl);
+            this(account.getId(), account.getName(), account.getEmail(), avatarUrl, account.getRole().name());
         }
 
     }
