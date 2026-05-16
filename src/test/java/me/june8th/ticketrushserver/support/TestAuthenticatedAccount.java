@@ -13,6 +13,8 @@ import me.june8th.ticketrushserver.types.AccessTokenData;
 import me.june8th.ticketrushserver.types.Gender;
 import me.june8th.ticketrushserver.types.Role;
 import me.june8th.ticketrushserver.utils.CookieUtils;
+import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.authentication.ott.OneTimeTokenAuthentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.FactorGrantedAuthority;
@@ -24,6 +26,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Properties;
 
 @Builder
 public record TestAuthenticatedAccount(
@@ -36,26 +39,30 @@ public record TestAuthenticatedAccount(
         String avatarKey
 ) {
 
-    private static final String ID_ENV = "TEST_AUTH_ACCOUNT_ID";
-    private static final String NAME_ENV = "TEST_AUTH_ACCOUNT_NAME";
-    private static final String EMAIL_ENV = "TEST_AUTH_ACCOUNT_EMAIL";
-    private static final String ROLE_ENV = "TEST_AUTH_ACCOUNT_ROLE";
-    private static final String DOMAIN_ENV = "TEST_AUTH_ACCOUNT_DOMAIN";
-    private static final String TOKEN_VERSION_ENV = "TEST_AUTH_ACCOUNT_TOKEN_VERSION";
-    private static final String AVATAR_KEY_ENV = "TEST_AUTH_ACCOUNT_AVATAR_KEY";
+    private static final String CONFIG_PREFIX = "test.auth.account.";
+    private static final TestAuthenticatedAccount DEFAULT_ACCOUNT = TestAuthenticatedAccount.builder()
+            .id(42L)
+            .name("Test User")
+            .email("test.user@example.com")
+            .role(Role.USER)
+            .domain("42")
+            .tokenVersion(0)
+            .avatarKey("avatars/test-user.png")
+            .build();
 
-    public static TestAuthenticatedAccount fromEnvironment() {
-        long id = parseLong(System.getenv(ID_ENV), 1L);
-        Role role = Role.fromString(System.getenv().getOrDefault(ROLE_ENV, Role.USER.name()));
+    public static TestAuthenticatedAccount fromApplicationTestConfig() {
+        Properties properties = loadProperties();
+        long id = parseLong(properties.getProperty(CONFIG_PREFIX + "id"), DEFAULT_ACCOUNT.id());
+        Role role = Role.fromString(properties.getProperty(CONFIG_PREFIX + "role", DEFAULT_ACCOUNT.role().name()));
         String defaultDomain = role == Role.STAFF ? "100" : String.valueOf(id);
         return TestAuthenticatedAccount.builder()
                 .id(id)
-                .name(System.getenv().getOrDefault(NAME_ENV, "Test User"))
-                .email(System.getenv().getOrDefault(EMAIL_ENV, "test.user@example.com"))
+                .name(properties.getProperty(CONFIG_PREFIX + "name", DEFAULT_ACCOUNT.name()))
+                .email(properties.getProperty(CONFIG_PREFIX + "email", DEFAULT_ACCOUNT.email()))
                 .role(role)
-                .domain(System.getenv().getOrDefault(DOMAIN_ENV, defaultDomain))
-                .tokenVersion((int) parseLong(System.getenv(TOKEN_VERSION_ENV), 0L))
-                .avatarKey(emptyToNull(System.getenv(AVATAR_KEY_ENV)))
+                .domain(properties.getProperty(CONFIG_PREFIX + "domain", defaultDomain))
+                .tokenVersion((int) parseLong(properties.getProperty(CONFIG_PREFIX + "token-version"), DEFAULT_ACCOUNT.tokenVersion()))
+                .avatarKey(emptyToNull(properties.getProperty(CONFIG_PREFIX + "avatar-key", DEFAULT_ACCOUNT.avatarKey())))
                 .build();
     }
 
@@ -146,6 +153,13 @@ public record TestAuthenticatedAccount(
     private static long parseLong(String value, long defaultValue) {
         if (value == null || value.isBlank()) return defaultValue;
         return Long.parseLong(value);
+    }
+
+    private static Properties loadProperties() {
+        YamlPropertiesFactoryBean yaml = new YamlPropertiesFactoryBean();
+        yaml.setResources(new ClassPathResource("application-test.yml"));
+        Properties properties = yaml.getObject();
+        return properties == null ? new Properties() : properties;
     }
 
     private static String emptyToNull(String value) {

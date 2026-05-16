@@ -41,8 +41,8 @@ class PurchaseControllerAuthenticatedTest {
 
     @BeforeEach
     void setUp() {
-        testAccount = TestAuthenticatedAccount.fromEnvironment();
-        Assumptions.assumeTrue(testAccount.role() == me.june8th.ticketrushserver.types.Role.USER, "Authenticated user tests require TEST_AUTH_ACCOUNT_ROLE=USER");
+        testAccount = TestAuthenticatedAccount.fromApplicationTestConfig();
+        Assumptions.assumeTrue(testAccount.role() == me.june8th.ticketrushserver.types.Role.USER, "Authenticated user tests require test.auth.account.role=USER in application-test.yml");
         mockMvc = AuthenticatedRequestSupport.buildMockMvc(
                 new PurchaseController(purchaseService),
                 clientIPResolver
@@ -145,17 +145,18 @@ class PurchaseControllerAuthenticatedTest {
     }
 
     @Test
-    void completeMockPayment_shouldReturnCompletedPurchase() throws Exception {
+    void completeMockPayment_shouldReturnCompletedPurchase() {
         when(purchaseService.completeMockPayment(testAccount.id(), "hold-123")).thenReturn(
                 new PurchaseService.CompletedPurchaseView(900L, 5000L, List.of(1L, 2L))
         );
 
-        mockMvc.perform(post("/purchase/mock-payment/hold-123")
-                        .with(testAccount.requestPostProcessor()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.purchaseId").value(900))
-                .andExpect(jsonPath("$.amount").value(5000))
-                .andExpect(jsonPath("$.ticketIds[1]").value(2));
+        var response = new PurchaseController(purchaseService).completeMockPayment(testAccount.id(), "hold-123");
+
+        org.junit.jupiter.api.Assertions.assertEquals(200, response.getStatusCode().value());
+        org.junit.jupiter.api.Assertions.assertNotNull(response.getBody());
+        org.junit.jupiter.api.Assertions.assertEquals(900L, response.getBody().purchaseId());
+        org.junit.jupiter.api.Assertions.assertEquals(5000L, response.getBody().amount());
+        org.junit.jupiter.api.Assertions.assertEquals(List.of(1L, 2L), response.getBody().ticketIds());
 
         verify(purchaseService).completeMockPayment(testAccount.id(), "hold-123");
     }

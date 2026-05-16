@@ -43,8 +43,8 @@ class MyAccountControllerAuthenticatedTest {
 
     @BeforeEach
     void setUp() {
-        testAccount = TestAuthenticatedAccount.fromEnvironment();
-        Assumptions.assumeTrue(testAccount.role() == me.june8th.ticketrushserver.types.Role.USER, "Authenticated user tests require TEST_AUTH_ACCOUNT_ROLE=USER");
+        testAccount = TestAuthenticatedAccount.fromApplicationTestConfig();
+        Assumptions.assumeTrue(testAccount.role() == me.june8th.ticketrushserver.types.Role.USER, "Authenticated user tests require test.auth.account.role=USER in application-test.yml");
         mockMvc = AuthenticatedRequestSupport.buildMockMvc(
                 new MyAccountController(accountService, storageService),
                 clientIPResolver
