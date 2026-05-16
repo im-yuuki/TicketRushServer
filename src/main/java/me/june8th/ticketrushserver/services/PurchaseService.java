@@ -23,6 +23,23 @@ import me.june8th.ticketrushserver.types.InvalidStateException;
 import me.june8th.ticketrushserver.types.ResourceConflictException;
 import me.june8th.ticketrushserver.types.ResourceNotFoundException;
 import me.june8th.ticketrushserver.types.TimedOutException;
+import me.june8th.ticketrushserver.types.PurchaseData.ActiveHoldView;
+import me.june8th.ticketrushserver.types.PurchaseData.CompletedPurchaseView;
+import me.june8th.ticketrushserver.types.PurchaseData.HeldItemView;
+import me.june8th.ticketrushserver.types.PurchaseData.HoldCart;
+import me.june8th.ticketrushserver.types.PurchaseData.HoldCartItem;
+import me.june8th.ticketrushserver.types.PurchaseData.HoldCartSnapshot;
+import me.june8th.ticketrushserver.types.PurchaseData.HoldItemRequest;
+import me.june8th.ticketrushserver.types.PurchaseData.HoldView;
+import me.june8th.ticketrushserver.types.PurchaseData.MockPaymentDetails;
+import me.june8th.ticketrushserver.types.PurchaseData.PurchaseEventView;
+import me.june8th.ticketrushserver.types.PurchaseData.SalesRoundView;
+import me.june8th.ticketrushserver.types.PurchaseData.SeatRowView;
+import me.june8th.ticketrushserver.types.PurchaseData.SeatStatusCollectionView;
+import me.june8th.ticketrushserver.types.PurchaseData.SeatView;
+import me.june8th.ticketrushserver.types.PurchaseData.SeatZoneView;
+import me.june8th.ticketrushserver.types.PurchaseData.TicketClassView;
+import me.june8th.ticketrushserver.types.PurchaseData.UserTicketView;
 import me.june8th.ticketrushserver.utils.RandomGenerator;
 import org.springframework.stereotype.Service;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -52,30 +69,41 @@ public class PurchaseService {
     private static final String HOLD_CART_KEY_PREFIX = "ticketrush:hold:cart:";
     private static final String HOLD_USER_KEY_PREFIX = "ticketrush:hold:user:";
 
-    private static final DefaultRedisScript<Long> ACQUIRE_HOLD_SCRIPT = createScript("""
-            local seatCount = tonumber(ARGV[1])
-            local holdId = ARGV[2]
-            local ttl = tonumber(ARGV[3])
-            local cartJson = ARGV[4]
-            local userKeyIndex = seatCount + 1
-            local cartKeyIndex = seatCount + 2
+    private static final DefaultRedisScript<Long> CREATE_HOLD_SCRIPT = createScript("""
+            local holdId = ARGV[1]
+            local ttl = tonumber(ARGV[2])
+            local cartJson = ARGV[3]
 
-            for i = 1, seatCount do
-                if redis.call('EXISTS', KEYS[i]) == 1 then
-                    return 0
-                end
-            end
-
-            if redis.call('EXISTS', KEYS[userKeyIndex]) == 1 then
+            if redis.call('EXISTS', KEYS[1]) == 1 then
                 return -1
             end
 
-            for i = 1, seatCount do
-                redis.call('SET', KEYS[i], holdId, 'EX', ttl)
+            redis.call('SET', KEYS[1], holdId, 'EX', ttl)
+            redis.call('SET', KEYS[2], cartJson, 'EX', ttl)
+            return 1
+            """);
+
+    private static final DefaultRedisScript<Long> ADD_SEAT_TO_HOLD_SCRIPT = createScript("""
+            local holdId = ARGV[1]
+            local ttl = tonumber(ARGV[2])
+            local currentCartJson = ARGV[3]
+            local nextCartJson = ARGV[4]
+
+            if redis.call('GET', KEYS[1]) ~= holdId then
+                return -1
             end
 
-            redis.call('SET', KEYS[userKeyIndex], holdId, 'EX', ttl)
-            redis.call('SET', KEYS[cartKeyIndex], cartJson, 'EX', ttl)
+            if redis.call('GET', KEYS[2]) ~= currentCartJson then
+                return -2
+            end
+
+            if redis.call('EXISTS', KEYS[3]) == 1 then
+                return 0
+            end
+
+            redis.call('SET', KEYS[1], holdId, 'EX', ttl)
+            redis.call('SET', KEYS[2], nextCartJson, 'EX', ttl)
+            redis.call('SET', KEYS[3], holdId, 'EX', ttl)
             return 1
             """);
 
@@ -146,112 +174,41 @@ public class PurchaseService {
                 ))
                 .toList();
 
-        List<String> seatKeys = seats.stream().map(seat -> seatKey(seat.getId())).toList();
-        List<String> seatHoldValues = seats.isEmpty() ? List.of() : stringRedisTemplate.opsForValue().multiGet(seatKeys);
-        String myHoldId = myHold == null ? null : myHold.holdId();
-
-        Map<Long, String> seatAvailability = new HashMap<>();
-        for (int i = 0; i < seats.size(); i++) {
-            Seat seat = seats.get(i);
-            String holdValue = seatHoldValues != null && i < seatHoldValues.size() ? seatHoldValues.get(i) : null;
-            String availability = "AVAILABLE";
-            if (seat.getAssociatedTicket() != null) {
-                availability = "SOLD";
-            }
-            else if (holdValue != null && holdValue.equals(myHoldId)) {
-                availability = "HELD_BY_ME";
-            }
-            else if (holdValue != null) {
-                availability = "HELD";
-            }
-            seatAvailability.put(seat.getId(), availability);
-        }
-
-        Map<Long, SeatZoneBuilder> zoneBuilders = new LinkedHashMap<>();
-        for (Seat seat : seats) {
-            var seatRow = seat.getSeatRow();
-            var seatZone = seatRow.getSeatZone();
-            SeatZoneBuilder zoneBuilder = zoneBuilders.computeIfAbsent(
-                    seatZone.getId(),
-                    ignored -> new SeatZoneBuilder(seatZone.getId(), seatZone.getName(), seatZone.getPositionX(), seatZone.getPositionY())
-            );
-            zoneBuilder.addSeat(
-                    seatRow.getId(),
-                    seatRow.getIndex(),
-                    seatRow.getLabel(),
-                    new SeatView(seat.getId(), seat.getIndex(), seat.getNumber(), seatAvailability.get(seat.getId()))
-            );
-        }
-
-        ActiveHoldView myActiveHold = myHold == null ? null : new ActiveHoldView(myHold.holdId(), myHold.expiresAt(), myHold.totalAmount());
+        SeatStatusCollectionView seatStatusCollection = buildSeatStatusCollection(myHold, seats, eventId);
         return new PurchaseEventView(
                 event.getId(),
                 event.getName(),
                 event.getDateTime(),
                 activeSalesRounds,
                 activeTicketClasses,
-                zoneBuilders.values().stream().map(SeatZoneBuilder::toView).toList(),
-                myActiveHold
+                seatStatusCollection.seatZones(),
+                seatStatusCollection.myActiveHold()
         );
     }
 
-    public HoldView createHold(long userId, long eventId, List<HoldItemRequest> items) {
-        if (items == null || items.isEmpty()) {
-            throw new IllegalArgumentException("At least one seat must be selected");
-        }
+    @Transactional(readOnly = true)
+    public SeatStatusCollectionView getSeatStatuses(long userId, long eventId) {
+        Instant now = Instant.now();
+        Event event = eventService.getPublishedEvent(eventId);
+        ensurePurchasable(event, now);
+        HoldCart myHold = findUserEventHold(userId, eventId);
+        return buildSeatStatusCollection(myHold, seatRepository.findAllByEventId(eventId), eventId);
+    }
+
+    public HoldView createHold(long userId, long eventId) {
         getUser(userId);
 
         Instant now = Instant.now();
         Event event = eventService.getPublishedEvent(eventId);
         ensurePurchasable(event, now);
 
-        validateHoldItemIds(items);
-
-        List<Long> seatIds = items.stream().map(HoldItemRequest::seatId).toList();
-        ensureUniqueSeatSelection(seatIds);
-
-        List<Seat> seats = seatRepository.findAllById(seatIds);
-        if (seats.size() != seatIds.size()) {
-            throw new ResourceNotFoundException("One or more seats were not found");
-        }
-        Map<Long, Seat> seatMap = seatsById(seats);
-
-        List<Long> ticketClassIds = items.stream().map(HoldItemRequest::ticketClassId).distinct().toList();
-        List<TicketClass> ticketClasses = ticketClassRepository.findAllById(ticketClassIds);
-        if (ticketClasses.size() != ticketClassIds.size()) {
-            throw new ResourceNotFoundException("One or more ticket classes were not found");
-        }
-        Map<Long, TicketClass> ticketClassMap = ticketClassesById(ticketClasses);
-
-        validatePurchaseSelection(eventId, items, seatMap, ticketClassMap, now);
-
-        for (Seat seat : seats) {
-            if (seat.getAssociatedTicket() != null) {
-                throw new ResourceConflictException("One or more seats are already sold");
-            }
-        }
-
-        List<HoldCartItem> holdItems = new ArrayList<>(items.size());
-        long totalAmount = 0L;
-        for (HoldItemRequest item : items) {
-            TicketClass ticketClass = ticketClassMap.get(item.ticketClassId());
-            totalAmount = Math.addExact(totalAmount, ticketClass.getPrice());
-            holdItems.add(new HoldCartItem(item.seatId(), item.ticketClassId(), ticketClass.getPrice()));
-        }
-
         String holdId = RandomGenerator.generateRequestKey();
         Instant expiresAt = now.plusSeconds(HOLD_TTL_SECONDS);
-        HoldCart holdCart = new HoldCart(holdId, userId, eventId, expiresAt, totalAmount, holdItems);
-
-        List<String> keys = new ArrayList<>(seatIds.size() + 2);
-        seatIds.forEach(seatId -> keys.add(seatKey(seatId)));
-        keys.add(userEventKey(userId, eventId));
-        keys.add(cartKey(holdId));
+        HoldCart holdCart = new HoldCart(holdId, userId, eventId, expiresAt, 0L, List.of());
 
         Long result = stringRedisTemplate.execute(
-                ACQUIRE_HOLD_SCRIPT,
-                keys,
-                String.valueOf(seatIds.size()),
+                CREATE_HOLD_SCRIPT,
+                List.of(userEventKey(userId, eventId), cartKey(holdId)),
                 holdId,
                 String.valueOf(HOLD_TTL_SECONDS),
                 serializeHoldCart(holdCart)
@@ -261,11 +218,85 @@ public class PurchaseService {
             throw new InvalidStateException("You already have an active hold for this event");
         }
         if (!Objects.equals(result, 1L)) {
-            throw new ResourceConflictException("One or more seats are no longer available");
+            throw new InvalidStateException("Failed to create seat hold");
         }
 
-        log.debug("Created hold {} for user {} on event {}", holdId, userId, eventId);
+        log.debug("Created empty hold {} for user {} on event {}", holdId, userId, eventId);
         return toHoldView(holdCart);
+    }
+
+    public HoldView addSeatToHold(long userId, String holdId, HoldItemRequest item) {
+        validateHoldItemIds(List.of(item));
+        HoldCartSnapshot snapshot = getOwnedHoldSnapshot(userId, holdId);
+        HoldCart holdCart = snapshot.holdCart();
+        Instant now = Instant.now();
+
+        Event event = eventService.getPublishedEvent(holdCart.eventId());
+        ensurePurchasable(event, now);
+        ensureSeatNotAlreadyInHold(holdCart, item.seatId());
+
+        List<HoldItemRequest> nextItems = new ArrayList<>(holdCart.items().size() + 1);
+        holdCart.items().forEach(existingItem -> nextItems.add(new HoldItemRequest(existingItem.seatId(), existingItem.ticketClassId())));
+        nextItems.add(item);
+
+        List<Long> seatIds = nextItems.stream().map(HoldItemRequest::seatId).toList();
+        ensureUniqueSeatSelection(seatIds);
+
+        List<Seat> seats = seatRepository.findAllById(seatIds);
+        if (seats.size() != seatIds.size()) {
+            throw new ResourceNotFoundException("One or more seats were not found");
+        }
+        Map<Long, Seat> seatMap = seatsById(seats);
+
+        List<Long> ticketClassIds = nextItems.stream().map(HoldItemRequest::ticketClassId).distinct().toList();
+        List<TicketClass> ticketClasses = ticketClassRepository.findAllById(ticketClassIds);
+        if (ticketClasses.size() != ticketClassIds.size()) {
+            throw new ResourceNotFoundException("One or more ticket classes were not found");
+        }
+        Map<Long, TicketClass> ticketClassMap = ticketClassesById(ticketClasses);
+
+        validatePurchaseSelection(holdCart.eventId(), nextItems, seatMap, ticketClassMap, now);
+
+        for (Seat seat : seats) {
+            if (seat.getAssociatedTicket() != null) {
+                throw new ResourceConflictException("One or more seats are already sold");
+            }
+        }
+
+        HoldCart nextHoldCart = new HoldCart(
+                holdCart.holdId(),
+                holdCart.userId(),
+                holdCart.eventId(),
+                holdCart.expiresAt(),
+                calculateTotalAmount(nextItems, ticketClassMap),
+                nextItems.stream().map(nextItem -> new HoldCartItem(nextItem.seatId(), nextItem.ticketClassId(), ticketClassMap.get(nextItem.ticketClassId()).getPrice())).toList()
+        );
+
+        long ttlSeconds = getRemainingHoldTtlSeconds(holdCart, now);
+        Long result = stringRedisTemplate.execute(
+                ADD_SEAT_TO_HOLD_SCRIPT,
+                List.of(userEventKey(userId, holdCart.eventId()), cartKey(holdId), seatKey(item.seatId())),
+                holdId,
+                String.valueOf(ttlSeconds),
+                snapshot.rawJson(),
+                serializeHoldCart(nextHoldCart)
+        );
+
+        if (Objects.equals(result, -1L)) {
+            throw new TimedOutException("This seat hold has expired");
+        }
+        if (Objects.equals(result, -2L)) {
+            throw new InvalidStateException("Seat hold changed, please refresh and try again");
+        }
+        if (Objects.equals(result, 0L)) {
+            throw new ResourceConflictException("The selected seat is no longer available");
+        }
+        if (!Objects.equals(result, 1L)) {
+            throw new InvalidStateException("Failed to update seat hold");
+        }
+
+        log.debug("Added seat {} to hold {} for user {}", item.seatId(), holdId, userId);
+        return toHoldView(nextHoldCart);
     }
 
     public HoldView getHold(long userId, String holdId) {
@@ -281,6 +312,9 @@ public class PurchaseService {
     @Transactional
     public CompletedPurchaseView completeMockPayment(long userId, String holdId) {
         HoldCart holdCart = getOwnedHold(userId, holdId);
+        if (holdCart.items().isEmpty()) {
+            throw new InvalidStateException("You must hold at least one seat before paying");
+        }
         UserAccount user = getUser(userId);
         Instant now = Instant.now();
 
@@ -399,6 +433,13 @@ public class PurchaseService {
         }
     }
 
+    private void ensureSeatNotAlreadyInHold(HoldCart holdCart, long seatId) {
+        boolean seatAlreadyHeld = holdCart.items().stream().anyMatch(item -> item.seatId() == seatId);
+        if (seatAlreadyHeld) {
+            throw new InvalidStateException("This seat is already in your hold");
+        }
+    }
+
     private void validatePurchaseSelection(
             long eventId,
             List<HoldItemRequest> items,
@@ -465,6 +506,21 @@ public class PurchaseService {
         return userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
+    private long calculateTotalAmount(List<HoldItemRequest> items, Map<Long, TicketClass> ticketClassMap) {
+        long totalAmount = 0L;
+        for (HoldItemRequest item : items) {
+            totalAmount = Math.addExact(totalAmount, ticketClassMap.get(item.ticketClassId()).getPrice());
+        }
+        return totalAmount;
+    }
+
+    private long getRemainingHoldTtlSeconds(HoldCart holdCart, Instant now) {
+        if (!holdCart.expiresAt().isAfter(now)) {
+            throw new TimedOutException("This seat hold has expired");
+        }
+        return Math.max(1L, holdCart.expiresAt().getEpochSecond() - now.getEpochSecond());
+    }
+
     private HoldCart getOwnedHold(long userId, String holdId) {
         HoldCart holdCart = getHoldById(holdId);
         if (holdCart.userId() != userId) {
@@ -477,12 +533,28 @@ public class PurchaseService {
     }
 
     private HoldCart getHoldById(String holdId) {
+        return getHoldSnapshotById(holdId).holdCart();
+    }
+
+    private HoldCartSnapshot getOwnedHoldSnapshot(long userId, String holdId) {
+        HoldCartSnapshot snapshot = getHoldSnapshotById(holdId);
+        HoldCart holdCart = snapshot.holdCart();
+        if (holdCart.userId() != userId) {
+            throw new ForbiddenException("This seat hold does not belong to you");
+        }
+        if (!holdCart.expiresAt().isAfter(Instant.now())) {
+            throw new TimedOutException("This seat hold has expired");
+        }
+        return snapshot;
+    }
+
+    private HoldCartSnapshot getHoldSnapshotById(String holdId) {
         String cartJson = stringRedisTemplate.opsForValue().get(cartKey(holdId));
         if (cartJson == null) {
             throw new TimedOutException("This seat hold has expired");
         }
         try {
-            return objectMapper.readValue(cartJson, HoldCart.class);
+            return new HoldCartSnapshot(cartJson, objectMapper.readValue(cartJson, HoldCart.class));
         }
         catch (JsonProcessingException exception) {
             log.error("Failed to parse hold cart {}", holdId, exception);
@@ -575,57 +647,47 @@ public class PurchaseService {
         return HOLD_USER_KEY_PREFIX + userId + ":" + eventId;
     }
 
-    public record HoldItemRequest(long seatId, long ticketClassId) {}
+    private SeatStatusCollectionView buildSeatStatusCollection(HoldCart myHold, List<Seat> seats, long eventId) {
+        List<String> seatKeys = seats.stream().map(seat -> seatKey(seat.getId())).toList();
+        List<String> seatHoldValues = seats.isEmpty() ? List.of() : stringRedisTemplate.opsForValue().multiGet(seatKeys);
+        String myHoldId = myHold == null ? null : myHold.holdId();
 
-    public record PurchaseEventView(
-            long eventId,
-            String eventName,
-            Instant eventDateTime,
-            List<SalesRoundView> salesRounds,
-            List<TicketClassView> ticketClasses,
-            List<SeatZoneView> seatZones,
-            ActiveHoldView myActiveHold
-    ) {}
+        Map<Long, String> seatAvailability = new HashMap<>();
+        for (int i = 0; i < seats.size(); i++) {
+            Seat seat = seats.get(i);
+            String holdValue = seatHoldValues != null && i < seatHoldValues.size() ? seatHoldValues.get(i) : null;
+            String availability = "AVAILABLE";
+            if (seat.getAssociatedTicket() != null) {
+                availability = "SOLD";
+            }
+            else if (holdValue != null && holdValue.equals(myHoldId)) {
+                availability = "HELD_BY_ME";
+            }
+            else if (holdValue != null) {
+                availability = "HELD";
+            }
+            seatAvailability.put(seat.getId(), availability);
+        }
 
-    public record SalesRoundView(long id, String name, Instant startTime, Instant endTime, int maxTicketsPerPurchase) {}
+        Map<Long, SeatZoneBuilder> zoneBuilders = new LinkedHashMap<>();
+        for (Seat seat : seats) {
+            var seatRow = seat.getSeatRow();
+            var seatZone = seatRow.getSeatZone();
+            SeatZoneBuilder zoneBuilder = zoneBuilders.computeIfAbsent(
+                    seatZone.getId(),
+                    ignored -> new SeatZoneBuilder(seatZone.getId(), seatZone.getName(), seatZone.getPositionX(), seatZone.getPositionY())
+            );
+            zoneBuilder.addSeat(
+                    seatRow.getId(),
+                    seatRow.getIndex(),
+                    seatRow.getLabel(),
+                    new SeatView(seat.getId(), seat.getIndex(), seat.getNumber(), seatAvailability.get(seat.getId()))
+            );
+        }
 
-    public record TicketClassView(long id, String name, String description, long price, long salesRoundId, long seatZoneId) {}
-
-    public record SeatZoneView(long id, String name, int positionX, int positionY, List<SeatRowView> rows) {}
-
-    public record SeatRowView(long id, int index, String label, List<SeatView> seats) {}
-
-    public record SeatView(long id, int index, int number, String availability) {}
-
-    public record ActiveHoldView(String holdId, Instant expiresAt, long totalAmount) {}
-
-    public record HoldView(String holdId, Instant expiresAt, long totalAmount, List<HeldItemView> items) {}
-
-    public record HeldItemView(long seatId, long ticketClassId, long price) {}
-
-    public record CompletedPurchaseView(long purchaseId, long amount, List<Long> ticketIds) {}
-
-    public record UserTicketView(
-            long ticketId,
-            Instant purchasedAt,
-            long purchaseId,
-            long eventId,
-            String eventName,
-            Instant eventDateTime,
-            String salesRoundName,
-            String ticketClassName,
-            String seatZoneName,
-            String seatRowLabel,
-            int seatNumber,
-            String ticketSecretCode,
-            Instant checkedInAt
-    ) {}
-
-    private record HoldCart(String holdId, long userId, long eventId, Instant expiresAt, long totalAmount, List<HoldCartItem> items) {}
-
-    private record HoldCartItem(long seatId, long ticketClassId, long price) {}
-
-    private record MockPaymentDetails(String type, String holdId, Instant paidAt, long amount, List<HoldCartItem> items) {}
+        ActiveHoldView myActiveHold = myHold == null ? null : new ActiveHoldView(myHold.holdId(), myHold.expiresAt(), myHold.totalAmount());
+        return new SeatStatusCollectionView(eventId, zoneBuilders.values().stream().map(SeatZoneBuilder::toView).toList(), myActiveHold);
+    }
 
     private static final class SeatZoneBuilder {
         private final long id;

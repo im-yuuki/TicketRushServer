@@ -3,6 +3,7 @@ package me.june8th.ticketrushserver.controllers;
 import me.june8th.ticketrushserver.services.PurchaseService;
 import me.june8th.ticketrushserver.support.AuthenticatedRequestSupport;
 import me.june8th.ticketrushserver.support.TestAuthenticatedAccount;
+import me.june8th.ticketrushserver.types.PurchaseData;
 import me.june8th.ticketrushserver.utils.ClientIPResolver;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
@@ -56,7 +57,7 @@ class PurchaseControllerAuthenticatedTest {
 
     @Test
     void getPurchaseEvent_shouldReturnEventViewForAuthenticatedUser() throws Exception {
-        when(purchaseService.getPurchaseEvent(testAccount.id(), 55L)).thenReturn(new PurchaseService.PurchaseEventView(
+        when(purchaseService.getPurchaseEvent(testAccount.id(), 55L)).thenReturn(new PurchaseData.PurchaseEventView(
                 55L,
                 "Concert",
                 Instant.parse("2026-06-15T12:00:00Z"),
@@ -76,18 +77,47 @@ class PurchaseControllerAuthenticatedTest {
     }
 
     @Test
-    void createHold_shouldPassAuthenticatedUserAndPayload() throws Exception {
-        when(purchaseService.createHold(testAccount.id(), 55L, List.of(
-                new PurchaseService.HoldItemRequest(101L, 201L),
-                new PurchaseService.HoldItemRequest(102L, 202L)
-        ))).thenReturn(new PurchaseService.HoldView(
+    void getSeatStatuses_shouldReturnSeatStatusesForAuthenticatedUser() throws Exception {
+        when(purchaseService.getSeatStatuses(testAccount.id(), 55L)).thenReturn(new PurchaseData.SeatStatusCollectionView(
+                55L,
+                List.of(
+                        new PurchaseData.SeatZoneView(
+                                1L,
+                                "Front Zone",
+                                100,
+                                200,
+                                List.of(
+                                        new PurchaseData.SeatRowView(
+                                                10L,
+                                                0,
+                                                "A",
+                                                List.of(
+                                                        new PurchaseData.SeatView(101L, 0, 1, "AVAILABLE"),
+                                                        new PurchaseData.SeatView(102L, 1, 2, "HELD")
+                                                )
+                                        )
+                                )
+                        )
+                ),
+                null
+        ));
+
+        mockMvc.perform(get("/purchase/event/55/seats/status")
+                        .with(testAccount.requestPostProcessor()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.eventId").value(55))
+                .andExpect(jsonPath("$.seatZones[0].rows[0].seats[1].availability").value("HELD"));
+
+        verify(purchaseService).getSeatStatuses(testAccount.id(), 55L);
+    }
+
+    @Test
+    void createHold_shouldPassAuthenticatedUserAndEventId() throws Exception {
+        when(purchaseService.createHold(testAccount.id(), 55L)).thenReturn(new PurchaseData.HoldView(
                 "hold-123",
                 Instant.parse("2026-05-17T12:30:00Z"),
-                5000L,
-                List.of(
-                        new PurchaseService.HeldItemView(101L, 201L, 2000L),
-                        new PurchaseService.HeldItemView(102L, 202L, 3000L)
-                )
+                0L,
+                List.of()
         ));
 
         mockMvc.perform(post("/purchase/hold")
@@ -95,31 +125,52 @@ class PurchaseControllerAuthenticatedTest {
                         .with(testAccount.requestPostProcessor())
                         .content("""
                                 {
-                                  "eventId": 55,
-                                  "items": [
-                                    {"seatId": 101, "ticketClassId": 201},
-                                    {"seatId": 102, "ticketClassId": 202}
-                                  ]
+                                  "eventId": 55
                                 }
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.holdId").value("hold-123"))
-                .andExpect(jsonPath("$.totalAmount").value(5000))
+                .andExpect(jsonPath("$.totalAmount").value(0))
+                .andExpect(jsonPath("$.items").isArray())
+                .andExpect(jsonPath("$.items").isEmpty());
+
+        verify(purchaseService).createHold(testAccount.id(), 55L);
+    }
+
+    @Test
+    void addSeatToHold_shouldPassAuthenticatedUserAndSeatPayload() throws Exception {
+        when(purchaseService.addSeatToHold(testAccount.id(), "hold-123", new PurchaseData.HoldItemRequest(101L, 201L)))
+                .thenReturn(new PurchaseData.HoldView(
+                        "hold-123",
+                        Instant.parse("2026-05-17T12:30:00Z"),
+                        2000L,
+                        List.of(new PurchaseData.HeldItemView(101L, 201L, 2000L))
+                ));
+
+        mockMvc.perform(post("/purchase/hold/hold-123/seat")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(testAccount.requestPostProcessor())
+                        .content("""
+                                {
+                                  "seatId": 101,
+                                  "ticketClassId": 201
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.holdId").value("hold-123"))
+                .andExpect(jsonPath("$.totalAmount").value(2000))
                 .andExpect(jsonPath("$.items[0].seatId").value(101));
 
-        verify(purchaseService).createHold(testAccount.id(), 55L, List.of(
-                new PurchaseService.HoldItemRequest(101L, 201L),
-                new PurchaseService.HoldItemRequest(102L, 202L)
-        ));
+        verify(purchaseService).addSeatToHold(testAccount.id(), "hold-123", new PurchaseData.HoldItemRequest(101L, 201L));
     }
 
     @Test
     void getHold_shouldReturnOwnedHold() throws Exception {
-        when(purchaseService.getHold(testAccount.id(), "hold-123")).thenReturn(new PurchaseService.HoldView(
+        when(purchaseService.getHold(testAccount.id(), "hold-123")).thenReturn(new PurchaseData.HoldView(
                 "hold-123",
                 Instant.parse("2026-05-17T12:30:00Z"),
                 2500L,
-                List.of(new PurchaseService.HeldItemView(101L, 201L, 2500L))
+                List.of(new PurchaseData.HeldItemView(101L, 201L, 2500L))
         ));
 
         mockMvc.perform(get("/purchase/hold/hold-123")
@@ -147,7 +198,7 @@ class PurchaseControllerAuthenticatedTest {
     @Test
     void completeMockPayment_shouldReturnCompletedPurchase() {
         when(purchaseService.completeMockPayment(testAccount.id(), "hold-123")).thenReturn(
-                new PurchaseService.CompletedPurchaseView(900L, 5000L, List.of(1L, 2L))
+                new PurchaseData.CompletedPurchaseView(900L, 5000L, List.of(1L, 2L))
         );
 
         var response = new PurchaseController(purchaseService).completeMockPayment(testAccount.id(), "hold-123");

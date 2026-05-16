@@ -5,6 +5,7 @@ import me.june8th.ticketrushserver.services.PurchaseService;
 import me.june8th.ticketrushserver.services.StorageService;
 import me.june8th.ticketrushserver.support.AuthenticatedRequestSupport;
 import me.june8th.ticketrushserver.support.TestAuthenticatedAccount;
+import me.june8th.ticketrushserver.types.PurchaseData;
 import me.june8th.ticketrushserver.utils.ClientIPResolver;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
@@ -64,7 +65,7 @@ class UserControllerAuthenticatedTest {
     @Test
     void getPurchasedTickets_shouldReturnAuthenticatedUserTickets() throws Exception {
         when(purchaseService.getUserTickets(testAccount.id())).thenReturn(List.of(
-                new PurchaseService.UserTicketView(
+                new PurchaseData.UserTicketView(
                         10L,
                         Instant.parse("2026-05-17T10:15:30Z"),
                         20L,

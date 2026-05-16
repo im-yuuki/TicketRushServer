@@ -1,0 +1,10 @@
+test:
+  auth:
+    account:
+      id: 42
+      name: Test User
+      email: test.user@example.com
+      role: USER
+      domain: "42"
+      token-version: 0
+      avatar-key: avatars/test-user.png
