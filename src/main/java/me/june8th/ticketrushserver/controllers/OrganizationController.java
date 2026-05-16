@@ -39,7 +39,7 @@ public class OrganizationController {
         throw new ForbiddenException("You do not have permission to access this resource");
     }
 
-    @PutMapping("/info")
+    @PatchMapping("/info")
     public ResponseEntity<OperationResult> updateInfo(@AuthenticationPrincipal long id, @RequestBody UpdateOrganizationInfoPayload payload) {
         accountService.updateOrganizationInfo(id, payload);
         return ResponseEntity.ok(OperationResult.success("Organization information updated successfully"));
@@ -77,7 +77,7 @@ public class OrganizationController {
         return ResponseEntity.ok(new FullEventInfo(storageService, eventService.getOrganizationEvent(id, eventId)));
     }
 
-    @PutMapping("/events/{eventId}")
+    @PatchMapping("/events/{eventId}")
     public ResponseEntity<OperationResult> updateEvent(@AuthenticationPrincipal long id, @PathVariable long eventId, @RequestBody UpdateEventPayload payload) {
         eventService.updateEventBasicInformation(id, eventId, payload);
         return ResponseEntity.ok(OperationResult.success("Event updated successfully"));

@@ -2,6 +2,7 @@ package me.june8th.ticketrushserver.controllers;
 
 import me.june8th.ticketrushserver.services.AccountService;
 import me.june8th.ticketrushserver.services.PurchaseService;
+import me.june8th.ticketrushserver.services.StorageService;
 import me.june8th.ticketrushserver.support.AuthenticatedRequestSupport;
 import me.june8th.ticketrushserver.support.TestAuthenticatedAccount;
 import me.june8th.ticketrushserver.utils.ClientIPResolver;
@@ -37,6 +38,9 @@ class UserControllerAuthenticatedTest {
     private PurchaseService purchaseService;
 
     @Mock
+    private StorageService storageService;
+
+    @Mock
     private ClientIPResolver clientIPResolver;
 
     private MockMvc mockMvc;
@@ -47,7 +51,7 @@ class UserControllerAuthenticatedTest {
         testAccount = TestAuthenticatedAccount.fromEnvironment();
         Assumptions.assumeTrue(testAccount.role() == me.june8th.ticketrushserver.types.Role.USER, "Authenticated user tests require TEST_AUTH_ACCOUNT_ROLE=USER");
         mockMvc = AuthenticatedRequestSupport.buildMockMvc(
-                new UserController(accountService, purchaseService),
+                new UserController(accountService, purchaseService, storageService),
                 clientIPResolver
         );
     }

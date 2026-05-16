@@ -6,14 +6,13 @@ import me.june8th.ticketrushserver.data.OrganizationAccount;
 import me.june8th.ticketrushserver.services.AccountService;
 import me.june8th.ticketrushserver.services.EventService;
 import me.june8th.ticketrushserver.services.StorageService;
-import me.june8th.ticketrushserver.types.OperationResult;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
 
 @RestController
+@RequestMapping("/public")
 @RequiredArgsConstructor
 public class PublicController {
 
@@ -39,18 +38,6 @@ public class PublicController {
         OrganizationAccount organization = accountService.getPublicOrganizationByAlias(alias);
         long followerCount = accountService.getOrganizationFollowerCount(organization.getId());
         return ResponseEntity.ok(new PublicOrganizationInfo(storageService, organization, followerCount));
-    }
-
-    @PutMapping("/org/{id}/follow")
-    public ResponseEntity<OperationResult> followOrganization(@AuthenticationPrincipal long userId, @PathVariable Long id) {
-        accountService.followOrganization(userId, id);
-        return ResponseEntity.ok(OperationResult.success("Organization followed successfully"));
-    }
-
-    @DeleteMapping("/org/{id}/follow")
-    public ResponseEntity<OperationResult> unfollowOrganization(@AuthenticationPrincipal long userId, @PathVariable Long id) {
-        accountService.unfollowOrganization(userId, id);
-        return ResponseEntity.ok(OperationResult.success("Organization unfollowed successfully"));
     }
 
     public record PublicEventInfo(

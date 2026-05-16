@@ -23,16 +23,8 @@ public class PurchaseController {
 
     @PostMapping("/hold")
     public ResponseEntity<PurchaseService.HoldView> createHold(@AuthenticationPrincipal long userId, @RequestBody CreateHoldPayload payload) {
-        List<PurchaseService.HoldItemRequest> items = payload.items() == null
-                ? null
-                : payload.items().stream().map(item -> new PurchaseService.HoldItemRequest(item.seatId(), item.ticketClassId())).toList();
-        return ResponseEntity.ok(
-                purchaseService.createHold(
-                        userId,
-                        payload.eventId(),
-                        items
-                )
-        );
+        List<PurchaseService.HoldItemRequest> items = payload.items() == null ? null : payload.items().stream().map(item -> new PurchaseService.HoldItemRequest(item.seatId(), item.ticketClassId())).toList();
+        return ResponseEntity.ok(purchaseService.createHold(userId, payload.eventId(), items));
     }
 
     @GetMapping("/hold/{holdId}")
@@ -46,7 +38,7 @@ public class PurchaseController {
         return ResponseEntity.ok(OperationResult.success("Seat hold released successfully"));
     }
 
-    @PostMapping("/mock-payment/{holdId}")
+    @PostMapping("/pay/{holdId}")
     public ResponseEntity<PurchaseService.CompletedPurchaseView> completeMockPayment(@AuthenticationPrincipal long userId, @PathVariable String holdId) {
         return ResponseEntity.ok(purchaseService.completeMockPayment(userId, holdId));
     }

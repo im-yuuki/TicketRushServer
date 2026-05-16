@@ -299,6 +299,11 @@ public class AccountService {
         );
     }
 
+    @NullMarked
+    public UserAccount getUserData(long id) {
+        return getUserAccount(id);
+    }
+
     /**
      * Change the name of an account.
      *
@@ -449,6 +454,14 @@ public class AccountService {
         }
         OrganizationAccount updatedOrganization = organizationAccountRepository.save(organization);
         log.debug("Successfully updated information for organization account {} ({})", updatedOrganization.getId(), updatedOrganization.getEmail());
+    }
+
+    @NullMarked
+    public void updateUserInfo(long id, UpdateUserInfoPayload payload) {
+        UserAccount user = getUserAccount(id);
+        payload.patchUser(user);
+        UserAccount updatedUser = userRepository.save(user);
+        log.debug("Successfully updated information for user account {} ({})", updatedUser.getId(), updatedUser.getEmail());
     }
 
     @NullMarked
