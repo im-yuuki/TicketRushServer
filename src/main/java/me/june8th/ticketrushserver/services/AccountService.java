@@ -13,17 +13,21 @@ import me.june8th.ticketrushserver.repositories.OrganizationAccountRepository;
 import me.june8th.ticketrushserver.types.AccessTokenData;
 import me.june8th.ticketrushserver.security.AccessTokenProvider;
 import me.june8th.ticketrushserver.types.*;
+import me.june8th.ticketrushserver.utils.RandomGenerator;
 import me.june8th.ticketrushserver.utils.Validator;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.Date;
 
 @Slf4j
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class AccountService {
 
@@ -34,6 +38,7 @@ public class AccountService {
     private final RegisterRequestRepository registerRequestRepository;
     private final ResetPasswordRequestRepository resetPasswordRequestRepository;
     private final OrganizationAccountRepository organizationAccountRepository;
+    private final StorageService storageService;
 
     /**
      * Create a new user registration request. This will create a new entry in the RegisterPayload table.
@@ -46,7 +51,6 @@ public class AccountService {
      * @return key of the created RegisterPayload, which can be used to confirm the registration
      */
     @NullMarked
-    @Transactional
     public String userRegisterRequest(String name, String email, String password, Date birthDate, Gender gender) {
         Validator.create()
                 .validateName(name)
@@ -87,7 +91,6 @@ public class AccountService {
      * @param otpCode the OTP code sent to the user's email address
      */
     @NullMarked
-    @Transactional
     public Account userRegisterConfirm(String key, String otpCode) {
         Validator.create()
                 .validateRequestKey(key)
@@ -187,7 +190,6 @@ public class AccountService {
      * @param accountId the ID of the account whose sessions should be invalidated
      */
     @NullMarked
-    @Transactional
     public void accountLogoutAllSessions(Long accountId) {
         Account account = accountRepository.findById(accountId).orElseThrow(
                 () -> new ResourceNotFoundException("Account not found")
@@ -203,7 +205,6 @@ public class AccountService {
      * @return the key of the created ResetPasswordPayload, which can be used to confirm the password reset
      */
     @NullMarked
-    @Transactional
     public String accountResetPasswordRequest(String email, String newPassword) {
         Validator.create()
                 .validateEmail(email)
@@ -241,7 +242,6 @@ public class AccountService {
      * @param otpCode the OTP code sent to the user's email address
      */
     @NullMarked
-    @Transactional
     public void accountResetPasswordConfirm(String token, String otpCode) {
         Validator.create()
                 .validateRequestKey(token)
@@ -304,7 +304,6 @@ public class AccountService {
      * @param newName   new full name
      */
     @NullMarked
-    @Transactional
     public void changeAccountName(Long accountId, String newName) {
         Validator.create()
                 .validateName(newName)
@@ -325,7 +324,6 @@ public class AccountService {
      * @param currentPassword current password of the account
      */
     @NullMarked
-    @Transactional
     public void changeAccountEmail(Long accountId, String newEmail, String currentPassword) {
         Validator.create()
                 .validateEmail(newEmail)
@@ -356,7 +354,6 @@ public class AccountService {
      * @param newPassword     new password
      */
     @NullMarked
-    @Transactional
     public void changeAccountPassword(Long accountId, String currentPassword, String newPassword) {
         Validator.create()
                 .validatePassword(newPassword)
@@ -375,7 +372,6 @@ public class AccountService {
     }
 
     @NullMarked
-    @Transactional
     public void lockAccount(Long accountId) {
         Account account = accountRepository.findById(accountId).orElseThrow(
                 () -> new ResourceNotFoundException("Account not found")
@@ -390,7 +386,6 @@ public class AccountService {
     }
 
     @NullMarked
-    @Transactional
     public void unlockAccount(Long accountId) {
         Account account = accountRepository.findById(accountId).orElseThrow(
                 () -> new ResourceNotFoundException("Account not found")
@@ -405,7 +400,6 @@ public class AccountService {
     }
 
     @NullMarked
-    @Transactional
     public OrganizationAccount createOrganizationAccount(String name, String email, String password) {
         Validator.create()
                 .validateName(name)
@@ -427,7 +421,6 @@ public class AccountService {
     }
 
     @NullMarked
-    @Transactional
     public void verifyOrganizationAccount(Long organizationId) {
         OrganizationAccount organization = organizationAccountRepository.findById(organizationId).orElseThrow(
                 () -> new ResourceNotFoundException("Organization account not found")
@@ -441,7 +434,7 @@ public class AccountService {
     }
 
     @NullMarked
-    public OrganizationAccount updateOrganizationInfo(long id, UpdateOrganizationInfoPayload payload) {
+    public void updateOrganizationInfo(long id, UpdateOrganizationInfoPayload payload) {
         OrganizationAccount organization = organizationAccountRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Organization account not found")
         );
@@ -454,7 +447,57 @@ public class AccountService {
         }
         OrganizationAccount updatedOrganization = organizationAccountRepository.save(organization);
         log.debug("Successfully updated information for organization account {} ({})", updatedOrganization.getId(), updatedOrganization.getEmail());
-        return updatedOrganization;
+    }
+
+    @NullMarked
+    public void updateAvatar(long id, MultipartFile avatar) throws IOException {
+        Validator.create()
+                .validateImageFile(avatar, 10 * 1024 * 1024)
+                .throwExceptionIfInvalid();
+        Account account = accountRepository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException("Account not found")
+        );
+        String avatarKey = generateImageContentKey("avatars", account.getId(), avatar.getContentType());
+        switch (account) {
+            case UserAccount user -> {
+                storageService.upload(avatar.getBytes(), avatarKey, avatar.getContentType());
+                user.setAvatarKey(avatarKey);
+                userRepository.save(user);
+                log.debug("Successfully updated avatar for user account {} ({})", user.getId(), user.getEmail());
+            }
+            case OrganizationAccount organization -> {
+                storageService.upload(avatar.getBytes(), avatarKey, avatar.getContentType());
+                organization.setAvatarKey(avatarKey);
+                organizationAccountRepository.save(organization);
+                log.debug("Successfully updated avatar for organization account {} ({})", organization.getId(), organization.getEmail());
+            }
+            default -> throw new InvalidStateException("This account type does not support avatar updates");
+        }
+    }
+
+    @NullMarked
+    public void updateOrganizationBanner(long id, MultipartFile banner) throws IOException {
+        Validator.create()
+                .validateImageFile(banner, 20 * 1024 * 1024)
+                .throwExceptionIfInvalid();
+        OrganizationAccount organization = organizationAccountRepository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException("Organization account not found")
+        );
+        String bannerKey = generateImageContentKey("banners", organization.getId(), banner.getContentType());
+        storageService.upload(banner.getBytes(), bannerKey, banner.getContentType());
+        organization.setBannerKey(bannerKey);
+        organizationAccountRepository.save(organization);
+        log.debug("Successfully updated banner for organization account {} ({})", organization.getId(), organization.getEmail());
+    }
+
+    private String generateImageContentKey(String prefix, long accountId, String contentType) {
+        return prefix + "/" + accountId + "/" + RandomGenerator.generateRandomString(16) + switch (contentType) {
+            case "image/jpeg" -> ".jpg";
+            case "image/png" -> ".png";
+            case "image/webp" -> ".webp";
+            case null -> throw new InvalidStateException("Content-Type is missing");
+            default -> throw new InvalidStateException("Unsupported image type");
+        };
     }
 
 }

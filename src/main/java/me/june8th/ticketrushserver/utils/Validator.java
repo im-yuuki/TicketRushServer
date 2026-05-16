@@ -148,38 +148,40 @@ public class Validator {
 
     public Validator validateImageFile(MultipartFile file, long maxSizeBytes) {
         if (internalCommonBreakMethod(file)) return this;
+        if (file.getSize() > maxSizeBytes || file.getSize() < 1024) {
+            error = ValidateError.IMAGE_INVALID;
+            return this;
+        }
+        String contentType = file.getContentType();
+        if (contentType == null || !allowedImageTypes.contains(contentType)) {
+            error = ValidateError.IMAGE_INVALID;
+            return this;
+        }
         try {
-            if (file.getSize() > maxSizeBytes || file.getSize() < 1024) {
-                throw new FileUploadException("Invalid file size: " + file.getSize() + " bytes");
-            }
-            String contentType = file.getContentType();
-            if (contentType == null || !allowedImageTypes.contains(contentType)) {
-                throw new FileUploadException("Unsupported file type: " + contentType);
-            }
             // Magic-bytes check (don't trust Content-Type header alone)
             InputStream is = file.getInputStream();
             byte[] header = is.readNBytes(12);
-            if (!isValidImageHeader(header)) {
-                throw new FileUploadException("File content does not match a valid image");
-            }
+            if (!isValidImageHeader(header, contentType)) error = ValidateError.IMAGE_INVALID;
         } catch (IOException e) {
             error = ValidateError.IMAGE_INVALID;
         }
         return this;
     }
 
-    private boolean isValidImageHeader(byte[] h) {
-        // JPEG: FF D8 FF
-        if (h.length >= 3 && h[0] == (byte)0xFF && h[1] == (byte)0xD8 && h[2] == (byte)0xFF) return true;
-        // PNG: 89 50 4E 47 0D 0A 1A 0A
-        if (h.length >= 8 &&
-                h[0]==(byte)0x89 && h[1]==0x50 && h[2]==0x4E && h[3]==0x47 &&
-                h[4]==0x0D && h[5]==0x0A && h[6]==(byte)0x1A && h[7]==0x0A) return true;
-        // WebP: 52 49 46 46 ?? ?? ?? ?? 57 45 42 50
-        if (h.length >= 12 &&
-                h[0]==0x52 && h[1]==0x49 && h[2]==0x46 && h[3]==0x46 &&
-                h[8]==0x57 && h[9]==0x45 && h[10]==0x42 && h[11]==0x50) return true;
-        return false;
+    private boolean isValidImageHeader(byte[] h, String contentType) {
+        return switch (contentType) {
+            // JPEG: FF D8 FF
+            case "image/jpeg" -> h.length >= 3 && h[0] == (byte) 0xFF && h[1] == (byte) 0xD8 && h[2] == (byte) 0xFF;
+            // PNG: 89 50 4E 47 0D 0A 1A 0A
+            case "image/png" -> h.length >= 8 &&
+                    h[0] == (byte) 0x89 && h[1] == 0x50 && h[2] == 0x4E && h[3] == 0x47 &&
+                    h[4] == 0x0D && h[5] == 0x0A && h[6] == (byte) 0x1A && h[7] == 0x0A;
+            // WebP: 52 49 46 46 ?? ?? ?? ?? 57 45 42 50
+            case "image/webp" -> h.length >= 12 &&
+                    h[0] == 0x52 && h[1] == 0x49 && h[2] == 0x46 && h[3] == 0x46 &&
+                    h[8] == 0x57 && h[9] == 0x45 && h[10] == 0x42 && h[11] == 0x50;
+            default -> false;
+        };
     }
 
     public static Validator create() {

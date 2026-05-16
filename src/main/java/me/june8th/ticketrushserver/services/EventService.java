@@ -5,19 +5,22 @@ import lombok.extern.slf4j.Slf4j;
 import me.june8th.ticketrushserver.data.*;
 import me.june8th.ticketrushserver.repositories.*;
 import me.june8th.ticketrushserver.types.*;
+import me.june8th.ticketrushserver.utils.RandomGenerator;
 import me.june8th.ticketrushserver.utils.Validator;
-import me.june8th.ticketrushserver.types.SeatZoneData;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 
 @Slf4j
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class EventService {
     
@@ -54,7 +57,6 @@ public class EventService {
      * @return created event
      */
     @NullMarked
-    @Transactional
     public Event createEvent(long orgId, String eventName, String venue, String address, boolean isOnlineEvent, Instant dateTime) {
         Validator.create()
                 .validateName(eventName)
@@ -81,20 +83,36 @@ public class EventService {
     /**
      * Update basic event information before publish.
      *
-     * @param orgId organization id
-     * @param eventId event id
+     * @param orgId              organization id
+     * @param eventId            event id
      * @param updateEventPayload update data
-     * @return updated event
      */
     @NullMarked
-    @Transactional
-    public Event updateEventBasicInformation(long orgId, long eventId, UpdateEventPayload updateEventPayload) {
+    public void updateEventBasicInformation(long orgId, long eventId, UpdateEventPayload updateEventPayload) {
         Event event = getOrganizationEvent(orgId, eventId);
         if (event.getPublished()) throw new ForbiddenException("Published event can't be updated");
         updateEventPayload.patchEvent(event);
         Event updatedEvent = eventRepository.save(event);
         log.debug("Successfully updated event with ID: {} for organization ID: {}", updatedEvent.getId(), orgId);
-        return updatedEvent;
+    }
+
+    @NullMarked
+    public void updateEventBanner(long orgId, long eventId, MultipartFile banner) throws IOException {
+        Validator.create()
+                .validateImageFile(banner, 20 * 1024 * 1024)
+                .throwExceptionIfInvalid();
+        Event event = getOrganizationEvent(orgId, eventId);
+        String bannerKey = "events/" + event.getId() + "/" + RandomGenerator.generateRandomString(16) + switch (banner.getContentType()) {
+            case "image/jpeg" -> ".jpg";
+            case "image/png" -> ".png";
+            case "image/webp" -> ".webp";
+            case null -> throw new InvalidStateException("Content-Type is missing");
+            default -> throw new InvalidStateException("Unsupported image type");
+        };
+        storageService.upload(banner.getBytes(), bannerKey, banner.getContentType());
+        event.setBannerKey(bannerKey);
+        eventRepository.save(event);
+        log.debug("Successfully updated banner for event {} ({})", event.getName(), event.getId());
     }
 
     /**
@@ -109,7 +127,6 @@ public class EventService {
      * @return created sales round
      */
     @NullMarked
-    @Transactional
     public SalesRound addSalesRound(long orgId, long eventId, String roundName, Instant startTime, Instant endTime, int maxTicketsPerPurchase) {
         Validator.create()
                 .validateName(roundName)
@@ -136,28 +153,21 @@ public class EventService {
      * @param orgId organization id
      * @param eventId event id
      * @param roundId sales round id
-     * @param patch patch data
+     * @param data patch data
      * @return updated sales round
      */
     @NullMarked
-    @Transactional
-    public SalesRound updateSalsesRound(long orgId, long eventId, long roundId, SalesRound patch) {
-        Validator.create()
-                .validateName(patch.getName())
-                .validateFutureDate(Date.from(patch.getStartTime()))
-                .validateFutureDate(Date.from(patch.getEndTime()))
-                .throwExceptionIfInvalid();
+    public SalesRound updateSalsesRound(long orgId, long eventId, long roundId, UpdateSalesRoundData data) {
         Event event = getOrganizationEvent(orgId, eventId);
         if (event.getPublished()) throw new ForbiddenException("Published event can't be updated");
         SalesRound salesRound = salesRoundRepository.findById(roundId).orElseThrow(
                 () -> new ResourceNotFoundException("Sales round not found")
         );
         if (!salesRound.getEvent().equals(event)) throw new InvalidStateException("Sales round does not belong to this event");
-        throw new NotImplementedException(); // TODO:
-        // TODO: PatchUtils.applyPatch(salesRound, patch, Patchable.class);
-        // SalesRound updatedSalesRound = salesRoundRepository.save(salesRound);
-        // log.debug("Successfully updated sales round with ID: {} for event ID: {}", updatedSalesRound.getId(), eventId);
-        // return updatedSalesRound;
+        data.patchSalesRound(salesRound);
+        SalesRound updatedSalesRound = salesRoundRepository.save(salesRound);
+        log.debug("Successfully updated sales round with ID: {} for event ID: {}", updatedSalesRound.getId(), eventId);
+        return updatedSalesRound;
     }
 
     /**
@@ -168,7 +178,6 @@ public class EventService {
      * @param roundId sales round id
      */
     @NullMarked
-    @Transactional
     public void deleteSalesRound(long orgId, long eventId, long roundId) {
         Event event = getOrganizationEvent(orgId, eventId);
         if (event.getPublished()) throw new ForbiddenException("Published event can't be updated");
@@ -189,8 +198,7 @@ public class EventService {
      * @return created seat zone
      */
     @NullMarked
-    @Transactional
-    public SeatZone createSeatZone(long orgId, long eventId, SeatZoneData data) {
+    public SeatZone createSeatZone(long orgId, long eventId, CreateSeatZonePayload data) {
         Validator.create()
                 .validateName(data.name())
                 .validateNaturalNumber(data.positionX())
@@ -206,7 +214,7 @@ public class EventService {
                 .event(event) // Added event to seatZone builder
                 .build();
         seatZone = seatZoneRepository.save(seatZone);
-        for (SeatZoneData.SeatRowView row : data.rows()) {
+        for (CreateSeatZonePayload.SeatRowView row : data.rows()) {
             Validator.create()
                     .validateNotBlank(row.label())
                     .validateNaturalNumber(row.index())
@@ -217,7 +225,7 @@ public class EventService {
                     .label(row.label())
                     .build();
             seatRow = seatRowRepository.save(seatRow);
-            for (SeatZoneData.SeatRowView.SeatView seat : row.seats()) {
+            for (CreateSeatZonePayload.SeatRowView.SeatView seat : row.seats()) {
                 Validator.create()
                         .validateNaturalNumber(seat.index())
                         .validateNaturalNumber(seat.number())
@@ -246,7 +254,6 @@ public class EventService {
      * @param zoneId seat zone id
      */
     @NullMarked
-    @Transactional
     public void deleteSeatZone(long orgId, long eventId, long zoneId) {
         Event event = getOrganizationEvent(orgId, eventId);
         if (event.getPublished()) throw new ForbiddenException("Published event can't be updated");
@@ -271,7 +278,6 @@ public class EventService {
      * @return created ticket class
      */
     @NullMarked
-    @Transactional
     public TicketClass createTicketClass(long orgId, long eventId, String name, String description, long price, long salesRoundId, long seatZoneId) {
         Validator.create()
                 .validateName(name)
@@ -308,7 +314,6 @@ public class EventService {
      * @param ticketClassId ticket class id
      */
     @NullMarked
-    @Transactional
     public void deleteTicketClass(long orgId, long eventId, long ticketClassId) {
         Event event = getOrganizationEvent(orgId, eventId);
         if (event.getPublished()) throw new ForbiddenException("Published event can't be updated");
@@ -327,7 +332,6 @@ public class EventService {
      * @param eventId event id
      */
     @NullMarked
-    @Transactional
     public void publishEvent(long orgId, long eventId) {
         Event event = getOrganizationEvent(orgId, eventId);
         if (event.getPublished()) throw new InvalidStateException("Event is already published");
@@ -347,7 +351,6 @@ public class EventService {
      * @return created staff account
      */
     @NullMarked
-    @Transactional
     public EventStaffAccount addEventStaffAccount(long orgId, long eventId, String name, String email, String password) {
         Validator.create()
                 .validateName(name)
@@ -399,7 +402,6 @@ public class EventService {
      * @param eventId event id
      */
     @NullMarked
-    @Transactional
     public void deleteEvent(long orgId, long eventId) {
         Event event = getOrganizationEvent(orgId, eventId);
         if (event.getPublished()) throw new ForbiddenException("Published event can't be deleted");

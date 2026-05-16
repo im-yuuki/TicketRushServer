@@ -6,15 +6,19 @@ import me.june8th.ticketrushserver.data.OrganizationAccount;
 import me.june8th.ticketrushserver.services.AccountService;
 import me.june8th.ticketrushserver.services.EventService;
 import me.june8th.ticketrushserver.services.StorageService;
+import me.june8th.ticketrushserver.types.CreateSeatZonePayload;
 import me.june8th.ticketrushserver.types.ForbiddenException;
-import me.june8th.ticketrushserver.types.NotImplementedException;
 import me.june8th.ticketrushserver.types.OperationResult;
-import me.june8th.ticketrushserver.types.UpdateOrganizationInfoPayload;
 import me.june8th.ticketrushserver.types.UpdateEventPayload;
+import me.june8th.ticketrushserver.types.UpdateOrganizationInfoPayload;
+import me.june8th.ticketrushserver.types.UpdateSalesRoundData;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.Collection;
 
@@ -39,6 +43,18 @@ public class OrganizationController {
     public ResponseEntity<OperationResult> updateInfo(@AuthenticationPrincipal long id, @RequestBody UpdateOrganizationInfoPayload payload) {
         accountService.updateOrganizationInfo(id, payload);
         return ResponseEntity.ok(OperationResult.success("Organization information updated successfully"));
+    }
+
+    @PutMapping(path = "/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<OperationResult> updateAvatar(@AuthenticationPrincipal long id, @RequestParam("file") MultipartFile file) throws IOException {
+        accountService.updateAvatar(id, file);
+        return ResponseEntity.ok(OperationResult.success("Avatar updated successfully"));
+    }
+
+    @PutMapping(path = "/banner", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<OperationResult> updateBanner(@AuthenticationPrincipal long id, @RequestParam("file") MultipartFile file) throws IOException {
+        accountService.updateOrganizationBanner(id, file);
+        return ResponseEntity.ok(OperationResult.success("Banner updated successfully"));
     }
 
     @GetMapping("/events")
@@ -77,6 +93,66 @@ public class OrganizationController {
     public ResponseEntity<OperationResult> publishEvent(@AuthenticationPrincipal long id, @PathVariable long eventId) {
         eventService.publishEvent(id, eventId);
         return ResponseEntity.ok(OperationResult.success("Event published successfully"));
+    }
+
+    @PutMapping(path = "/events/{eventId}/banner", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<OperationResult> updateEventBanner(@AuthenticationPrincipal long id, @PathVariable long eventId, @RequestParam("file") MultipartFile file) throws IOException {
+        eventService.updateEventBanner(id, eventId, file);
+        return ResponseEntity.ok(OperationResult.success("Event banner updated successfully"));
+    }
+
+    @PostMapping("/events/{eventId}/sales-rounds")
+    public ResponseEntity<OperationResult> addSalesRound(@AuthenticationPrincipal long id, @PathVariable long eventId, @RequestBody AddSalesRoundPayload payload) {
+        var salesRound = eventService.addSalesRound(id, eventId, payload.name(), payload.startTime(), payload.endTime(), payload.maxTicketsPerPurchase());
+        return ResponseEntity.ok(OperationResult.success("Sales round created successfully", salesRound.getId()));
+    }
+
+    @PatchMapping("/events/{eventId}/sales-rounds/{roundId}")
+    public ResponseEntity<OperationResult> updateSalesRound(@AuthenticationPrincipal long id, @PathVariable long eventId, @PathVariable long roundId, @RequestBody UpdateSalesRoundData payload) {
+        var updated = eventService.updateSalsesRound(id, eventId, roundId, payload);
+        return ResponseEntity.ok(OperationResult.success("Sales round updated successfully", updated.getId()));
+    }
+
+    @DeleteMapping("/events/{eventId}/sales-rounds/{roundId}")
+    public ResponseEntity<OperationResult> deleteSalesRound(@AuthenticationPrincipal long id, @PathVariable long eventId, @PathVariable long roundId) {
+        eventService.deleteSalesRound(id, eventId, roundId);
+        return ResponseEntity.ok(OperationResult.success("Sales round deleted successfully"));
+    }
+
+    @PostMapping("/events/{eventId}/seat-zones")
+    public ResponseEntity<OperationResult> createSeatZone(@AuthenticationPrincipal long id, @PathVariable long eventId, @RequestBody CreateSeatZonePayload payload) {
+        var seatZone = eventService.createSeatZone(id, eventId, payload);
+        return ResponseEntity.ok(OperationResult.success("Seat zone created successfully", seatZone.getId()));
+    }
+
+    @DeleteMapping("/events/{eventId}/seat-zones/{zoneId}")
+    public ResponseEntity<OperationResult> deleteSeatZone(@AuthenticationPrincipal long id, @PathVariable long eventId, @PathVariable long zoneId) {
+        eventService.deleteSeatZone(id, eventId, zoneId);
+        return ResponseEntity.ok(OperationResult.success("Seat zone deleted successfully"));
+    }
+
+    @PostMapping("/events/{eventId}/ticket-classes")
+    public ResponseEntity<OperationResult> createTicketClass(@AuthenticationPrincipal long id, @PathVariable long eventId, @RequestBody CreateTicketClassPayload payload) {
+        var ticketClass = eventService.createTicketClass(id, eventId, payload.name(), payload.description(), payload.price(), payload.salesRoundId(), payload.seatZoneId());
+        return ResponseEntity.ok(OperationResult.success("Ticket class created successfully", ticketClass.getId()));
+    }
+
+    @DeleteMapping("/events/{eventId}/ticket-classes/{ticketClassId}")
+    public ResponseEntity<OperationResult> deleteTicketClass(@AuthenticationPrincipal long id, @PathVariable long eventId, @PathVariable long ticketClassId) {
+        eventService.deleteTicketClass(id, eventId, ticketClassId);
+        return ResponseEntity.ok(OperationResult.success("Ticket class deleted successfully"));
+    }
+
+    @PostMapping("/events/{eventId}/staff")
+    public ResponseEntity<OperationResult> addEventStaffAccount(@AuthenticationPrincipal long id, @PathVariable long eventId, @RequestBody AddEventStaffPayload payload) {
+        var staffAccount = eventService.addEventStaffAccount(id, eventId, payload.name(), payload.email(), payload.password());
+        return ResponseEntity.ok(OperationResult.success("Event staff account created successfully", staffAccount.getId()));
+    }
+
+    @DeleteMapping("/events/{eventId}/staff/{staffId}")
+    public ResponseEntity<OperationResult> deleteEventStaffAccount(@AuthenticationPrincipal long id, @PathVariable long eventId, @PathVariable long staffId) {
+        eventService.deleteEventStaffAccount(id, eventId, staffId);
+        return ResponseEntity.ok(OperationResult.success("Event staff account deleted successfully"));
     }
 
     public record FullOrganizationInfo(
@@ -166,6 +242,27 @@ public class OrganizationController {
             String venue,
             String address,
             Instant dateTime
+    ) {}
+
+    public record AddSalesRoundPayload(
+            String name,
+            Instant startTime,
+            Instant endTime,
+            int maxTicketsPerPurchase
+    ) {}
+
+    public record CreateTicketClassPayload(
+            String name,
+            String description,
+            long price,
+            long salesRoundId,
+            long seatZoneId
+    ) {}
+
+    public record AddEventStaffPayload(
+            String name,
+            String email,
+            String password
     ) {}
 
 }

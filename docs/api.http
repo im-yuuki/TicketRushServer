@@ -1,5 +1,17 @@
 ###
-POST https://TicketRushServer/api/v1/auth/register
+POST https://TicketRushServer/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "",
+  "password": ""
+}
+
+###
+POST https://TicketRushServer/v1/auth/logout
+
+###
+POST https://TicketRushServer/v1/auth/register
 Content-Type: application/json
 
 {
@@ -11,11 +23,7 @@ Content-Type: application/json
 }
 
 ###
-POST https://TicketRushServer/api/v1/auth/register/confirmation
-Content-Type: application/json
-
-###
-GET https://TicketRushServer/api/v1/auth/register/confirmation
+GET https://TicketRushServer/v1/auth/register/confirmation
 Content-Type: application/json
 
 {
@@ -23,19 +31,15 @@ Content-Type: application/json
 }
 
 ###
-POST https://TicketRushServer/api/v1/auth/login
+POST https://TicketRushServer/v1/auth/register/confirmation
 Content-Type: application/json
 
 {
-  "email": "",
-  "password": ""
+  "otpCode": ""
 }
 
 ###
-POST https://TicketRushServer/api/v1/auth/logout
-
-###
-POST https://TicketRushServer/api/v1/auth/reset
+POST https://TicketRushServer/v1/auth/reset
 Content-Type: application/json
 
 {
@@ -44,11 +48,7 @@ Content-Type: application/json
 }
 
 ###
-POST https://TicketRushServer/api/v1/auth/reset/confirm
-Content-Type: application/json
-
-###
-GET https://TicketRushServer/api/v1/auth/reset/confirm
+GET https://TicketRushServer/v1/auth/reset/confirm
 Content-Type: application/json
 
 {
@@ -56,39 +56,38 @@ Content-Type: application/json
 }
 
 ###
-GET https://TicketRushServer/api/v1/feeds/promoted
-
-###
-GET https://TicketRushServer/api/v1/feeds/trending
-
-###
-GET https://TicketRushServer/api/v1/feeds/recommendeds
-
-###
-PUT https://TicketRushServer/api/v1/org/{{id}}/follow
-
-###
-DELETE https://TicketRushServer/api/v1/org/{{id}}/follow
-
-###
-GET https://TicketRushServer/api/v1/event/{{id}}
-
-###
-GET https://TicketRushServer/api/v1/org/{{id}}
-
-###
-GET https://TicketRushServer/api/v1/org/@{{alias}}
-
-###
-PUT https://TicketRushServer/api/v1/account/name
+POST https://TicketRushServer/v1/auth/reset/confirm
 Content-Type: application/json
 
-{
-  "newName": ""
-}
+###
+GET https://TicketRushServer/v1/feeds/promoted
 
 ###
-PUT https://TicketRushServer/api/v1/account/email
+GET https://TicketRushServer/v1/feeds/recommendeds
+
+###
+GET https://TicketRushServer/v1/feeds/trending
+
+###
+GET https://TicketRushServer/v1/event/{{id}}
+
+###
+GET https://TicketRushServer/v1/org/@{{alias}}
+
+###
+GET https://TicketRushServer/v1/org/{{id}}
+
+###
+PUT https://TicketRushServer/v1/org/{{id}}/follow
+
+###
+DELETE https://TicketRushServer/v1/org/{{id}}/follow
+
+###
+GET https://TicketRushServer/v1/account
+
+###
+PUT https://TicketRushServer/v1/account/email
 Content-Type: application/json
 
 {
@@ -97,7 +96,18 @@ Content-Type: application/json
 }
 
 ###
-PUT https://TicketRushServer/api/v1/account/password
+POST https://TicketRushServer/v1/account/logout-all
+
+###
+PUT https://TicketRushServer/v1/account/name
+Content-Type: application/json
+
+{
+  "newName": ""
+}
+
+###
+PUT https://TicketRushServer/v1/account/password
 Content-Type: application/json
 
 {
@@ -106,17 +116,154 @@ Content-Type: application/json
 }
 
 ###
-POST https://TicketRushServer/api/v1/account/logout-all
+PUT https://TicketRushServer/v1/organization/avatar?
+    file={{$random.alphanumeric(8)}}
 
 ###
-GET https://TicketRushServer/api/v1/account
+PUT https://TicketRushServer/v1/organization/banner?
+    file={{$random.alphanumeric(8)}}
 
 ###
-PUT https://TicketRushServer/api/v1/organization/info
+GET https://TicketRushServer/v1/organization/events
+Content-Type: application/json
+
+{
+  "name": "",
+  "description": "",
+  "isOnlineEvent": false,
+  "venue": "",
+  "address": "",
+  "dateTime": {}
+}
+
+###
+POST https://TicketRushServer/v1/organization/events
+Content-Type: application/json
+
+{
+  "name": "",
+  "description": "",
+  "isOnlineEvent": false,
+  "venue": "",
+  "address": "",
+  "dateTime": {}
+}
+
+###
+GET https://TicketRushServer/v1/organization/events/{{eventId}}
+Content-Type: application/json
+
+{
+  "name": "",
+  "description": "",
+  "isOnlineEvent": false,
+  "venue": "",
+  "address": "",
+  "dateTime": {}
+}
+
+###
+PUT https://TicketRushServer/v1/organization/events/{{eventId}}
 Content-Type: application/json
 
 ###
-GET https://TicketRushServer/api/v1/organization/info
+DELETE https://TicketRushServer/v1/organization/events/{{eventId}}
+Content-Type: application/json
+
+{
+  "name": "",
+  "description": "",
+  "isOnlineEvent": false,
+  "venue": "",
+  "address": "",
+  "dateTime": {}
+}
+
+###
+PUT https://TicketRushServer/v1/organization/events/{{eventId}}/banner?
+    file={{$random.alphanumeric(8)}}
+
+###
+POST https://TicketRushServer/v1/organization/events/{{eventId}}/publish
+
+###
+POST https://TicketRushServer/v1/organization/events/{{eventId}}/sales-rounds
+Content-Type: application/json
+
+{
+  "name": "",
+  "startTime": {},
+  "endTime": {},
+  "maxTicketsPerPurchase": 0
+}
+
+###
+PATCH https://TicketRushServer/v1/organization/events/{{eventId}}/sales-rounds/{{roundId}}
+Content-Type: application/json
+
+{
+  "name": "",
+  "startTime": {},
+  "endTime": {},
+  "maxTicketsPerPurchase": 0
+}
+
+###
+DELETE https://TicketRushServer/v1/organization/events/{{eventId}}/sales-rounds/{{roundId}}
+Content-Type: application/json
+
+{
+  "name": "",
+  "startTime": {},
+  "endTime": {},
+  "maxTicketsPerPurchase": 0
+}
+
+###
+POST https://TicketRushServer/v1/organization/events/{{eventId}}/seat-zones
+Content-Type: application/json
+
+{
+  "name": "",
+  "positionX": 0,
+  "positionY": 0,
+  "capacity": 0,
+  "rows": []
+}
+
+###
+DELETE https://TicketRushServer/v1/organization/events/{{eventId}}/seat-zones/{{zoneId}}
+
+###
+POST https://TicketRushServer/v1/organization/events/{{eventId}}/staff
+Content-Type: application/json
+
+{
+  "name": "",
+  "email": "",
+  "password": ""
+}
+
+###
+DELETE https://TicketRushServer/v1/organization/events/{{eventId}}/staff/{{staffId}}
+
+###
+POST https://TicketRushServer/v1/organization/events/{{eventId}}/ticket-classes
+Content-Type: application/json
+
+{
+  "name": "",
+  "description": "",
+  "price": 0,
+  "salesRoundId": 0,
+  "seatZoneId": 0
+}
+
+###
+DELETE https://TicketRushServer/v1/organization/events/{{eventId}}/ticket-classes/{{ticketClassId}}
+
+###
+GET https://TicketRushServer/v1/organization/info
 Content-Type: application/json
 
 {
@@ -126,66 +273,17 @@ Content-Type: application/json
 }
 
 ###
-PUT https://TicketRushServer/api/v1/organization/events/{{eventId}}
+PUT https://TicketRushServer/v1/organization/info
 Content-Type: application/json
 
 {
-  "name": "",
   "description": "",
-  "isOnlineEvent": false,
-  "venue": "",
-  "address": "",
-  "dateTime": {}
+  "aliasName": "",
+  "websiteUrl": ""
 }
 
 ###
-DELETE https://TicketRushServer/api/v1/organization/events/{{eventId}}
-Content-Type: application/json
-
-{
-  "name": "",
-  "description": "",
-  "isOnlineEvent": false,
-  "venue": "",
-  "address": "",
-  "dateTime": {}
-}
-
-###
-GET https://TicketRushServer/api/v1/organization/events/{{eventId}}
-Content-Type: application/json
-
-{
-  "name": "",
-  "description": "",
-  "isOnlineEvent": false,
-  "venue": "",
-  "address": "",
-  "dateTime": {}
-}
-
-###
-POST https://TicketRushServer/api/v1/organization/events
-Content-Type: application/json
-
-###
-GET https://TicketRushServer/api/v1/organization/events
-Content-Type: application/json
-
-{
-  "name": "",
-  "description": "",
-  "isOnlineEvent": false,
-  "venue": "",
-  "address": "",
-  "dateTime": {}
-}
-
-###
-POST https://TicketRushServer/api/v1/organization/events/{{eventId}}/publish
-
-###
-POST https://TicketRushServer/api/v1/checkin
+POST https://TicketRushServer/v1/checkin
 Content-Type: application/json
 
 {
@@ -196,13 +294,29 @@ Content-Type: application/json
 }
 
 ###
-GET https://TicketRushServer/api/v1/user
+GET https://TicketRushServer/v1/user
 
 ###
-GET https://TicketRushServer/api/v1/user/tickets
+PUT https://TicketRushServer/v1/user
 
 ###
-PUT https://TicketRushServer/api/v1/admin/organizations
+PUT https://TicketRushServer/v1/user/avatar?
+    file={{$random.alphanumeric(8)}}
+
+###
+GET https://TicketRushServer/v1/user/tickets
+
+###
+POST https://TicketRushServer/v1/admin/account/{{id}}/lock
+
+###
+POST https://TicketRushServer/v1/admin/account/{{id}}/unlock
+
+###
+POST https://TicketRushServer/v1/admin/organization/{{id}}/verify
+
+###
+PUT https://TicketRushServer/v1/admin/organizations
 Content-Type: application/json
 
 {
@@ -210,12 +324,3 @@ Content-Type: application/json
   "email": "",
   "password": ""
 }
-
-###
-POST https://TicketRushServer/api/v1/admin/organization/{{id}}/verify
-
-###
-POST https://TicketRushServer/api/v1/admin/account/{{id}}/lock
-
-###
-POST https://TicketRushServer/api/v1/admin/account/{{id}}/unlock

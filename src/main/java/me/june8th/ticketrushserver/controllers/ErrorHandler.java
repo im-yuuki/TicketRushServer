@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.io.IOException;
+
 @Slf4j
 @RestControllerAdvice
 @RequiredArgsConstructor
@@ -77,6 +79,12 @@ public class ErrorHandler {
     public ResponseEntity<OperationResult> handleMessagingException(MessagingException exception, HttpServletRequest request) {
         log.error("Failed to send email to user", exception);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(OperationResult.failure("Failed to send email. Please try again later."));
+    }
+
+    @ExceptionHandler(IOException.class)
+    public ResponseEntity<OperationResult> handleIOException(IOException exception, HttpServletRequest request) {
+        log.error("IO error occurred during request processing", exception);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(OperationResult.failure("An internal error occurred while processing the request. Please try again later."));
     }
 
     @ExceptionHandler(Exception.class)
