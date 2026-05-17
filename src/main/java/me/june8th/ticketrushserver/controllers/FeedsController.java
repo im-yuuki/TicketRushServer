@@ -2,6 +2,7 @@ package me.june8th.ticketrushserver.controllers;
 
 import lombok.RequiredArgsConstructor;
 import me.june8th.ticketrushserver.data.Event;
+import me.june8th.ticketrushserver.services.EventService;
 import me.june8th.ticketrushserver.services.FeedService;
 import me.june8th.ticketrushserver.services.SearchService;
 import me.june8th.ticketrushserver.services.StorageService;
@@ -23,20 +24,21 @@ public class FeedsController {
     private final FeedService feedService;
     private final SearchService searchService;
     private final StorageService storageService;
+    private final EventService eventService;
 
     @GetMapping("/promoted")
     public ResponseEntity<Collection<BasicEventInfo>> getPromotedEvents() {
-        return ResponseEntity.ok(feedService.getPromotedEvents().stream().map(event -> new BasicEventInfo(storageService, event)).toList());
+        return ResponseEntity.ok(toBasicEventInfos(feedService.getPromotedEvents()));
     }
 
     @GetMapping("/trending")
     public ResponseEntity<Collection<BasicEventInfo>> getTrendingEvents() {
-        return ResponseEntity.ok(feedService.getTrendingEvents().stream().map(event -> new BasicEventInfo(storageService, event)).toList());
+        return ResponseEntity.ok(toBasicEventInfos(feedService.getTrendingEvents()));
     }
 
     @GetMapping("/recommendeds")
     public ResponseEntity<Collection<BasicEventInfo>> getRecommendedEvents(@AuthenticationPrincipal Long id) {
-        return ResponseEntity.ok(feedService.getRecommendedEvents(id).stream().map(event -> new BasicEventInfo(storageService, event)).toList());
+        return ResponseEntity.ok(toBasicEventInfos(feedService.getRecommendedEvents(id)));
     }
 
     @GetMapping("/search")
@@ -44,15 +46,31 @@ public class FeedsController {
         return ResponseEntity.ok(searchService.search(query, limit));
     }
 
-    public record BasicEventInfo(long id, String name, String imageUrl, Instant dateTime, String venue) {
+    private Collection<BasicEventInfo> toBasicEventInfos(Collection<Event> events) {
+        var minimumTicketPrices = eventService.getMinimumTicketPrices(events);
+        return events.stream()
+                .map(event -> new BasicEventInfo(storageService, event, minimumTicketPrices.get(event.getId())))
+                .toList();
+    }
 
-        public BasicEventInfo(StorageService storageService, Event event) {
+    public record BasicEventInfo(
+            long id,
+            String name,
+            boolean isOnlineEvent,
+            String bannerUrl,
+            Instant dateTime,
+            String venue,
+            Long minimumTicketPrice
+    ) {
+        public BasicEventInfo(StorageService storageService, Event event, Long minimumTicketPrice) {
             this(
                     event.getId(),
                     event.getName(),
+                    event.isOnlineEvent(),
                     storageService.generatePresignedUrl(event.getBannerKey()),
                     event.getDateTime(),
-                    event.getVenue()
+                    event.getVenue(),
+                    minimumTicketPrice
             );
         }
 

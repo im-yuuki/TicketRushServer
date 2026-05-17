@@ -16,7 +16,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -446,6 +449,17 @@ public class EventService {
         ArrayList<Event> events = eventRepository.findAllByOrganization(org);
         log.trace("Successfully retrieved {} events for organization ID: {}", events.size(), org.getId());
         return events;
+    }
+
+    public Map<Long, Long> getMinimumTicketPrices(Collection<Event> events) {
+        var eventIds = events.stream().map(Event::getId).toList();
+        if (eventIds.isEmpty()) return Map.of();
+
+        Map<Long, Long> minimumTicketPrices = new HashMap<>();
+        ticketClassRepository.findMinimumPricesByEventIds(eventIds).forEach(price ->
+                minimumTicketPrices.put(price.getEventId(), price.getMinimumTicketPrice())
+        );
+        return minimumTicketPrices;
     }
 
     public Event getOrganizationEvent(long orgId, long eventId) {
