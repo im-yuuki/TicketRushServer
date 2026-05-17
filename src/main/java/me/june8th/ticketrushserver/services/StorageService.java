@@ -35,6 +35,9 @@ public class StorageService {
     @Value("${app.s3.presigned-url-duration}")
     private Duration presignedUrlDuration;
 
+    @Value("${app.s3.public-url:}")
+    private String publicUrl;
+
     /**
      * Upload raw bytes to S3 and return the S3 object key.
      *
@@ -75,16 +78,20 @@ public class StorageService {
     }
 
     /**
-     * Generate a time-limited pre-signed GET URL.
+     * Generate a public URL when configured, otherwise a time-limited pre-signed GET URL.
      *
      * @param key The S3 object key to generate the URL for
      * @return A pre-signed URL that can be used to access the object
      */
     @Nullable
-    @Cacheable(cacheNames = PRESIGNED_URL_CACHE, key = "#key", condition = "#key != null && !#key.isEmpty()", unless = "#result == null")
+    @Cacheable(cacheNames = PRESIGNED_URL_CACHE, key = "#key", condition = "#key != null && !#key.isEmpty() && !#root.target.isPublicUrlConfigured()", unless = "#result == null")
     public String generatePresignedUrl(String key) {
         if (key == null) return null;
         if (key.isEmpty()) return null;
+        if (isPublicUrlConfigured()) {
+            return publicUrl.replaceAll("/+$", "") + "/" + key.replaceAll("^/+", "");
+        }
+
         GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
                 .signatureDuration(presignedUrlDuration)
                 .getObjectRequest(b -> b.bucket(bucketName).key(key))
@@ -92,6 +99,10 @@ public class StorageService {
 
         PresignedGetObjectRequest presigned = s3Presigner.presignGetObject(presignRequest);
         return presigned.url().toString();
+    }
+
+    public boolean isPublicUrlConfigured() {
+        return publicUrl != null && !publicUrl.isBlank();
     }
 
     /**

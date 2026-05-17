@@ -14,6 +14,8 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.util.AopTestUtils;
+import org.springframework.test.util.ReflectionTestUtils;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -31,8 +33,10 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -59,8 +63,9 @@ class StorageServiceCacheTest {
     private CacheManager cacheManager;
 
     @AfterEach
-    void tearDown() {
+    void tearDown() throws Exception {
         cacheManager.getCache(StorageService.PRESIGNED_URL_CACHE).clear();
+        setPublicUrl("");
         reset(s3Client, s3Presigner);
     }
 
@@ -75,6 +80,23 @@ class StorageServiceCacheTest {
         assertEquals("https://cdn.example.com/first", first);
         assertEquals(first, second);
         verify(s3Presigner, times(1)).presignGetObject(any(GetObjectPresignRequest.class));
+    }
+
+    @Test
+    void generatePresignedUrl_shouldReturnPublicUrlWhenConfigured() throws Exception {
+        setPublicUrl("https://cdn.example.com/assets/");
+        cacheManager.getCache(StorageService.PRESIGNED_URL_CACHE).put("/avatars/user.png", "https://old.example.com/presigned");
+
+        String url = storageService.generatePresignedUrl("/avatars/user.png");
+
+        assertEquals("https://cdn.example.com/assets/avatars/user.png", url);
+        verify(s3Presigner, never()).presignGetObject(any(GetObjectPresignRequest.class));
+    }
+
+    @Test
+    void generatePresignedUrl_shouldReturnNullForBlankKeys() {
+        assertNull(storageService.generatePresignedUrl(null));
+        assertNull(storageService.generatePresignedUrl(""));
     }
 
     @Test
@@ -122,6 +144,11 @@ class StorageServiceCacheTest {
                         .uri(uri)
                         .build())
                 .build();
+    }
+
+    private void setPublicUrl(String publicUrl) throws Exception {
+        Object target = AopTestUtils.getUltimateTargetObject(storageService);
+        ReflectionTestUtils.setField(target, "publicUrl", publicUrl);
     }
 
     @SuppressWarnings("unchecked")
