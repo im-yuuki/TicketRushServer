@@ -4,6 +4,7 @@ import me.june8th.ticketrushserver.data.Event;
 import me.june8th.ticketrushserver.data.OrganizationAccount;
 import me.june8th.ticketrushserver.services.EventService;
 import me.june8th.ticketrushserver.services.FeedService;
+import me.june8th.ticketrushserver.services.SearchService;
 import me.june8th.ticketrushserver.services.StorageService;
 import me.june8th.ticketrushserver.support.TestAuthenticatedAccount;
 import me.june8th.ticketrushserver.types.Role;
@@ -36,6 +37,9 @@ class FeedsControllerTest {
     private FeedService feedService;
 
     @Mock
+    private SearchService searchService;
+
+    @Mock
     private StorageService storageService;
 
     @Mock
@@ -48,7 +52,7 @@ class FeedsControllerTest {
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(new FeedsController(feedService, storageService, eventService))
+        mockMvc = MockMvcBuilders.standaloneSetup(new FeedsController(feedService, searchService, storageService, eventService))
                 .setControllerAdvice(new ErrorHandler(clientIPResolver))
                 .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
                 .build();
@@ -129,6 +133,30 @@ class FeedsControllerTest {
                 .andExpect(jsonPath("$[0].minimumTicketPrice").value(50000));
 
         verify(feedService).getRecommendedEvents(42L);
+    }
+
+    @Test
+    void search_shouldReturnCombinedSearchResults() throws Exception {
+        when(searchService.search("music", 10)).thenReturn(List.of(
+                new SearchService.SearchResult(1L, "EVENT", "Music Festival", "https://cdn.example.com/events/1.png", "Main Hall", null, null),
+                new SearchService.SearchResult(2L, "ORGANIZATION", "Music Club", null, null, "https://cdn.example.com/orgs/2.png", true)
+        ));
+
+        mockMvc.perform(get("/feeds/search")
+                        .param("q", "music")
+                        .param("limit", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].type").value("EVENT"))
+                .andExpect(jsonPath("$[0].name").value("Music Festival"))
+                .andExpect(jsonPath("$[0].bannerUrl").value("https://cdn.example.com/events/1.png"))
+                .andExpect(jsonPath("$[0].venue").value("Main Hall"))
+                .andExpect(jsonPath("$[1].id").value(2))
+                .andExpect(jsonPath("$[1].type").value("ORGANIZATION"))
+                .andExpect(jsonPath("$[1].avatarUrl").value("https://cdn.example.com/orgs/2.png"))
+                .andExpect(jsonPath("$[1].verified").value(true));
+
+        verify(searchService).search("music", 10);
     }
 
     private Event createEvent(long id, String name) {

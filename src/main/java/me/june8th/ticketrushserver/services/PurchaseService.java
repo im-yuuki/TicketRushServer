@@ -216,7 +216,10 @@ public class PurchaseService {
         );
 
         if (Objects.equals(result, -1L)) {
-            throw new InvalidStateException("You already have an active hold for this event");
+            HoldCart existingHold = findUserEventHold(userId, eventId);
+            if (existingHold == null) throw new RuntimeException("You already have an active hold for this event, but it could not be retrieved");
+            log.debug("Reusing existing hold {} for user {} on event {}", existingHold.holdId(), userId, eventId);
+            return toHoldView(existingHold);
         }
         if (!Objects.equals(result, 1L)) {
             throw new InvalidStateException("Failed to create seat hold");

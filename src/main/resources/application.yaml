@@ -39,6 +39,9 @@ spring:
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PWD:}
       database: ${REDIS_DB:0}
+  elasticsearch:
+    uris: ${ES_URIS:http://localhost:9200}
+    api-key: ${ES_API_KEY:}
   jpa:
     hibernate:
       ddl-auto: update
@@ -83,4 +86,13 @@ logging:
     file: "[%d{yyyy-MM-dd HH:mm:ss}] %-5level %-40.40logger{39} : %msg%n"
   level:
     me.june8th.ticketrushserver: trace
+    root: info
+
+---
+spring:
+  config:
+    activate:
+      on-profile: production
+logging:
+  level:
     root: info

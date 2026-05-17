@@ -24,61 +24,61 @@ public class ErrorHandler {
 
     @ExceptionHandler(AuthenticationFailedException.class)
     public ResponseEntity<OperationResult> handleAuthenticationFailed(AuthenticationFailedException exception, HttpServletRequest request) {
-        writeLog("Authentication failed", exception, request);
+        debug("Authentication failed", exception, request);
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(OperationResult.failure(exception.getMessage()));
     }
 
     @ExceptionHandler(ResourceConflictException.class)
     public ResponseEntity<OperationResult> handleConflict(ResourceConflictException exception, HttpServletRequest request) {
-        writeLog("Resource conflict", exception, request);
+        debug("Resource conflict", exception, request);
         return ResponseEntity.status(HttpStatus.CONFLICT).body(OperationResult.failure(exception.getMessage()));
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<OperationResult> handleNotFound(ResourceNotFoundException exception, HttpServletRequest request) {
-        writeLog("Resource not found", exception, request);
+        debug("Resource not found", exception, request);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(OperationResult.failure(exception.getMessage()));
     }
 
     @ExceptionHandler(RatelimitedException.class)
     public ResponseEntity<OperationResult> handleRatelimited(RatelimitedException exception, HttpServletRequest request) {
-        writeLog("Rate limited", exception, request);
+        debug("Rate limited", exception, request);
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(OperationResult.failure(exception.getMessage()));
     }
 
     @ExceptionHandler(TimedOutException.class)
     public ResponseEntity<OperationResult> handleTimedOut(TimedOutException exception, HttpServletRequest request) {
-        writeLog("Request timed out", exception, request);
+        debug("Request timed out", exception, request);
         return ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT).body(OperationResult.failure(exception.getMessage()));
     }
 
     @ExceptionHandler(InvalidStateException.class)
     public ResponseEntity<OperationResult> handleInvalidState(InvalidStateException exception, HttpServletRequest request) {
-        writeLog("Invalid state", exception, request);
+        debug("Invalid state", exception, request);
         return ResponseEntity.status(HttpStatus.CONFLICT).body(OperationResult.failure(exception.getMessage()));
     }
 
     @ExceptionHandler(NotImplementedException.class)
     public ResponseEntity<OperationResult> handleNotImplemented(NotImplementedException exception, HttpServletRequest request) {
-        writeLog("Not implemented", exception, request);
+        debug("Not implemented", exception, request);
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(OperationResult.failure(exception.getMessage()));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<OperationResult> handleIllegalArgument(IllegalArgumentException exception, HttpServletRequest request) {
-        writeLog("Bad request", exception, request);
+        debug("Bad request", exception, request);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(OperationResult.failure(exception.getMessage()));
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<OperationResult> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException exception, HttpServletRequest request) {
-        writeLog("Upload too large", exception, request);
+        debug("Upload too large", exception, request);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(OperationResult.failure("Uploaded file is too large"));
     }
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<OperationResult> handleGenericRuntime(RuntimeException exception, HttpServletRequest request) {
-        writeLog("Unhandled runtime exception", exception, request);
+        debug("Unhandled runtime exception", exception, request);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(OperationResult.failure(exception.getMessage()));
     }
 
@@ -100,7 +100,7 @@ public class ErrorHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(OperationResult.failure("Unexpected error occurred on server"));
     }
 
-    private void writeLog(String message, Exception exception, HttpServletRequest request) {
+    private void debug(String message, Exception exception, HttpServletRequest request) {
         String origin = request.getHeader("Origin");
         String path = request.getRequestURI();
         String clientIp = clientIPResolver.resolve(request);

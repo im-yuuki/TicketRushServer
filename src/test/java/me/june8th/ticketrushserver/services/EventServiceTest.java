@@ -66,6 +66,9 @@ class EventServiceTest {
     @Mock
     private StorageService storageService;
 
+    @Mock
+    private SearchService searchService;
+
     @InjectMocks
     private EventService eventService;
 
@@ -121,6 +124,7 @@ class EventServiceTest {
 
         assertTrue(event.getPublished());
         verify(eventRepository).save(event);
+        verify(searchService).indexEvent(event);
     }
 
     private OrganizationAccount createOrganization(boolean verified) {

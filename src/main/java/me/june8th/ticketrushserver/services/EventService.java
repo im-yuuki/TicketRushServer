@@ -37,6 +37,7 @@ public class EventService {
     private final TicketClassRepository ticketClassRepository;
     private final PasswordEncoder passwordEncoder;
     private final StorageService storageService;
+    private final SearchService searchService;
 
     /**
      * Get an event by id.
@@ -72,18 +73,23 @@ public class EventService {
      * @return created event
      */
     @NullMarked
-    public Event createEvent(long orgId, String eventName, String venue, String address, boolean isOnlineEvent, Instant dateTime) {
-        Validator.create()
+    public Event createEvent(long orgId, String eventName, String description, String venue, String address, boolean isOnlineEvent, Instant dateTime) {
+        String eventDescription = description == null ? "" : description;
+        Validator validator = Validator.create()
                 .validateName(eventName)
                 .validateNotBlank(venue)
                 .validateNotBlank(address)
-                .validateFutureDate(Date.from(dateTime))
-                .throwExceptionIfInvalid();
+                .validateFutureDate(Date.from(dateTime));
+        if (!eventDescription.isBlank()) {
+            validator.validateNotBlank(eventDescription);
+        }
+        validator.throwExceptionIfInvalid();
         OrganizationAccount org = organizationAccountRepository.findById(orgId).orElseThrow(
                 () -> new ResourceNotFoundException("Organization account not found")
         );
         Event event = Event.builder()
                 .name(eventName)
+                .description(eventDescription)
                 .organization(org)
                 .isOnlineEvent(isOnlineEvent)
                 .venue(venue)
@@ -107,8 +113,9 @@ public class EventService {
         Event event = getOrganizationEvent(orgId, eventId);
         if (event.getPublished()) throw new ForbiddenException("Published event can't be updated");
         updateEventPayload.patchEvent(event);
-        Event updatedEvent = eventRepository.save(event);
-        log.debug("Successfully updated event with ID: {} for organization ID: {}", updatedEvent.getId(), orgId);
+        eventRepository.save(event);
+        if (event.getPublished()) searchService.indexEvent(event);
+        log.debug("Successfully updated event with ID: {} for organization ID: {}", event.getId(), orgId);
     }
 
     @NullMarked
@@ -357,6 +364,7 @@ public class EventService {
         if (!hasAvailableSeat) throw new InvalidStateException("Event must have at least one available seat before publishing");
         event.setPublished(true);
         eventRepository.save(event);
+        searchService.indexEvent(event);
         log.debug("Successfully published event with ID: {}", eventId);
     }
 
@@ -426,6 +434,7 @@ public class EventService {
         Event event = getOrganizationEvent(orgId, eventId);
         if (event.getPublished()) throw new ForbiddenException("Published event can't be deleted");
         eventRepository.delete(event);
+        searchService.deleteEvent(eventId);
         log.debug("Successfully deleted event with ID: {}", eventId);
     }
 
