@@ -45,12 +45,20 @@ public class FeedsController {
                 .toList();
     }
 
-    public record BasicEventInfo(long id, String name, String bannerUrl, Instant dateTime, String venue, Long minimumTicketPrice) {
-
+    public record BasicEventInfo(
+            long id,
+            String name,
+            boolean isOnlineEvent,
+            String bannerUrl,
+            Instant dateTime,
+            String venue,
+            Long minimumTicketPrice
+    ) {
         public BasicEventInfo(StorageService storageService, Event event, Long minimumTicketPrice) {
             this(
                     event.getId(),
                     event.getName(),
+                    event.isOnlineEvent(),
                     storageService.generatePresignedUrl(event.getBannerKey()),
                     event.getDateTime(),
                     event.getVenue(),

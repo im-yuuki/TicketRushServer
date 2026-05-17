@@ -195,7 +195,8 @@ public class OrganizationController {
             String bannerUrl,
             Instant dateTime,
             String venue,
-            Long minimumTicketPrice
+            Long minimumTicketPrice,
+            boolean published
     ) {
         public BasicEventInfo(StorageService storageService, Event event, Long minimumTicketPrice) {
             this(
@@ -204,7 +205,8 @@ public class OrganizationController {
                     storageService.generatePresignedUrl(event.getBannerKey()),
                     event.getDateTime(),
                     event.getVenue(),
-                    minimumTicketPrice
+                    minimumTicketPrice,
+                    event.getPublished()
             );
         }
     }
