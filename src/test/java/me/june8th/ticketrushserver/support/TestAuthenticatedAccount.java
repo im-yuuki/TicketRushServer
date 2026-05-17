@@ -9,7 +9,7 @@ import me.june8th.ticketrushserver.data.EventStaffAccount;
 import me.june8th.ticketrushserver.data.OrganizationAccount;
 import me.june8th.ticketrushserver.data.UserAccount;
 import me.june8th.ticketrushserver.security.AccessTokenProvider;
-import me.june8th.ticketrushserver.types.AccessTokenData;
+import me.june8th.ticketrushserver.security.AccessTokenData;
 import me.june8th.ticketrushserver.types.Gender;
 import me.june8th.ticketrushserver.types.Role;
 import me.june8th.ticketrushserver.utils.CookieUtils;

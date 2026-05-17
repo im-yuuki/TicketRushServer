@@ -1,4 +1,4 @@
-package me.june8th.ticketrushserver.data;
+package me.june8th.ticketrushserver.contents;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

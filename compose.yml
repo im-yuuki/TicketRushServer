@@ -4,6 +4,7 @@ services:
       context: .
       dockerfile: dockerfile
     image: ghcr.io/im-yuuki/ticketrushserver:master
+    container_name: ticketrushserver-prod
     ports:
       - "8080:8080/tcp"
     environment:
@@ -24,6 +25,7 @@ services:
 
   postgres:
     image: postgres:latest
+    container_name: ticketrushserver-postgres
     environment:
       - POSTGRES_DB=ticketrush
       - POSTGRES_USER=ticketrush
@@ -39,6 +41,7 @@ services:
 
   redis:
     image: redis:latest
+    container_name: ticketrushserver-redis
     ports:
       - target: 6379
         published: 6379
@@ -48,6 +51,7 @@ services:
 
   elasticsearch:
     image: elasticsearch:9.3.4
+    container_name: ticketrushserver-elasticsearch
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false

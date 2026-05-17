@@ -3,10 +3,10 @@ package me.june8th.ticketrushserver.services;
 import lombok.RequiredArgsConstructor;
 import me.june8th.ticketrushserver.data.Event;
 import me.june8th.ticketrushserver.data.UserAccount;
-import me.june8th.ticketrushserver.repositories.EventRepository;
-import me.june8th.ticketrushserver.repositories.FollowRepository;
-import me.june8th.ticketrushserver.repositories.TicketRepository;
-import me.june8th.ticketrushserver.repositories.UserRepository;
+import me.june8th.ticketrushserver.database.EventRepository;
+import me.june8th.ticketrushserver.database.FollowRepository;
+import me.june8th.ticketrushserver.database.TicketRepository;
+import me.june8th.ticketrushserver.database.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

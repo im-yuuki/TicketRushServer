@@ -1,6 +1,5 @@
 package me.june8th.ticketrushserver.security;
 
-import me.june8th.ticketrushserver.types.AccessTokenData;
 import me.june8th.ticketrushserver.types.Role;
 import org.junit.jupiter.api.Test;
 

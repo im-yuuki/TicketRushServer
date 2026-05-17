@@ -5,13 +5,13 @@ import lombok.extern.slf4j.Slf4j;
 import me.june8th.ticketrushserver.data.*;
 import me.june8th.ticketrushserver.temp.RegisterRequest;
 import me.june8th.ticketrushserver.temp.ResetPasswordRequest;
-import me.june8th.ticketrushserver.repositories.AccountRepository;
+import me.june8th.ticketrushserver.database.AccountRepository;
 import me.june8th.ticketrushserver.temp.RegisterRequestRepository;
 import me.june8th.ticketrushserver.temp.ResetPasswordRequestRepository;
-import me.june8th.ticketrushserver.repositories.UserRepository;
-import me.june8th.ticketrushserver.repositories.OrganizationAccountRepository;
-import me.june8th.ticketrushserver.repositories.FollowRepository;
-import me.june8th.ticketrushserver.types.AccessTokenData;
+import me.june8th.ticketrushserver.database.UserRepository;
+import me.june8th.ticketrushserver.database.OrganizationAccountRepository;
+import me.june8th.ticketrushserver.database.FollowRepository;
+import me.june8th.ticketrushserver.security.AccessTokenData;
 import me.june8th.ticketrushserver.security.AccessTokenProvider;
 import me.june8th.ticketrushserver.types.*;
 import me.june8th.ticketrushserver.utils.RandomGenerator;
@@ -24,7 +24,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Date;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -576,6 +578,19 @@ public class AccountService {
             case null -> throw new InvalidStateException("Content-Type is missing");
             default -> throw new InvalidStateException("Unsupported image type");
         };
+    }
+
+    public Collection<OrganizationAccount> getFollowedOrganizations(long id) {
+        UserAccount user = getUserAccount(id);
+        return followRepository.findAllByFollowerOrderByAtDescIdDesc(user).stream()
+                .map(Follow::getOrganization)
+                .toList();
+    }
+
+    public boolean isFollowingOrganization(long userId, Long id) {
+        UserAccount user = getUserAccount(userId);
+        OrganizationAccount organization = getPublicOrganizationById(id);
+        return followRepository.existsByFollowerAndOrganization(user, organization);
     }
 
 }

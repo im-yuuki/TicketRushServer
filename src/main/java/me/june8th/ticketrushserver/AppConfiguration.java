@@ -1,9 +1,10 @@
 package me.june8th.ticketrushserver;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.june8th.ticketrushserver.security.AuthenticationFilter;
-import jakarta.servlet.http.HttpServletResponse;
+import me.june8th.ticketrushserver.services.StorageService;
 import me.june8th.ticketrushserver.types.Role;
 import me.june8th.ticketrushserver.utils.ClientIPResolver;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,6 +12,8 @@ import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.elasticsearch.repository.config.EnableElasticsearchRepositories;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -20,8 +23,8 @@ import org.springframework.data.redis.repository.configuration.EnableRedisReposi
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -42,13 +45,13 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.Map;
 
-import me.june8th.ticketrushserver.services.StorageService;
-
 @Slf4j
 @Configuration
 @EnableScheduling
 @EnableCaching
 @EnableWebSecurity
+@EnableJpaRepositories(basePackages = "me.june8th.ticketrushserver.database")
+@EnableElasticsearchRepositories(basePackages = "me.june8th.ticketrushserver.contents")
 @EnableRedisRepositories(
         basePackages = "me.june8th.ticketrushserver.temp",
         enableKeyspaceEvents = RedisKeyValueAdapter.EnableKeyspaceEvents.ON_STARTUP

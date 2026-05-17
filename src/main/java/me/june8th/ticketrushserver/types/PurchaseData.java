@@ -27,13 +27,6 @@ public final class PurchaseData {
 
     public record SeatRowView(long id, int index, String label, List<SeatView> seats) {}
 
-    public enum SeatAvailability {
-        AVAILABLE,
-        SOLD,
-        HELD_BY_ME,
-        HELD
-    }
-
     public record SeatView(long id, int index, int number, SeatAvailability availability) {}
 
     public record SeatStatusCollectionView(long eventId, List<SeatZoneView> seatZones, ActiveHoldView myActiveHold) {}

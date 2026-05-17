@@ -3,7 +3,7 @@ package me.june8th.ticketrushserver.services;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.june8th.ticketrushserver.data.*;
-import me.june8th.ticketrushserver.repositories.*;
+import me.june8th.ticketrushserver.database.*;
 import me.june8th.ticketrushserver.types.*;
 import me.june8th.ticketrushserver.utils.RandomGenerator;
 import me.june8th.ticketrushserver.utils.Validator;

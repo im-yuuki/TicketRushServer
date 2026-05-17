@@ -1,4 +1,4 @@
-package me.june8th.ticketrushserver.repositories;
+package me.june8th.ticketrushserver.database;
 
 import jakarta.persistence.LockModeType;
 import me.june8th.ticketrushserver.data.Seat;

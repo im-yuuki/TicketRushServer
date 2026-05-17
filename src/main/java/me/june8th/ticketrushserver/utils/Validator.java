@@ -1,7 +1,7 @@
 package me.june8th.ticketrushserver.utils;
 
 import lombok.Getter;
-import me.june8th.ticketrushserver.types.ValidateError;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -41,6 +41,15 @@ public class Validator {
         String trimmedName = name.trim();
         if (trimmedName.length() < 3) error = ValidateError.NAME_TOO_SHORT;
         else if (trimmedName.length() > 50) error = ValidateError.NAME_TOO_LONG;
+        return this;
+    }
+
+    public Validator validateAlias(String alias) {
+        if (internalCommonBreakMethod(alias)) return this;
+        String trimmedAlias = alias.trim();
+        if (trimmedAlias.length() < 3) error = ValidateError.ALIAS_TOO_SHORT;
+        else if (trimmedAlias.length() > 30) error = ValidateError.ALIAS_TOO_LONG;
+        else if (!trimmedAlias.matches("^[a-zA-Z][a-zA-Z0-9_.-]*$")) error = ValidateError.ALIAS_INVALID;
         return this;
     }
 
@@ -195,6 +204,43 @@ public class Validator {
         if (error != ValidateError.NONE) {
             throw new IllegalArgumentException(error.getMessage());
         }
+    }
+
+    @RequiredArgsConstructor
+    public enum ValidateError {
+
+        NAME_TOO_SHORT("name_too_short", "Name is too short"),
+        NAME_TOO_LONG("name_too_long", "Name is too long"),
+        ALIAS_TOO_SHORT("alias_too_short", "Alias is too short"),
+        ALIAS_TOO_LONG("alias_too_long", "Alias is too long"),
+        ALIAS_INVALID("alias_invalid", "Alias must start with a letter, can only contain letters, digits, dots, underscores, and hyphens"),
+        EMAIL_INVALID("email_invalid", "Invalid email format"),
+        PASSWORD_TOO_SHORT("password_too_short", "Password is too short"),
+        PASSWORD_MISSING_CASES("password_missing_cases", "Password must contain at least one uppercase letter, one lowercase letter, and one digit"),
+        BIRTHDATE_INVALID("birthdate_invalid", "Invalid birth date"),
+        DATE_NOT_IN_PAST("date_not_in_past", "Date must be in the past"),
+        DATE_NOT_IN_FUTURE("date_not_in_future", "Date must be in the future"),
+        REQUESTKEY_INVALID("requestkey_invalid", "Invalid request key"),
+        OTPCODE_INVALID("otpcode_invalid", "Invalid OTP code"),
+        PHONENUMBER_INVALID("phonenumber_invalid", "Invalid phone number format"),
+        NUMBER_NEGATIVE("number_negative", "Number must be non-negative"),
+        IMAGE_INVALID("image_invalid", "Invalid image file"),
+        URI_INVALID("uri_invalid", "Invalid URI format"),
+
+        MISSING_REQUIRED_FIELD("missing_required_field", "Missing required field"),
+        NONE("none", "");
+
+        @Getter
+        private final String value;
+
+        @Getter
+        private final String message;
+
+        @Override
+        public String toString() {
+            return value;
+        }
+
     }
 
 }

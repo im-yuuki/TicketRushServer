@@ -39,6 +39,9 @@ spring:
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PWD:}
       database: ${REDIS_DB:0}
+    elasticsearch:
+      repositories:
+        enabled: false
   elasticsearch:
     uris: ${ES_URIS:http://localhost:9200}
     api-key: ${ES_API_KEY:}
@@ -95,4 +98,4 @@ spring:
       on-profile: production
 logging:
   level:
-    root: info
+    me.june8th.ticketrushserver: info

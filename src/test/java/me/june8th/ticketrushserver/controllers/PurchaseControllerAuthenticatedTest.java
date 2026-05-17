@@ -4,6 +4,7 @@ import me.june8th.ticketrushserver.services.PurchaseService;
 import me.june8th.ticketrushserver.support.AuthenticatedRequestSupport;
 import me.june8th.ticketrushserver.support.TestAuthenticatedAccount;
 import me.june8th.ticketrushserver.types.PurchaseData;
+import me.june8th.ticketrushserver.types.SeatAvailability;
 import me.june8th.ticketrushserver.utils.ClientIPResolver;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
@@ -92,8 +93,8 @@ class PurchaseControllerAuthenticatedTest {
                                                 0,
                                                 "A",
                                                 List.of(
-                                                        new PurchaseData.SeatView(101L, 0, 1, PurchaseData.SeatAvailability.AVAILABLE),
-                                                        new PurchaseData.SeatView(102L, 1, 2, PurchaseData.SeatAvailability.HELD)
+                                                        new PurchaseData.SeatView(101L, 0, 1, SeatAvailability.AVAILABLE),
+                                                        new PurchaseData.SeatView(102L, 1, 2, SeatAvailability.HELD)
                                                 )
                                         )
                                 )
@@ -102,7 +103,7 @@ class PurchaseControllerAuthenticatedTest {
                 null
         ));
 
-        mockMvc.perform(get("/purchase/event/55/seats/status")
+        mockMvc.perform(get("/purchase/event/55/seats")
                         .with(testAccount.requestPostProcessor()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.eventId").value(55))

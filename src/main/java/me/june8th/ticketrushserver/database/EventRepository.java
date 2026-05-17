@@ -1,4 +1,4 @@
-package me.june8th.ticketrushserver.repositories;
+package me.june8th.ticketrushserver.database;
 
 import me.june8th.ticketrushserver.data.Event;
 import me.june8th.ticketrushserver.data.OrganizationAccount;

@@ -1,6 +1,5 @@
 package me.june8th.ticketrushserver.utils;
 
-import me.june8th.ticketrushserver.types.ValidateError;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockMultipartFile;
 
@@ -23,21 +22,21 @@ class ValidatorTest {
     void validateName_shouldRejectShortName() {
         Validator validator = Validator.create().validateName("Al");
 
-        assertEquals(ValidateError.NAME_TOO_SHORT, validator.getError());
+        assertEquals(Validator.ValidateError.NAME_TOO_SHORT, validator.getError());
     }
 
     @Test
     void validateEmail_shouldRejectInvalidEmailFormat() {
         Validator validator = Validator.create().validateEmail("alice-at-example.com");
 
-        assertEquals(ValidateError.EMAIL_INVALID, validator.getError());
+        assertEquals(Validator.ValidateError.EMAIL_INVALID, validator.getError());
     }
 
     @Test
     void validatePassword_shouldRejectPasswordWithoutDigit() {
         Validator validator = Validator.create().validatePassword("Password");
 
-        assertEquals(ValidateError.PASSWORD_MISSING_CASES, validator.getError());
+        assertEquals(Validator.ValidateError.PASSWORD_MISSING_CASES, validator.getError());
     }
 
     @Test
@@ -55,21 +54,21 @@ class ValidatorTest {
         Date invalidBirthDate = new Date(now - (10L * 365 * 24 * 60 * 60 * 1000));
         Validator validator = Validator.create().validateBirthDate(invalidBirthDate);
 
-        assertEquals(ValidateError.BIRTHDATE_INVALID, validator.getError());
+        assertEquals(Validator.ValidateError.BIRTHDATE_INVALID, validator.getError());
     }
 
     @Test
     void validateOtpCode_shouldRejectNonNumericCode() {
         Validator validator = Validator.create().validateOtpCode("12AB56");
 
-        assertEquals(ValidateError.OTPCODE_INVALID, validator.getError());
+        assertEquals(Validator.ValidateError.OTPCODE_INVALID, validator.getError());
     }
 
     @Test
     void validateRequestKey_shouldRejectWrongLength() {
         Validator validator = Validator.create().validateRequestKey("short-key");
 
-        assertEquals(ValidateError.REQUESTKEY_INVALID, validator.getError());
+        assertEquals(Validator.ValidateError.REQUESTKEY_INVALID, validator.getError());
     }
 
     @Test
@@ -97,7 +96,7 @@ class ValidatorTest {
 
         Validator validator = Validator.create().validateImageFile(file, 2 * 1024 * 1024);
 
-        assertEquals(ValidateError.IMAGE_INVALID, validator.getError());
+        assertEquals(Validator.ValidateError.IMAGE_INVALID, validator.getError());
     }
 
     @Test
@@ -107,7 +106,7 @@ class ValidatorTest {
                 () -> Validator.create().validatePassword("short").throwExceptionIfInvalid()
         );
 
-        assertEquals(ValidateError.PASSWORD_TOO_SHORT.getMessage(), exception.getMessage());
+        assertEquals(Validator.ValidateError.PASSWORD_TOO_SHORT.getMessage(), exception.getMessage());
     }
 
 }

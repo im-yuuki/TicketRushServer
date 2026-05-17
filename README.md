@@ -5,4 +5,4 @@
 - Java 25 or higher
 - PostgreSQL
 - Redis
-- ~~Elasticsearch~~
+- Elasticsearch
