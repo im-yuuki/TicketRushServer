@@ -20,10 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -53,7 +50,7 @@ public class SearchService {
         String normalizedQuery = query == null ? "" : query.trim();
         if (normalizedQuery.isBlank()) return List.of();
 
-        int normalizedLimit = Math.min(Math.max(limit, 1), MAX_LIMIT);
+        int normalizedLimit = Math.clamp(limit, 1, MAX_LIMIT);
         Instant now = Instant.now();
         StringQuery searchQuery = new StringQuery(buildSearchQuery(normalizedQuery, now));
         searchQuery.setPageable(PageRequest.of(0, normalizedLimit));
@@ -136,7 +133,7 @@ public class SearchService {
 
         return hits.stream()
                 .map(hit -> toSearchResult(hit, events, organizations))
-                .filter(result -> result != null)
+                .filter(Objects::nonNull)
                 .toList();
     }
 
