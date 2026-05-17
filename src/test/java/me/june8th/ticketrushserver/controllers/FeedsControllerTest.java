@@ -2,6 +2,7 @@ package me.june8th.ticketrushserver.controllers;
 
 import me.june8th.ticketrushserver.data.Event;
 import me.june8th.ticketrushserver.data.OrganizationAccount;
+import me.june8th.ticketrushserver.services.EventService;
 import me.june8th.ticketrushserver.services.FeedService;
 import me.june8th.ticketrushserver.services.StorageService;
 import me.june8th.ticketrushserver.support.TestAuthenticatedAccount;
@@ -20,6 +21,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -37,13 +39,16 @@ class FeedsControllerTest {
     private StorageService storageService;
 
     @Mock
+    private EventService eventService;
+
+    @Mock
     private ClientIPResolver clientIPResolver;
 
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(new FeedsController(feedService, storageService))
+        mockMvc = MockMvcBuilders.standaloneSetup(new FeedsController(feedService, storageService, eventService))
                 .setControllerAdvice(new ErrorHandler(clientIPResolver))
                 .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
                 .build();
@@ -58,13 +63,15 @@ class FeedsControllerTest {
     void promoted_shouldReturnFeedItems() throws Exception {
         Event event = createEvent(1L, "Promoted Event");
         when(feedService.getPromotedEvents()).thenReturn(List.of(event));
+        when(eventService.getMinimumTicketPrices(List.of(event))).thenReturn(Map.of(1L, 120000L));
         when(storageService.generatePresignedUrl("events/1.png")).thenReturn("https://cdn.example.com/events/1.png");
 
         mockMvc.perform(get("/feeds/promoted"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(1))
                 .andExpect(jsonPath("$[0].name").value("Promoted Event"))
-                .andExpect(jsonPath("$[0].imageUrl").value("https://cdn.example.com/events/1.png"));
+                .andExpect(jsonPath("$[0].bannerUrl").value("https://cdn.example.com/events/1.png"))
+                .andExpect(jsonPath("$[0].minimumTicketPrice").value(120000));
 
         verify(feedService).getPromotedEvents();
     }
@@ -73,12 +80,14 @@ class FeedsControllerTest {
     void trending_shouldReturnFeedItems() throws Exception {
         Event event = createEvent(2L, "Trending Event");
         when(feedService.getTrendingEvents()).thenReturn(List.of(event));
+        when(eventService.getMinimumTicketPrices(List.of(event))).thenReturn(Map.of(2L, 90000L));
         when(storageService.generatePresignedUrl("events/2.png")).thenReturn("https://cdn.example.com/events/2.png");
 
         mockMvc.perform(get("/feeds/trending"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(2))
-                .andExpect(jsonPath("$[0].name").value("Trending Event"));
+                .andExpect(jsonPath("$[0].name").value("Trending Event"))
+                .andExpect(jsonPath("$[0].minimumTicketPrice").value(90000));
 
         verify(feedService).getTrendingEvents();
     }
@@ -87,11 +96,13 @@ class FeedsControllerTest {
     void recommendeds_shouldSupportAnonymousRequests() throws Exception {
         Event event = createEvent(3L, "Recommended Event");
         when(feedService.getRecommendedEvents(null)).thenReturn(List.of(event));
+        when(eventService.getMinimumTicketPrices(List.of(event))).thenReturn(Map.of(3L, 70000L));
         when(storageService.generatePresignedUrl("events/3.png")).thenReturn("https://cdn.example.com/events/3.png");
 
         mockMvc.perform(get("/feeds/recommendeds"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(3));
+                .andExpect(jsonPath("$[0].id").value(3))
+                .andExpect(jsonPath("$[0].minimumTicketPrice").value(70000));
 
         verify(feedService).getRecommendedEvents(null);
     }
@@ -109,11 +120,13 @@ class FeedsControllerTest {
         Event event = createEvent(4L, "Personalized Event");
 
         when(feedService.getRecommendedEvents(42L)).thenReturn(List.of(event));
+        when(eventService.getMinimumTicketPrices(List.of(event))).thenReturn(Map.of(4L, 50000L));
         when(storageService.generatePresignedUrl("events/4.png")).thenReturn("https://cdn.example.com/events/4.png");
 
         mockMvc.perform(get("/feeds/recommendeds").with(account.requestPostProcessor()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(4));
+                .andExpect(jsonPath("$[0].id").value(4))
+                .andExpect(jsonPath("$[0].minimumTicketPrice").value(50000));
 
         verify(feedService).getRecommendedEvents(42L);
     }

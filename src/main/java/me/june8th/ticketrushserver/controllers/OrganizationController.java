@@ -59,9 +59,11 @@ public class OrganizationController {
 
     @GetMapping("/events")
     public ResponseEntity<Collection<BasicEventInfo>> getEvents(@AuthenticationPrincipal long id) {
+        var events = eventService.getAllOrganizationEvents(id);
+        var minimumTicketPrices = eventService.getMinimumTicketPrices(events);
         return ResponseEntity.ok(
-                eventService.getAllOrganizationEvents(id).stream()
-                .map(event -> new BasicEventInfo(storageService, event))
+                events.stream()
+                .map(event -> new BasicEventInfo(storageService, event, minimumTicketPrices.get(event.getId())))
                 .toList()
         );
     }
@@ -192,15 +194,17 @@ public class OrganizationController {
             String name,
             String bannerUrl,
             Instant dateTime,
-            String venue
+            String venue,
+            Long minimumTicketPrice
     ) {
-        public BasicEventInfo(StorageService storageService, Event event) {
+        public BasicEventInfo(StorageService storageService, Event event, Long minimumTicketPrice) {
             this(
                     event.getId(),
                     event.getName(),
                     storageService.generatePresignedUrl(event.getBannerKey()),
                     event.getDateTime(),
-                    event.getVenue()
+                    event.getVenue(),
+                    minimumTicketPrice
             );
         }
     }

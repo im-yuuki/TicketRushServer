@@ -1106,6 +1106,10 @@ components:
         venue:
           type: "string"
           nullable: true
+        minimumTicketPrice:
+          type: "integer"
+          format: "int64"
+          nullable: true
     PublicOrganizationInfo:
       type: "object"
       properties:
