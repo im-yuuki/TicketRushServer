@@ -13,11 +13,13 @@ services:
       - PGSQL_PWD=ticketrush
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - ELASTICSEARCH_URIS=http://elasticsearch:9200
     env_file:
       - compose.env
     depends_on:
       - postgres
       - redis
+      - elasticsearch
     restart: unless-stopped
 
   postgres:
@@ -26,42 +28,42 @@ services:
       - POSTGRES_DB=ticketrush
       - POSTGRES_USER=ticketrush
       - POSTGRES_PASSWORD=ticketrush
-#    ports:
-#      - target: 5432
-#        published: 5432
-#        protocol: tcp
-#        mode: host
+    ports:
+      - target: 5432
+        published: 5432
+        protocol: tcp
+        mode: host
     volumes:
       - pgdata:/var/lib/
     restart: unless-stopped
 
   redis:
     image: redis:latest
-#    ports:
-#      - target: 6379
-#        published: 6379
-#        protocol: tcp
-#        mode: host
+    ports:
+      - target: 6379
+        published: 6379
+        protocol: tcp
+        mode: host
     restart: unless-stopped
 
-#  elasticsearch:
-#    image: elasticsearch:9.3.4
-#    environment:
-#      - discovery.type=single-node
-#      - xpack.security.enabled=false
-#      - xpack.monitoring.collection.enabled=true
-#    ports:
-#      - target: 9200
-#        published: 9200
-#        protocol: tcp
-#        mode: host
-#    volumes:
-#      - esdata:/usr/share/elasticsearch
-#    restart: unless-stopped
+  elasticsearch:
+    image: elasticsearch:9.3.4
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.monitoring.collection.enabled=true
+    ports:
+      - target: 9200
+        published: 9200
+        protocol: tcp
+        mode: host
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    restart: unless-stopped
 
 volumes:
   pgdata:
-#  esdata:
+  esdata:
 
 networks:
   default:

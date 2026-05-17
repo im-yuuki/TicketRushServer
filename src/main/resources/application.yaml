@@ -39,6 +39,8 @@ spring:
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PWD:}
       database: ${REDIS_DB:0}
+  elasticsearch:
+    uris: ${ELASTICSEARCH_URIS:http://localhost:9200}
   jpa:
     hibernate:
       ddl-auto: update

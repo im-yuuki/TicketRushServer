@@ -161,6 +161,32 @@ paths:
                 type: "array"
                 items:
                   $ref: "#/components/schemas/BasicEventInfo"
+  /v1/feeds/search:
+    get:
+      summary: "GET v1/feeds/search"
+      operationId: "search"
+      parameters:
+        - name: "q"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+        - name: "limit"
+          in: "query"
+          required: false
+          schema:
+            type: "integer"
+            format: "int32"
+            default: 20
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/SearchResult"
   /v1/public/alias/{alias}:
     get:
       summary: "GET v1/public/alias/{alias}"
@@ -1105,6 +1131,34 @@ components:
           $ref: "#/components/schemas/Instant"
         venue:
           type: "string"
+          nullable: true
+    SearchResult:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          format: "int64"
+          nullable: true
+        type:
+          type: "string"
+          nullable: true
+          enum:
+            - "EVENT"
+            - "ORGANIZATION"
+        name:
+          type: "string"
+          nullable: true
+        bannerUrl:
+          type: "string"
+          nullable: true
+        venue:
+          type: "string"
+          nullable: true
+        avatarUrl:
+          type: "string"
+          nullable: true
+        verified:
+          type: "boolean"
           nullable: true
     PublicOrganizationInfo:
       type: "object"

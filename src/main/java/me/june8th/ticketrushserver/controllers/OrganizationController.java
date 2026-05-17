@@ -68,7 +68,7 @@ public class OrganizationController {
 
     @PostMapping("/events")
     public ResponseEntity<OperationResult> createEvent(@AuthenticationPrincipal long id, @RequestBody CreateEventPayload payload) {
-        Event event = eventService.createEvent(id, payload.name(), payload.venue(), payload.address(), payload.isOnlineEvent(), payload.dateTime());
+        Event event = eventService.createEvent(id, payload.name(), payload.description(), payload.venue(), payload.address(), payload.isOnlineEvent(), payload.dateTime());
         return ResponseEntity.ok(OperationResult.success("Event created successfully", event.getId()));
     }
 

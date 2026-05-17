@@ -41,6 +41,7 @@ public class AccountService {
     private final OrganizationAccountRepository organizationAccountRepository;
     private final FollowRepository followRepository;
     private final StorageService storageService;
+    private final SearchService searchService;
 
     /**
      * Create a new user registration request. This will create a new entry in the RegisterPayload table.
@@ -320,6 +321,9 @@ public class AccountService {
         );
         account.setName(newName);
         accountRepository.save(account);
+        if (account instanceof OrganizationAccount organization) {
+            searchService.indexOrganization(organization);
+        }
         log.debug("Successfully changed name for account ID: {} to {}", accountId, newName);
     }
 
@@ -423,6 +427,7 @@ public class AccountService {
                 .verified(false)
                 .build();
         OrganizationAccount savedOrganization = organizationAccountRepository.save(organization);
+        searchService.indexOrganization(savedOrganization);
         log.debug("Successfully created organization account {} ({})", savedOrganization.getId(), savedOrganization.getEmail());
         return savedOrganization;
     }
@@ -436,7 +441,8 @@ public class AccountService {
             throw new InvalidStateException("Organization is already verified");
         }
         organization.setVerified(true);
-        organizationAccountRepository.save(organization);
+        OrganizationAccount verifiedOrganization = organizationAccountRepository.save(organization);
+        searchService.indexOrganization(verifiedOrganization);
         log.debug("Successfully verified organization account {} ({})", organization.getId(), organization.getEmail());
     }
 
@@ -453,6 +459,7 @@ public class AccountService {
             }
         }
         OrganizationAccount updatedOrganization = organizationAccountRepository.save(organization);
+        searchService.indexOrganization(updatedOrganization);
         log.debug("Successfully updated information for organization account {} ({})", updatedOrganization.getId(), updatedOrganization.getEmail());
     }
 
