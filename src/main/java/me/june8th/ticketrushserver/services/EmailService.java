@@ -4,6 +4,10 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import me.june8th.ticketrushserver.data.Event;
+import me.june8th.ticketrushserver.data.Purchase;
+import me.june8th.ticketrushserver.data.Ticket;
+import me.june8th.ticketrushserver.data.UserAccount;
 import me.june8th.ticketrushserver.temp.RegisterRequest;
 import me.june8th.ticketrushserver.temp.ResetPasswordRequest;
 import me.june8th.ticketrushserver.temp.RegisterRequestRepository;
@@ -18,6 +22,10 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Locale;
 
 @Slf4j
 @Service
@@ -27,6 +35,8 @@ public class EmailService {
     private static final long RESEND_COOLDOWN = 90L;
     private static final String REGISTER_CONFIRMATION_SUBJECT = "Confirm your TicketRush registration";
     private static final String PASSWORD_RESET_SUBJECT = "Reset your TicketRush password";
+    private static final String TICKET_INFORMATION_SUBJECT = "Your TicketRush tickets";
+    private static final DateTimeFormatter EMAIL_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm 'UTC'").withZone(ZoneOffset.UTC);
 
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
@@ -126,6 +136,37 @@ public class EmailService {
     }
 
     @NullMarked
+    public void sendTicketInformationEmail(UserAccount user, Purchase purchase, List<Ticket> tickets) throws MessagingException {
+        if (tickets.isEmpty()) {
+            throw new IllegalArgumentException("Ticket information email requires at least one ticket");
+        }
+
+        String toAddress = user.getEmail();
+        String userName = user.getName();
+        Validator.create()
+                .validateEmail(toAddress)
+                .validateName(userName)
+                .throwExceptionIfInvalid();
+
+        Event event = tickets.getFirst().getTicketClass().getSalesRound().getEvent();
+
+        Context ctx = new Context();
+        ctx.setVariable("userName", userName);
+        ctx.setVariable("purchaseId", purchase.getId());
+        ctx.setVariable("purchaseAmount", formatAmount(purchase.getAmount()));
+        ctx.setVariable("purchaseAt", formatInstant(purchase.getAt()));
+        ctx.setVariable("eventName", event.getName());
+        ctx.setVariable("eventDateTime", formatInstant(event.getDateTime()));
+        ctx.setVariable("venue", event.getVenue());
+        ctx.setVariable("address", event.getAddress());
+        ctx.setVariable("tickets", tickets.stream().map(this::toTicketEmailItem).toList());
+        String emailContent = templateEngine.process("ticket_information_email", ctx);
+
+        log.debug("Sending ticket information email to {} for purchase {}", toAddress, purchase.getId());
+        sendHtmlEmail(toAddress, TICKET_INFORMATION_SUBJECT, emailContent);
+    }
+
+    @NullMarked
     private void sendHtmlEmail(String toAddress, String subject, String htmlContent) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -136,5 +177,39 @@ public class EmailService {
         mailSender.send(message);
     }
 
-}
+    private TicketEmailItem toTicketEmailItem(Ticket ticket) {
+        return new TicketEmailItem(
+                ticket.getId(),
+                ticket.getTicketClass().getName(),
+                ticket.getSeat().getSeatRow().getSeatZone().getName(),
+                ticket.getSeat().getSeatRow().getLabel(),
+                ticket.getSeat().getNumber(),
+                lastSecretCodeCharacters(ticket.getTicketSecretCode())
+        );
+    }
 
+    private String lastSecretCodeCharacters(String secretCode) {
+        if (secretCode == null || secretCode.length() <= 8) {
+            return secretCode;
+        }
+        return secretCode.substring(secretCode.length() - 8);
+    }
+
+    private String formatInstant(Instant instant) {
+        if (instant == null) {
+            return "N/A";
+        }
+        return EMAIL_DATE_FORMAT.format(instant);
+    }
+
+    private String formatAmount(Long amount) {
+        if (amount == null) {
+            return "N/A";
+        }
+        return String.format(Locale.US, "%,d VND", amount);
+    }
+
+    private record TicketEmailItem(long id, String ticketClassName, String seatZoneName, String seatRowLabel, int seatNumber, String secretCode) {
+    }
+
+}

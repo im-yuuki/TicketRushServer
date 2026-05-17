@@ -136,6 +136,7 @@ public class PurchaseService {
     private final TicketRepository ticketRepository;
     private final PurchaseRepository purchaseRepository;
     private final StringRedisTemplate stringRedisTemplate;
+    private final EmailService emailService;
     private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
     @Transactional(readOnly = true)
@@ -380,6 +381,7 @@ public class PurchaseService {
         seatRepository.saveAll(seats);
 
         scheduleHoldRelease(holdCart);
+        scheduleTicketInformationEmail(user, purchase, savedTickets);
         log.debug("Completed mock payment for hold {} as purchase {}", holdId, purchase.getId());
         return new CompletedPurchaseView(
                 purchase.getId(),
@@ -622,6 +624,30 @@ public class PurchaseService {
             @Override
             public void afterCommit() {
                 releaseHoldKeys(holdCart);
+            }
+        });
+    }
+
+    private void scheduleTicketInformationEmail(UserAccount user, Purchase purchase, List<Ticket> tickets) {
+        List<Ticket> emailTickets = List.copyOf(tickets);
+        Runnable sendEmail = () -> {
+            try {
+                emailService.sendTicketInformationEmail(user, purchase, emailTickets);
+            }
+            catch (Exception exception) {
+                log.warn("Failed to send ticket information email for purchase {}", purchase.getId(), exception);
+            }
+        };
+
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            sendEmail.run();
+            return;
+        }
+
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                sendEmail.run();
             }
         });
     }

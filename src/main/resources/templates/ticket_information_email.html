@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Your tickets</title>
+  <style type="text/css">
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@900&display=swap');
+  </style>
+</head>
+<body style="margin:0; padding:0; background-color:#f6f8fb; font-family:Arial, Helvetica, sans-serif; color:#1f2937;">
+<div style="max-width:640px; margin:0 auto; padding:32px 20px;">
+  <div style="text-align: center; margin: 24px 0;">
+    <th:block th:replace="~{logo}"></th:block>
+  </div>
+  <div style="background:#ffffff; border:1px solid #e5e7eb; border-radius:12px; padding:32px 24px; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+    <p style="margin:0 0 16px; font-size:18px; font-weight:700; line-height:1.5;">Hello <span th:text="${userName}">User</span>,</p>
+    <p style="margin:0 0 20px; font-size:15px; line-height:1.6; color:#4b5563;">
+      Your payment is complete. Here is your ticket information for <strong th:text="${eventName}">Event name</strong>.
+    </p>
+
+    <div style="margin:0 0 20px; padding:16px; border-radius:10px; background:#f9fafb; border:1px solid #e5e7eb;">
+      <p style="margin:0 0 8px; font-size:14px; color:#374151;"><strong>Purchase ID:</strong> <span th:text="${purchaseId}">100</span></p>
+      <p style="margin:0 0 8px; font-size:14px; color:#374151;"><strong>Paid at:</strong> <span th:text="${purchaseAt}">2026-05-18 10:00 UTC</span></p>
+      <p style="margin:0 0 8px; font-size:14px; color:#374151;"><strong>Total:</strong> <span th:text="${purchaseAmount}">100,000 VND</span></p>
+      <p style="margin:0 0 8px; font-size:14px; color:#374151;"><strong>Event time:</strong> <span th:text="${eventDateTime}">2026-06-15 12:00 UTC</span></p>
+      <p style="margin:0 0 8px; font-size:14px; color:#374151;"><strong>Venue:</strong> <span th:text="${venue}">Venue</span></p>
+      <p style="margin:0; font-size:14px; color:#374151;"><strong>Address:</strong> <span th:text="${address}">Address</span></p>
+    </div>
+
+    <table role="presentation" style="width:100%; border-collapse:collapse; border-spacing:0; margin:0 0 20px;">
+      <thead>
+      <tr>
+        <th align="left" style="padding:10px 8px; border-bottom:1px solid #e5e7eb; font-size:13px; color:#6b7280;">Ticket</th>
+        <th align="left" style="padding:10px 8px; border-bottom:1px solid #e5e7eb; font-size:13px; color:#6b7280;">Seat</th>
+        <th align="left" style="padding:10px 8px; border-bottom:1px solid #e5e7eb; font-size:13px; color:#6b7280;">Secret code suffix</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="ticket : ${tickets}">
+        <td style="padding:12px 8px; border-bottom:1px solid #f3f4f6; font-size:14px; color:#111827;">
+          <div style="font-weight:700;" th:text="${ticket.ticketClassName}">Standard</div>
+          <div style="font-size:12px; color:#6b7280;">ID <span th:text="${ticket.id}">1</span></div>
+        </td>
+        <td style="padding:12px 8px; border-bottom:1px solid #f3f4f6; font-size:14px; color:#111827;">
+          <span th:text="${ticket.seatZoneName}">Zone A</span>, row <span th:text="${ticket.seatRowLabel}">A</span>, seat <span th:text="${ticket.seatNumber}">1</span>
+        </td>
+        <td style="padding:12px 8px; border-bottom:1px solid #f3f4f6; font-size:14px; color:#92400e; font-weight:700; letter-spacing:1px;" th:text="${ticket.secretCode}">ABC123</td>
+      </tr>
+      </tbody>
+    </table>
+
+    <p style="margin:0 0 12px; font-size:14px; line-height:1.6; color:#6b7280;">
+      For check-in QR codes, please sign in with your account and go to
+      <a href="https://ticketrush.june8th.me/my-tickets" style="color:#92400e; font-weight:700; text-decoration:none;">https://ticketrush.june8th.me/my-tickets</a>.
+    </p>
+    <p style="margin:0; font-size:14px; line-height:1.6; color:#6b7280;">
+      Keep this email safe. Only the last 8 characters of each ticket secret code are shown here.
+    </p>
+  </div>
+</div>
+</body>
+</html>
